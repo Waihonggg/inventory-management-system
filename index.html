@@ -402,6 +402,7 @@
             <div class="tab" onclick="switchTab('new-products')">✨ New Products</div>
             <div class="tab" onclick="switchTab('to-clear')">🏷️ To Clear</div>
             <div class="tab" onclick="switchTab('master-list')">📋 Master List</div>
+            <div class="tab" onclick="switchTab('recycle-bin')">🗑️ Recycle Bin</div>
             <div class="tab" onclick="switchTab('management')">⚙️ Management</div>
         </div>
         
@@ -523,11 +524,29 @@
                     </tbody>
             </table>
         </div>
+
+        <div id="recycle-bin" class="tab-content">
+            <h2>Recycle Bin - Deleted Items</h2>
+            <p>Items moved here are soft-deleted and can be restored or permanently removed.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Brand</th>
+                        <th>Product</th>
+                        <th>Deleted Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recycle-bin-table">
+                    </tbody>
+            </table>
+        </div>
         
         <div id="management" class="tab-content">
             <div class="controls">
                 <button onclick="exportAllData()">📥 Export All Data</button>
-                <button onclick="loadSampleData()">📊 Load Sample Data</button>
+                <button onclick="confirmLoadSampleData()">📊 Load Sample Data (Firestore)</button>
             </div>
             
             <h3>System Information</h3>
@@ -733,800 +752,160 @@
         </div>
     </div>
 
-    <script>
-        // Data storage
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js"; // Optional, if you want analytics
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDo1-y0Vj4XTQeeEUQK_6Y2wqDs94TOAX0",
+            authDomain: "inventory-c3bac.firebaseapp.com",
+            projectId: "inventory-c3bac",
+            storageBucket: "inventory-c3bac.firebasestorage.app",
+            messagingSenderId: "261015083855",
+            appId: "1:261015083855:web:e167f359928eb8ed8cc33a",
+            measurementId: "G-V744486L78"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        // const analytics = getAnalytics(app); // Optional, if you want analytics
+
+        // Data storage (local copies, kept in sync with Firestore)
         let inventoryData = [];
         let newProductsData = [];
         let toClearData = [];
         let masterProductsData = [];
+        let recycleBinData = []; // To store items marked as deleted
 
         // Variable to hold the callback for the confirmation modal
         let confirmCallback = null;
 
-        // Initialize with sample data
-        function loadSampleData() {
-            inventoryData = [
-                { id: 1, brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", status: "OOS", expiry: "", shipment: "", remarks: "" },
-                { id: 2, brand: "Greenlife", product: "GL VIT C + ZINC", status: "OOS", expiry: "", shipment: "", remarks: "" },
-                { id: 3, brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", status: "Low stock", expiry: "", shipment: "", remarks: "" },
-                { id: 4, brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", status: "In Stock", expiry: "", shipment: "", remarks: "" }
-            ];
+        // Firestore Collection References
+        const inventoryCol = collection(db, 'inventory');
+        const newProductsCol = collection(db, 'new_products');
+        const toClearCol = collection(db, 'to_clear');
+        const masterProductsCol = collection(db, 'master_products');
 
-            newProductsData = [
-                { id: 1, brand: "Greenlife", product: "GL SUPER PROBIOTIC", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula" },
-                { id: 2, brand: "NN", product: "NORDIC OMEGA FOCUS", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support" }
-            ];
+        // Initial sample data (to be added only if collections are empty)
+        const initialSampleData = {
+            inventory: [
+                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "Greenlife", product: "GL VIT C + ZINC", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", status: "In Stock", expiry: "", shipment: "", remarks: "", isDeleted: false }
+            ],
+            new_products: [
+                { brand: "Greenlife", product: "GL SUPER PROBIOTIC", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula", isDeleted: false },
+                { brand: "NN", product: "NORDIC OMEGA FOCUS", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support", isDeleted: false }
+            ],
+            to_clear: [
+                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Short Expiry", expiryDate: "2024-03-15", totalQty: 24, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
+                { brand: "NN", product: "VITAMIN C GUMMIES", category: "Discontinued", expiryDate: "2024-12-10", totalQty: 18, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false }
+            ],
+            master_products: [
+                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL001", price: 18.50, isDeleted: false },
+                { brand: "Greenlife", product: "GL VIT C + ZINC", category: "Vitamins", description: "Immune support", sku: "GL002", price: 15.99, isDeleted: false },
+                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", category: "Vitamins", description: "Kids vitamin C", sku: "NN001", price: 12.50, isDeleted: false },
+                { brand: "NN", product: "NORDIC OMEGA FOCUS", category: "Vitamins", description: "Brain health", sku: "NN002", price: 25.00, isDeleted: false },
+                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", category: "Vitamins", description: "Multivitamin", sku: "NP001", price: 30.00, isDeleted: false },
+                { brand: "ENZYMEDICA", product: "DIGEST GOLD", category: "Digestive Health", description: "Digestive enzymes", sku: "EZ001", price: 40.00, isDeleted: false },
+                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", category: "Digestive Health", description: "Enzymes and probiotics", sku: "EZ002", price: 35.00, isDeleted: false },
+                { brand: "Greenlife", product: "GL SUPER PROBIOTIC", category: "Probiotics", description: "Advanced probiotic formula", sku: "GL003", price: 22.00, isDeleted: false },
+                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Vitamins", description: "Energy support", sku: "GL004", price: 10.00, isDeleted: false },
+                { brand: "NN", product: "VITAMIN C GUMMIES", category: "Vitamins", description: "Vitamin C chewables", sku: "NN003", price: 11.00, isDeleted: false }
+            ]
+        };
 
-            toClearData = [
-                { id: 1, brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Short Expiry", expiryDate: "2024-03-15", totalQty: 24, weeklyDemand: 3.5, actionPlan: "20% discount promotion" },
-                { id: 2, brand: "NN", product: "VITAMIN C GUMMIES", category: "Discontinued", expiryDate: "2024-12-10", totalQty: 18, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount" }
-            ];
-
-            masterProductsData = [
-                { id: 1, brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL001", price: 18.50 },
-                { id: 2, brand: "Greenlife", product: "GL VIT C + ZINC", category: "Vitamins", description: "Immune support", sku: "GL002", price: 15.99 },
-                { id: 3, brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", category: "Vitamins", description: "Kids vitamin C", sku: "NN001", price: 12.50 },
-                { id: 4, brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", category: "Digestive Health", description: "Digestive enzymes", sku: "ENZ001", price: 28.50 },
-                { id: 5, brand: "Greenlife", product: "GL SUPER PROBIOTIC", category: "Probiotics", description: "Advanced probiotic formula", sku: "GL003", price: 22.00 },
-                { id: 6, brand: "NN", product: "NORDIC OMEGA FOCUS", category: "Brain Health", description: "Omega-3 for cognitive support", sku: "NN002", price: 35.00 },
-                { id: 7, brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Vitamins", description: "B-vitamin complex for energy", sku: "GL004", price: 17.50 },
-                { id: 8, brand: "NN", product: "VITAMIN C GUMMIES", category: "Vitamins", description: "Chewable Vitamin C", sku: "NN003", price: 10.00 }
-            ];
-
-            updateAllTables();
-            showNotification('Sample data loaded successfully!');
-        }
-
-        // Tab switching
-        function switchTab(tabName) {
-            // Hide all tabs
-            const allTabs = document.querySelectorAll('.tab-content');
-            allTabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Remove active class from all tab buttons
-            const allTabButtons = document.querySelectorAll('.tab');
-            allTabButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to the corresponding tab button
-            const tabButtons = document.querySelectorAll('.tab');
-            tabButtons.forEach(btn => {
-                // Check if the tab button text contains the tabName (case-insensitive)
-                // This handles cases like 'new-products' matching 'New Products'
-                if (btn.textContent.toLowerCase().includes(tabName.replace('-', ' '))) {
-                    btn.classList.add('active');
-                }
+        // --- Utility Functions ---
+        async function fetchDataFromFirestore(collectionRef, includeDeleted = false) {
+            let data = [];
+            let q = collectionRef;
+            if (!includeDeleted) {
+                q = query(collectionRef, where("isDeleted", "==", false));
+            }
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                data.push({ id: doc.id, ...doc.data() });
             });
-            
-            // Update data when switching tabs
-            updateAllTables();
+            return data;
         }
 
-        // Show filtered inventory from dashboard
-        function showFilteredInventory(status) {
-            // Switch to inventory tab
-            switchTab('inventory');
-            
-            // Filter and display the inventory
-            const tbody = document.getElementById('inventory-table');
-            tbody.innerHTML = '';
-            
-            const filtered = inventoryData.filter(item => item.status === status);
-            
-            filtered.forEach(item => {
-                const row = tbody.insertRow();
-                let statusClass = '';
-                if (item.status === 'OOS') statusClass = 'oos';
-                else if (item.status.includes('Low')) statusClass = 'low';
-                else statusClass = 'normal';
+        async function updateLocalData() {
+            try {
+                inventoryData = await fetchDataFromFirestore(inventoryCol);
+                newProductsData = await fetchDataFromFirestore(newProductsCol);
+                toClearData = await fetchDataFromFirestore(toClearCol);
+                masterProductsData = await fetchDataFromFirestore(masterProductsCol);
+                recycleBinData = await fetchDataFromFirestore(inventoryCol, true).then(data => data.filter(item => item.isDeleted));
                 
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.expiry || 'N/A'}</td>
-                    <td>${item.shipment || 'TBD'}</td>
-                    <td>${item.remarks || '-'}</td>
-                    <td>
-                        <button onclick="editProduct(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        // Update all tables
-        function updateAllTables() {
-            updateInventoryTable();
-            updateNewProductsTable();
-            updateToClearTable();
-            updateMasterTable();
-            updateDashboard();
-        }
-
-        // Update inventory table
-        function updateInventoryTable() {
-            const tbody = document.getElementById('inventory-table');
-            tbody.innerHTML = '';
-            
-            inventoryData.forEach(item => {
-                const row = tbody.insertRow();
-                let statusClass = '';
-                if (item.status === 'OOS') statusClass = 'oos';
-                else if (item.status.includes('Low')) statusClass = 'low';
-                else statusClass = 'normal';
+                const newProdsDeleted = await fetchDataFromFirestore(newProductsCol, true).then(data => data.filter(item => item.isDeleted));
+                const toClearDeleted = await fetchDataFromFirestore(toClearCol, true).then(data => data.filter(item => item.isDeleted));
+                const masterDeleted = await fetchDataFromFirestore(masterProductsCol, true).then(data => data.filter(item => item.isDeleted));
                 
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.expiry || 'N/A'}</td>
-                    <td>${item.shipment || 'TBD'}</td>
-                    <td>${item.remarks || '-'}</td>
-                    <td>
-                        <button onclick="editProduct(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
-                    </td>
-                `;
+                recycleBinData = recycleBinData.concat(newProdsDeleted, toClearDeleted, masterDeleted);
+
+                updateAllTables();
+                updateDashboardStats();
+                updateAlerts();
+                updateManagementStats();
+            } catch (e) {
+                console.error("Error updating local data from Firestore: ", e);
+                showNotification("Error loading data from server.", "error");
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
             });
-        }
+            document.getElementById(tabId).classList.add('active');
 
-        // Update new products table
-        function updateNewProductsTable() {
-            const tbody = document.getElementById('new-products-table');
-            tbody.innerHTML = '';
-            
-            newProductsData.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td>${item.addedDate}</td>
-                    <td>${item.arrivalDate || 'TBD'}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.notes || '-'}</td>
-                    <td>
-                        <button onclick="editNewProduct(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteNewProduct(${item.id})">Delete</button>
-                    </td>
-                `;
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
             });
-        }
+            event.currentTarget.classList.add('active');
 
-        // Update to clear table
-        function updateToClearTable() {
-            const tbody = document.getElementById('to-clear-table');
-            tbody.innerHTML = '';
-            
-            toClearData.forEach(item => {
-                const row = tbody.insertRow();
-                let categoryClass = '';
-                if (item.category === 'Short Expiry') categoryClass = 'oos';
-                else if (item.category === 'Excess Stock') categoryClass = 'low';
-                else categoryClass = 'normal';
-                
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td><span class="status-badge ${categoryClass}">${item.category}</span></td>
-                    <td>${item.expiryDate}</td>
-                    <td>${item.totalQty}</td>
-                    <td>${item.weeklyDemand}</td>
-                    <td>${item.actionPlan}</td>
-                    <td>
-                        <button onclick="editToClear(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteToClear(${item.id})">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        // Update master table
-        function updateMasterTable() {
-            const tbody = document.getElementById('master-table');
-            tbody.innerHTML = '';
-            
-            masterProductsData.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td>${item.category}</td>
-                    <td>${item.description || '-'}</td>
-                    <td>${item.sku || '-'}</td>
-                    <td>$${item.price ? item.price.toFixed(2) : '0.00'}</td>
-                    <td>
-                        <button onclick="editMasterProduct(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteMasterProduct(${item.id})">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        // Update dashboard
-        function updateDashboard() {
-            const oosCount = inventoryData.filter(item => item.status === 'OOS').length;
-            const lowCount = inventoryData.filter(item => item.status.includes('Low')).length;
-            const inStockCount = inventoryData.filter(item => item.status === 'In Stock').length;
-            const newCount = newProductsData.length;
-            
-            document.getElementById('oos-count').textContent = oosCount;
-            document.getElementById('low-count').textContent = lowCount;
-            document.getElementById('in-stock-count').textContent = inStockCount;
-            document.getElementById('new-count').textContent = newCount;
-            
-            // Update alerts
-            const alertsDiv = document.getElementById('alerts');
-            let alertsHTML = '';
-            
-            if (oosCount > 0) {
-                alertsHTML += `<div style="padding: 10px; margin: 5px 0; background: #ffebee; border-left: 4px solid #e74c3c; border-radius: 5px;">
-                    🚨 ${oosCount} products are out of stock!</div>`;
-            }
-            if (lowCount > 0) {
-                alertsHTML += `<div style="padding: 10px; margin: 5px 0; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 5px;">
-                    ⚠️ ${lowCount} products are low in stock!</div>`;
-            }
-            if (alertsHTML === '') {
-                alertsHTML = '<p style="color: #2ecc71;">✅ No urgent alerts at this time</p>';
-            }
-            alertsDiv.innerHTML = alertsHTML;
-            
-            // Update last updated time
-            document.getElementById('last-updated').textContent = new Date().toLocaleString();
-            document.getElementById('total-products').textContent = inventoryData.length;
-        }
-
-        // Function to populate product dropdowns based on selected brand
-        function populateProductDropdown(brandSelectElement, productSelectElement, currentProductName = null) {
-            const selectedBrand = brandSelectElement.value;
-            productSelectElement.innerHTML = '<option value="">Select Product</option>'; // Clear and add default
-
-            if (selectedBrand) {
-                const filteredProducts = masterProductsData.filter(item => item.brand === selectedBrand);
-                // Sort products alphabetically for easier selection
-                filteredProducts.sort((a, b) => a.product.localeCompare(b.product));
-                
-                filteredProducts.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.product;
-                    option.textContent = product.product;
-                    productSelectElement.appendChild(option);
-                });
-            }
-
-            // If an existing product name is provided (for edit mode), select it
-            if (currentProductName) {
-                productSelectElement.value = currentProductName;
+            // Re-render tables when switching tabs to ensure latest data
+            if (tabId === 'inventory') {
+                updateInventoryTable(inventoryData);
+            } else if (tabId === 'new-products') {
+                updateNewProductsTable(newProductsData);
+            } else if (tabId === 'to-clear') {
+                updateToClearTable(toClearData);
+            } else if (tabId === 'master-list') {
+                updateMasterTable(masterProductsData);
+            } else if (tabId === 'recycle-bin') {
+                updateRecycleBinTable(recycleBinData);
             }
         }
 
-        // Modal functions
-        function showAddProductModal() {
-            document.getElementById('editProductId').value = '';
-            document.getElementById('productModalTitle').textContent = 'Add New Product';
-            document.getElementById('productModal').querySelector('form').reset();
-            document.getElementById('productModal').style.display = 'block';
-            
-            // Populate product dropdown based on initial brand selection (or default empty)
-            const brandSelect = document.getElementById('brand');
-            const productSelect = document.getElementById('productName');
-            populateProductDropdown(brandSelect, productSelect); 
-        }
-
-        function showAddNewProductModal() {
-            document.getElementById('editNewProductId').value = '';
-            document.getElementById('newProductModalTitle').textContent = 'Add New Product';
-            document.getElementById('newProductModal').querySelector('form').reset();
-            document.getElementById('newProductModal').style.display = 'block';
-
-            // Populate product dropdown based on initial brand selection (or default empty)
-            const brandSelect = document.getElementById('newBrand');
-            const productSelect = document.getElementById('newProductName');
-            populateProductDropdown(brandSelect, productSelect);
-        }
-
-        function showAddMasterProductModal() {
-            document.getElementById('editMasterProductId').value = '';
-            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
-            document.getElementById('masterProductModal').querySelector('form').reset();
-            document.getElementById('masterProductModal').style.display = 'block';
-        }
-
-        function showAddToClearModal() {
-            document.getElementById('editToClearId').value = '';
-            document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
-            document.getElementById('toClearModal').querySelector('form').reset();
-            document.getElementById('toClearModal').style.display = 'block';
-
-            // Populate product dropdown based on initial brand selection (or default empty)
-            const brandSelect = document.getElementById('toClearBrand');
-            const productSelect = document.getElementById('toClearProductName');
-            populateProductDropdown(brandSelect, productSelect);
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Save functions
-        function saveProduct(event) {
-            event.preventDefault();
-            
-            const editId = document.getElementById('editProductId').value;
-            
-            if (editId) {
-                // Edit existing product
-                const index = inventoryData.findIndex(item => item.id == editId);
-                if (index !== -1) {
-                    inventoryData[index] = {
-                        id: parseInt(editId),
-                        brand: document.getElementById('brand').value,
-                        product: document.getElementById('productName').value, // Value from select
-                        status: document.getElementById('status').value,
-                        expiry: document.getElementById('expiry').value,
-                        shipment: document.getElementById('shipment').value,
-                        remarks: document.getElementById('remarks').value
-                    };
-                }
-            } else {
-                // Add new product
-                const newProduct = {
-                    id: inventoryData.length > 0 ? Math.max(...inventoryData.map(item => item.id)) + 1 : 1, // Ensure unique ID
-                    brand: document.getElementById('brand').value,
-                    product: document.getElementById('productName').value, // Value from select
-                    status: document.getElementById('status').value,
-                    expiry: document.getElementById('expiry').value,
-                    shipment: document.getElementById('shipment').value,
-                    remarks: document.getElementById('remarks').value
-                };
-                inventoryData.push(newProduct);
-            }
-            
-            updateAllTables();
-            closeModal('productModal');
-            showNotification(editId ? 'Product updated successfully!' : 'Product added successfully!');
-            event.target.reset();
-        }
-
-        function saveNewProduct(event) {
-            event.preventDefault();
-            
-            const editId = document.getElementById('editNewProductId').value;
-            
-            if (editId) {
-                // Edit existing product
-                const index = newProductsData.findIndex(item => item.id == editId);
-                if (index !== -1) {
-                    newProductsData[index] = {
-                        id: parseInt(editId),
-                        brand: document.getElementById('newBrand').value,
-                        product: document.getElementById('newProductName').value, // Value from select
-                        quantity: document.getElementById('quantity').value,
-                        arrivalDate: document.getElementById('arrivalDate').value,
-                        notes: document.getElementById('notes').value,
-                        addedDate: newProductsData[index].addedDate
-                    };
-                }
-            } else {
-                // Add new product
-                const newProduct = {
-                    id: newProductsData.length > 0 ? Math.max(...newProductsData.map(item => item.id)) + 1 : 1, // Ensure unique ID
-                    brand: document.getElementById('newBrand').value,
-                    product: document.getElementById('newProductName').value, // Value from select
-                    quantity: document.getElementById('quantity').value,
-                    arrivalDate: document.getElementById('arrivalDate').value,
-                    notes: document.getElementById('notes').value,
-                    addedDate: new Date().toISOString().split('T')[0]
-                };
-                newProductsData.push(newProduct);
-            }
-            
-            updateAllTables();
-            closeModal('newProductModal');
-            showNotification(editId ? 'Product updated successfully!' : 'New product added successfully!');
-            event.target.reset();
-        }
-
-        function saveMasterProduct(event) {
-            event.preventDefault();
-            
-            const editId = document.getElementById('editMasterProductId').value;
-            
-            if (editId) {
-                // Edit existing product
-                const index = masterProductsData.findIndex(item => item.id == editId);
-                if (index !== -1) {
-                    masterProductsData[index] = {
-                        id: parseInt(editId),
-                        brand: document.getElementById('masterBrand').value,
-                        product: document.getElementById('masterProductName').value,
-                        category: document.getElementById('category').value,
-                        description: document.getElementById('description').value,
-                        sku: document.getElementById('sku').value,
-                        price: parseFloat(document.getElementById('price').value) || 0
-                    };
-                }
-            } else {
-                // Add new product
-                const newProduct = {
-                    id: masterProductsData.length > 0 ? Math.max(...masterProductsData.map(item => item.id)) + 1 : 1, // Ensure unique ID
-                    brand: document.getElementById('masterBrand').value,
-                    product: document.getElementById('masterProductName').value,
-                    category: document.getElementById('category').value,
-                    description: document.getElementById('description').value,
-                    sku: document.getElementById('sku').value,
-                    price: parseFloat(document.getElementById('price').value) || 0
-                };
-                masterProductsData.push(newProduct);
-            }
-            
-            updateAllTables();
-            closeModal('masterProductModal');
-            showNotification(editId ? 'Product updated successfully!' : 'Master product added successfully!');
-            event.target.reset();
-        }
-
-        function saveToClear(event) {
-            event.preventDefault();
-            
-            const editId = document.getElementById('editToClearId').value;
-            
-            if (editId) {
-                // Edit existing product
-                const index = toClearData.findIndex(item => item.id == editId);
-                if (index !== -1) {
-                    toClearData[index] = {
-                        id: parseInt(editId),
-                        brand: document.getElementById('toClearBrand').value,
-                        product: document.getElementById('toClearProductName').value, // Value from select
-                        category: document.getElementById('toClearCategory').value,
-                        expiryDate: document.getElementById('toClearExpiryDate').value,
-                        totalQty: parseInt(document.getElementById('toClearTotalQty').value),
-                        weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
-                        actionPlan: document.getElementById('toClearActionPlan').value
-                    };
-                }
-            } else {
-                // Add new product
-                const newProduct = {
-                    id: toClearData.length > 0 ? Math.max(...toClearData.map(item => item.id)) + 1 : 1, // Ensure unique ID
-                    brand: document.getElementById('toClearBrand').value,
-                    product: document.getElementById('toClearProductName').value, // Value from select
-                    category: document.getElementById('toClearCategory').value,
-                    expiryDate: document.getElementById('toClearExpiryDate').value,
-                    totalQty: parseInt(document.getElementById('toClearTotalQty').value),
-                    weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
-                    actionPlan: document.getElementById('toClearActionPlan').value
-                };
-                toClearData.push(newProduct);
-            }
-            
-            updateAllTables();
-            closeModal('toClearModal');
-            showNotification(editId ? 'Product updated successfully!' : 'Product added to clear list!');
-            event.target.reset();
-        }
-
-        // Custom Confirmation Modal Functions
+        // --- Confirmation Modal Logic ---
         function showConfirmModal(message, callback) {
             document.getElementById('confirmMessage').textContent = message;
             document.getElementById('confirmModal').style.display = 'block';
-            confirmCallback = callback; // Store the callback
+            confirmCallback = callback;
         }
 
         document.getElementById('confirmYes').onclick = function() {
-            closeModal('confirmModal');
             if (confirmCallback) {
-                confirmCallback(); // Execute the stored callback
-                confirmCallback = null; // Clear the callback
+                confirmCallback(true);
             }
+            closeModal('confirmModal');
         };
 
         document.getElementById('confirmNo').onclick = function() {
+            if (confirmCallback) {
+                confirmCallback(false);
+            }
             closeModal('confirmModal');
-            confirmCallback = null; // Clear the callback without executing
         };
 
-        // Delete functions using custom confirmation modal
-        function deleteProduct(id) {
-            showConfirmModal('Are you sure you want to delete this product?', () => {
-                inventoryData = inventoryData.filter(item => item.id !== id);
-                updateAllTables();
-                showNotification('Product deleted successfully!');
-            });
-        }
-
-        function deleteNewProduct(id) {
-            showConfirmModal('Are you sure you want to delete this new product entry?', () => {
-                newProductsData = newProductsData.filter(item => item.id !== id);
-                updateAllTables();
-                showNotification('Product deleted successfully!');
-            });
-        }
-
-        function deleteMasterProduct(id) {
-            showConfirmModal('Are you sure you want to delete this master product? This will affect product dropdowns!', () => {
-                masterProductsData = masterProductsData.filter(item => item.id !== id);
-                updateAllTables();
-                showNotification('Master product deleted successfully!');
-            });
-        }
-
-        function deleteToClear(id) {
-            showConfirmModal('Are you sure you want to delete this product from the clear list?', () => {
-                toClearData = toClearData.filter(item => item.id !== id);
-                updateAllTables();
-                showNotification('Product removed from clear list!');
-            });
-        }
-
-        // Edit functions
-        function editProduct(id) {
-            const product = inventoryData.find(item => item.id === id);
-            if (product) {
-                document.getElementById('editProductId').value = product.id;
-                document.getElementById('productModalTitle').textContent = 'Edit Product';
-                
-                const brandSelect = document.getElementById('brand');
-                const productSelect = document.getElementById('productName');
-
-                brandSelect.value = product.brand; // Set brand first
-                // Then populate product dropdown and select the product
-                populateProductDropdown(brandSelect, productSelect, product.product); 
-
-                document.getElementById('status').value = product.status;
-                document.getElementById('expiry').value = product.expiry || '';
-                document.getElementById('shipment').value = product.shipment || '';
-                document.getElementById('remarks').value = product.remarks || '';
-                document.getElementById('productModal').style.display = 'block';
-            }
-        }
-
-        function editNewProduct(id) {
-            const product = newProductsData.find(item => item.id === id);
-            if (product) {
-                document.getElementById('editNewProductId').value = product.id;
-                document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
-                
-                const brandSelect = document.getElementById('newBrand');
-                const productSelect = document.getElementById('newProductName');
-
-                brandSelect.value = product.brand; // Set brand first
-                // Then populate product dropdown and select the product
-                populateProductDropdown(brandSelect, productSelect, product.product); 
-
-                document.getElementById('quantity').value = product.quantity;
-                document.getElementById('arrivalDate').value = product.arrivalDate || '';
-                document.getElementById('notes').value = product.notes || '';
-                document.getElementById('newProductModal').style.display = 'block';
-            }
-        }
-
-        function editMasterProduct(id) {
-            const product = masterProductsData.find(item => item.id === id);
-            if (product) {
-                document.getElementById('editMasterProductId').value = product.id;
-                document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
-                document.getElementById('masterBrand').value = product.brand;
-                document.getElementById('masterProductName').value = product.product;
-                document.getElementById('category').value = product.category;
-                document.getElementById('description').value = product.description || '';
-                document.getElementById('sku').value = product.sku || '';
-                document.getElementById('price').value = product.price || '';
-                document.getElementById('masterProductModal').style.display = 'block';
-            }
-        }
-
-        function editToClear(id) {
-            const product = toClearData.find(item => item.id === id);
-            if (product) {
-                document.getElementById('editToClearId').value = product.id;
-                document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
-                
-                const brandSelect = document.getElementById('toClearBrand');
-                const productSelect = document.getElementById('toClearProductName');
-
-                brandSelect.value = product.brand; // Set brand first
-                // Then populate product dropdown and select the product
-                populateProductDropdown(brandSelect, productSelect, product.product); 
-
-                document.getElementById('toClearCategory').value = product.category;
-                document.getElementById('toClearExpiryDate').value = product.expiryDate;
-                document.getElementById('toClearTotalQty').value = product.totalQty;
-                document.getElementById('toClearWeeklyDemand').value = product.weeklyDemand;
-                document.getElementById('toClearActionPlan').value = product.actionPlan;
-                document.getElementById('toClearModal').style.display = 'block';
-            }
-        }
-
-        // Search function
-        function searchInventory(searchTerm) {
-            const tbody = document.getElementById('inventory-table');
-            tbody.innerHTML = '';
-            
-            const filtered = inventoryData.filter(item => 
-                item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.brand.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            
-            filtered.forEach(item => {
-                const row = tbody.insertRow();
-                let statusClass = '';
-                if (item.status === 'OOS') statusClass = 'oos';
-                else if (item.status.includes('Low')) statusClass = 'low';
-                else statusClass = 'normal';
-                
-                row.innerHTML = `
-                    <td>${item.brand}</td>
-                    <td>${item.product}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.expiry || 'N/A'}</td>
-                    <td>${item.shipment || 'TBD'}</td>
-                    <td>${item.remarks || '-'}</td>
-                    <td>
-                        <button onclick="editProduct(${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        // Export and Import functions
-        function exportAllData() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            
-            // Add inventory data
-            csvContent += "INVENTORY DATA\n";
-            csvContent += "Brand,Product,Status,Expiry,Shipment,Remarks\n";
-            inventoryData.forEach(item => {
-                csvContent += `${item.brand},"${item.product}",${item.status},${item.expiry || ''},${item.shipment || ''},"${item.remarks || ''}"\n`;
-            });
-            
-            // Add new products data
-            csvContent += "\n\nNEW PRODUCTS DATA\n";
-            csvContent += "Brand,Product,Added Date,Arrival Date,Quantity,Notes\n";
-            newProductsData.forEach(item => {
-                csvContent += `${item.brand},"${item.product}",${item.addedDate},${item.arrivalDate || ''},${item.quantity},"${item.notes || ''}"\n`;
-            });
-
-            // Add to clear data
-            csvContent += "\n\nTO CLEAR DATA\n";
-            csvContent += "Brand,Product,Category,Expiry Date,Total Qty,Weekly Demand,Action Plan\n";
-            toClearData.forEach(item => {
-                csvContent += `${item.brand},"${item.product}",${item.category},${item.expiryDate},${item.totalQty},${item.weeklyDemand},"${item.actionPlan}"\n`;
-            });
-
-            // Add master products data
-            csvContent += "\n\nMASTER PRODUCTS DATA\n";
-            csvContent += "Brand,Product,Category,Description,SKU,Price\n";
-            masterProductsData.forEach(item => {
-                csvContent += `${item.brand},"${item.product}",${item.category},"${item.description || ''}",${item.sku || ''},${item.price || 0}\n`;
-            });
-            
-            // Download
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "inventory_export_" + new Date().toISOString().split('T')[0] + ".csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Data exported successfully!');
-        }
-
-        function exportMasterList() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Brand,Product,Category,Description,SKU,Price\n";
-            
-            masterProductsData.forEach(item => {
-                // Enclose product and description in quotes to handle commas within text
-                csvContent += `${item.brand},"${item.product}",${item.category},"${item.description || ''}",${item.sku || ''},${item.price || 0}\n`;
-            });
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "master_products_" + new Date().toISOString().split('T')[0] + ".csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Master list exported successfully!');
-        }
-
-        // Import CSV function
-        function importCSV(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                parseCSV(text);
-            };
-            reader.readAsText(file);
-            
-            // Reset the input
-            event.target.value = '';
-        }
-
-        function parseCSV(csvText) {
-            const lines = csvText.split('\n');
-            const headers = parseCSVLine(lines[0]); // Use the helper to parse headers
-            
-            // Validate headers (case-insensitive check)
-            const expectedHeaders = ['Brand', 'Product', 'Category', 'Description', 'SKU', 'Price'];
-            const hasValidHeaders = expectedHeaders.every(expectedHeader => 
-                headers.some(h => h.toLowerCase() === expectedHeader.toLowerCase())
-            );
-            
-            if (!hasValidHeaders) {
-                showNotification('Invalid CSV format! Headers should be: Brand, Product, Category, Description, SKU, Price', 'error');
-                return;
-            }
-            
-            // Find the highest existing ID
-            let maxId = masterProductsData.length > 0 ? Math.max(...masterProductsData.map(item => item.id)) : 0;
-            let importedCount = 0;
-            
-            // Parse data rows
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const values = parseCSVLine(line);
-                if (values.length >= headers.length) {
-                    const newProduct = {
-                        id: ++maxId,
-                        brand: values[headers.findIndex(h => h.toLowerCase() === 'brand')] || '',
-                        product: values[headers.findIndex(h => h.toLowerCase() === 'product')] || '',
-                        category: values[headers.findIndex(h => h.toLowerCase() === 'category')] || '',
-                        description: values[headers.findIndex(h => h.toLowerCase() === 'description')] || '',
-                        sku: values[headers.findIndex(h => h.toLowerCase() === 'sku')] || '',
-                        price: parseFloat(values[headers.findIndex(h => h.toLowerCase() === 'price')]) || 0
-                    };
-                    
-                    // Only add if brand and product name exist
-                    if (newProduct.brand && newProduct.product) {
-                        masterProductsData.push(newProduct);
-                        importedCount++;
-                    }
-                }
-            }
-            
-            if (importedCount > 0) {
-                updateAllTables();
-                showNotification(`Successfully imported ${importedCount} products!`);
-            } else {
-                showNotification('No valid products found in the CSV file!', 'error');
-            }
-        }
-
-        // Helper function to parse CSV line (handles commas in quotes)
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim().replace(/^"|"$/g, '')); // Remove surrounding quotes
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            
-            result.push(current.trim().replace(/^"|"$/g, '')); // Remove surrounding quotes for the last item
-            return result;
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
 
         // Notification function
@@ -1541,16 +920,740 @@
             }, 3000);
         }
 
+        // --- Data Management Functions (Firestore Integrated) ---
+
+        // Load sample data if collections are empty (Firestore)
+        async function loadSampleDataFirestore() {
+            try {
+                const invSnapshot = await getDocs(inventoryCol);
+                if (invSnapshot.empty) {
+                    showNotification("Loading sample data...", "info");
+                    for (const item of initialSampleData.inventory) {
+                        await addDoc(inventoryCol, item);
+                    }
+                    for (const item of initialSampleData.new_products) {
+                        await addDoc(newProductsCol, item);
+                    }
+                    for (const item of initialSampleData.to_clear) {
+                        await addDoc(toClearCol, item);
+                    }
+                    for (const item of initialSampleData.master_products) {
+                        await addDoc(masterProductsCol, item);
+                    }
+                    showNotification("Sample data loaded successfully!", "success");
+                } else {
+                    showNotification("Data already exists in Firestore. Not loading sample data.", "info");
+                }
+                await updateLocalData(); // Refresh all data from Firestore
+            } catch (e) {
+                console.error("Error loading sample data: ", e);
+                showNotification("Error loading sample data.", "error");
+            }
+        }
+
+        // Confirmation for loading sample data
+        function confirmLoadSampleData() {
+            showConfirmModal("This will add sample data to your Firestore. Existing data will not be overwritten. Are you sure?", async (confirmed) => {
+                if (confirmed) {
+                    await loadSampleDataFirestore();
+                }
+            });
+        }
+
+        // Save/Edit functions (Firestore)
+
+        // Save Product (Inventory Tab)
+        async function saveProduct(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editProductId').value;
+            const productData = {
+                brand: document.getElementById('brand').value,
+                product: document.getElementById('productName').value,
+                status: document.getElementById('status').value,
+                expiry: document.getElementById('expiry').value,
+                shipment: document.getElementById('shipment').value,
+                remarks: document.getElementById('remarks').value,
+                isDeleted: false
+            };
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'inventory', editId), productData);
+                    showNotification('Product updated successfully!', 'success');
+                } else {
+                    await addDoc(inventoryCol, productData);
+                    showNotification('Product added successfully!', 'success');
+                }
+                closeModal('productModal');
+                await updateLocalData(); // Refresh data
+            } catch (e) {
+                console.error("Error saving product: ", e);
+                showNotification('Error saving product.', 'error');
+            }
+        }
+
+        // Save New Product (New Products Tab)
+        async function saveNewProduct(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editNewProductId').value;
+            const newProductData = {
+                brand: document.getElementById('newBrand').value,
+                product: document.getElementById('newProductName').value,
+                addedDate: new Date().toISOString().slice(0, 10), // Set current date
+                arrivalDate: document.getElementById('arrivalDate').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                notes: document.getElementById('notes').value,
+                isDeleted: false
+            };
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'new_products', editId), newProductData);
+                    showNotification('New product updated successfully!', 'success');
+                } else {
+                    await addDoc(newProductsCol, newProductData);
+                    showNotification('New product added successfully!', 'success');
+                }
+                closeModal('newProductModal');
+                await updateLocalData();
+            } catch (e) {
+                console.error("Error saving new product: ", e);
+                showNotification('Error saving new product.', 'error');
+            }
+        }
+
+        // Save Master Product (Master List Tab)
+        async function saveMasterProduct(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editMasterProductId').value;
+            const masterProductData = {
+                brand: document.getElementById('masterBrand').value,
+                product: document.getElementById('masterProductName').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                sku: document.getElementById('sku').value,
+                price: parseFloat(document.getElementById('price').value),
+                isDeleted: false
+            };
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'master_products', editId), masterProductData);
+                    showNotification('Master product updated successfully!', 'success');
+                } else {
+                    await addDoc(masterProductsCol, masterProductData);
+                    showNotification('Master product added successfully!', 'success');
+                }
+                closeModal('masterProductModal');
+                await updateLocalData();
+            } catch (e) {
+                console.error("Error saving master product: ", e);
+                showNotification('Error saving master product.', 'error');
+            }
+        }
+
+        // Save To Clear Product (To Clear Tab)
+        async function saveToClear(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editToClearId').value;
+            const toClearProductData = {
+                brand: document.getElementById('toClearBrand').value,
+                product: document.getElementById('toClearProductName').value,
+                category: document.getElementById('toClearCategory').value,
+                expiryDate: document.getElementById('toClearExpiryDate').value,
+                totalQty: parseInt(document.getElementById('toClearTotalQty').value),
+                weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
+                actionPlan: document.getElementById('toClearActionPlan').value,
+                isDeleted: false
+            };
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'to_clear', editId), toClearProductData);
+                    showNotification('Product to clear updated successfully!', 'success');
+                } else {
+                    await addDoc(toClearCol, toClearProductData);
+                    showNotification('Product to clear added successfully!', 'success');
+                }
+                closeModal('toClearModal');
+                await updateLocalData();
+            } catch (e) {
+                console.error("Error saving product to clear: ", e);
+                showNotification('Error saving product to clear.', 'error');
+            }
+        }
+
+        // Delete functions (Soft Delete)
+        async function deleteItem(collectionRef, id, sourceTab) {
+            showConfirmModal("Are you sure you want to delete this item? It will be moved to the Recycle Bin.", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const itemDoc = doc(db, collectionRef.id, id);
+                        await updateDoc(itemDoc, {
+                            isDeleted: true,
+                            deletedDate: new Date().toISOString().slice(0, 10),
+                            originalCollection: collectionRef.id // Store original collection for restore
+                        });
+                        showNotification('Item moved to Recycle Bin!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error("Error deleting item: ", e);
+                        showNotification('Error moving item to Recycle Bin.', 'error');
+                    }
+                }
+            });
+        }
+
+        // Restore item from Recycle Bin
+        async function restoreItem(id, originalCollectionName) {
+            showConfirmModal("Are you sure you want to restore this item?", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const itemDoc = doc(db, originalCollectionName, id);
+                        await updateDoc(itemDoc, {
+                            isDeleted: false,
+                            deletedDate: null,
+                            originalCollection: null
+                        });
+                        showNotification('Item restored successfully!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error("Error restoring item: ", e);
+                        showNotification('Error restoring item.', 'error');
+                    }
+                }
+            });
+        }
+
+        // Permanently delete item from Recycle Bin
+        async function permanentlyDeleteItem(id, originalCollectionName) {
+            showConfirmModal("Are you sure you want to permanently delete this item? This action cannot be undone.", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const itemDoc = doc(db, originalCollectionName, id);
+                        await deleteDoc(itemDoc);
+                        showNotification('Item permanently deleted!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error("Error permanently deleting item: ", e);
+                        showNotification('Error permanently deleting item.', 'error');
+                    }
+                }
+            });
+        }
+
+
+        // --- Display Functions ---
+
+        function updateAllTables() {
+            updateInventoryTable(inventoryData);
+            updateNewProductsTable(newProductsData);
+            updateToClearTable(toClearData);
+            updateMasterTable(masterProductsData);
+            updateRecycleBinTable(recycleBinData);
+        }
+
+        function updateInventoryTable(data) {
+            const tableBody = document.getElementById('inventory-table');
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                const statusCell = row.insertCell();
+                statusCell.innerHTML = `<span class="status-badge ${item.status === 'OOS' ? 'oos' : item.status === 'Low stock' ? 'low' : 'normal'}">${item.status}</span>`;
+                row.insertCell().textContent = item.expiry;
+                row.insertCell().textContent = item.shipment;
+                row.insertCell().textContent = item.remarks;
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="showEditProductModal('${item.id}')">Edit</button>
+                    <button class="btn-danger" onclick="deleteItem(inventoryCol, '${item.id}')">Delete</button>
+                `;
+            });
+        }
+
+        function updateNewProductsTable(data) {
+            const tableBody = document.getElementById('new-products-table');
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.addedDate;
+                row.insertCell().textContent = item.arrivalDate;
+                row.insertCell().textContent = item.quantity;
+                row.insertCell().textContent = item.notes;
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="showEditNewProductModal('${item.id}')">Edit</button>
+                    <button class="btn-danger" onclick="deleteItem(newProductsCol, '${item.id}')">Delete</button>
+                `;
+            });
+        }
+
+        function updateToClearTable(data) {
+            const tableBody = document.getElementById('to-clear-table');
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.category;
+                row.insertCell().textContent = item.expiryDate;
+                row.insertCell().textContent = item.totalQty;
+                row.insertCell().textContent = item.weeklyDemand;
+                row.insertCell().textContent = item.actionPlan;
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="showEditToClearModal('${item.id}')">Edit</button>
+                    <button class="btn-danger" onclick="deleteItem(toClearCol, '${item.id}')">Delete</button>
+                `;
+            });
+        }
+
+        function updateMasterTable(data) {
+            const tableBody = document.getElementById('master-table');
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.category;
+                row.insertCell().textContent = item.description;
+                row.insertCell().textContent = item.sku;
+                row.insertCell().textContent = `$${item.price.toFixed(2)}`;
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="showEditMasterProductModal('${item.id}')">Edit</button>
+                    <button class="btn-danger" onclick="deleteItem(masterProductsCol, '${item.id}')">Delete</button>
+                `;
+            });
+        }
+
+        function updateRecycleBinTable(data) {
+            const tableBody = document.getElementById('recycle-bin-table');
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 5;
+                cell.textContent = "Recycle Bin is empty.";
+                cell.style.textAlign = "center";
+                cell.style.padding = "20px";
+                return;
+            }
+
+            data.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.originalCollection || 'N/A'; // Source collection
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.deletedDate || 'N/A';
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">Restore</button>
+                    <button class="btn-danger" onclick="permanentlyDeleteItem('${item.id}', '${item.originalCollection}')">Permanently Delete</button>
+                `;
+            });
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('oos-count').textContent = inventoryData.filter(item => item.status === 'OOS').length;
+            document.getElementById('low-count').textContent = inventoryData.filter(item => item.status === 'Low stock').length;
+            document.getElementById('in-stock-count').textContent = inventoryData.filter(item => item.status === 'In Stock').length;
+            document.getElementById('new-count').textContent = newProductsData.length;
+        }
+
+        function updateAlerts() {
+            const alertsDiv = document.getElementById('alerts');
+            alertsDiv.innerHTML = '';
+
+            const today = new Date();
+            let hasAlerts = false;
+
+            // Expiry alerts for Inventory
+            inventoryData.forEach(item => {
+                if (item.expiry) {
+                    const expiryDate = new Date(item.expiry);
+                    const diffTime = expiryDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays <= 30 && diffDays > 0) {
+                        alertsDiv.innerHTML += `<p>⚠️ Product "${item.product}" (Brand: ${item.brand}) expires in ${diffDays} days!</p>`;
+                        hasAlerts = true;
+                    } else if (diffDays <= 0) {
+                        alertsDiv.innerHTML += `<p>🚨 Product "${item.product}" (Brand: ${item.brand}) has expired!</p>`;
+                        hasAlerts = true;
+                    }
+                }
+            });
+
+            // Low stock alerts
+            inventoryData.forEach(item => {
+                if (item.status === 'Low stock') {
+                    alertsDiv.innerHTML += `<p>📉 Product "${item.product}" (Brand: ${item.brand}) is running low on stock.</p>`;
+                    hasAlerts = true;
+                }
+            });
+
+            // Out of stock alerts
+            inventoryData.forEach(item => {
+                if (item.status === 'OOS') {
+                    alertsDiv.innerHTML += `<p>❌ Product "${item.product}" (Brand: ${item.brand}) is out of stock!</p>`;
+                    hasAlerts = true;
+                }
+            });
+
+            // To Clear - Critical items
+            toClearData.forEach(item => {
+                const expiryDate = new Date(item.expiryDate);
+                const diffTime = expiryDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 60 && item.category === "Short Expiry") {
+                    alertsDiv.innerHTML += `<p>🔥 Action Required: Product "${item.product}" (To Clear) has short expiry (${diffDays} days).</p>`;
+                    hasAlerts = true;
+                }
+            });
+
+            if (!hasAlerts) {
+                alertsDiv.innerHTML = '<p>🎉 No urgent alerts at the moment. Everything looks good!</p>';
+            }
+        }
+
+        function updateManagementStats() {
+            document.getElementById('total-products').textContent = inventoryData.length + newProductsData.length + toClearData.length + masterProductsData.length;
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
+        }
+
+        // --- Modal Display Functions ---
+
+        async function showAddProductModal() {
+            document.getElementById('productModalTitle').textContent = 'Add New Product';
+            document.getElementById('editProductId').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('productName').innerHTML = '<option value="">Select Product</option>'; // Clear and reset
+            document.getElementById('status').value = '';
+            document.getElementById('expiry').value = '';
+            document.getElementById('shipment').value = '';
+            document.getElementById('remarks').value = '';
+            await populateProductDropdown(document.getElementById('brand'), document.getElementById('productName')); // Populate for default state
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        async function showEditProductModal(id) {
+            const productRef = doc(db, 'inventory', id);
+            const productSnap = await getDoc(productRef);
+            if (!productSnap.exists()) {
+                showNotification("Product not found!", "error");
+                return;
+            }
+            const item = productSnap.data();
+
+            document.getElementById('productModalTitle').textContent = 'Edit Product';
+            document.getElementById('editProductId').value = id;
+            document.getElementById('brand').value = item.brand;
+            await populateProductDropdown(document.getElementById('brand'), document.getElementById('productName')); // Populate with products for selected brand
+            document.getElementById('productName').value = item.product;
+            document.getElementById('status').value = item.status;
+            document.getElementById('expiry').value = item.expiry;
+            document.getElementById('shipment').value = item.shipment;
+            document.getElementById('remarks').value = item.remarks;
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        async function showAddNewProductModal() {
+            document.getElementById('newProductModalTitle').textContent = 'Add New Product';
+            document.getElementById('editNewProductId').value = '';
+            document.getElementById('newBrand').value = '';
+            document.getElementById('newProductName').innerHTML = '<option value="">Select Product</option>';
+            document.getElementById('quantity').value = '';
+            document.getElementById('arrivalDate').value = '';
+            document.getElementById('notes').value = '';
+            await populateProductDropdown(document.getElementById('newBrand'), document.getElementById('newProductName'));
+            document.getElementById('newProductModal').style.display = 'block';
+        }
+
+        async function showEditNewProductModal(id) {
+            const productRef = doc(db, 'new_products', id);
+            const productSnap = await getDoc(productRef);
+            if (!productSnap.exists()) {
+                showNotification("New Product not found!", "error");
+                return;
+            }
+            const item = productSnap.data();
+
+            document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
+            document.getElementById('editNewProductId').value = id;
+            document.getElementById('newBrand').value = item.brand;
+            await populateProductDropdown(document.getElementById('newBrand'), document.getElementById('newProductName'));
+            document.getElementById('newProductName').value = item.product;
+            document.getElementById('quantity').value = item.quantity;
+            document.getElementById('arrivalDate').value = item.arrivalDate;
+            document.getElementById('notes').value = item.notes;
+            document.getElementById('newProductModal').style.display = 'block';
+        }
+
+        async function showAddMasterProductModal() {
+            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
+            document.getElementById('editMasterProductId').value = '';
+            document.getElementById('masterBrand').value = '';
+            document.getElementById('masterProductName').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('sku').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('masterProductModal').style.display = 'block';
+        }
+
+        async function showEditMasterProductModal(id) {
+            const productRef = doc(db, 'master_products', id);
+            const productSnap = await getDoc(productRef);
+            if (!productSnap.exists()) {
+                showNotification("Master Product not found!", "error");
+                return;
+            }
+            const item = productSnap.data();
+
+            document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
+            document.getElementById('editMasterProductId').value = id;
+            document.getElementById('masterBrand').value = item.brand;
+            document.getElementById('masterProductName').value = item.product;
+            document.getElementById('category').value = item.category;
+            document.getElementById('description').value = item.description;
+            document.getElementById('sku').value = item.sku;
+            document.getElementById('price').value = item.price;
+            document.getElementById('masterProductModal').style.display = 'block';
+        }
+
+        async function showAddToClearModal() {
+            document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
+            document.getElementById('editToClearId').value = '';
+            document.getElementById('toClearBrand').value = '';
+            document.getElementById('toClearProductName').innerHTML = '<option value="">Select Product</option>';
+            document.getElementById('toClearCategory').value = '';
+            document.getElementById('toClearExpiryDate').value = '';
+            document.getElementById('toClearTotalQty').value = '';
+            document.getElementById('toClearWeeklyDemand').value = '';
+            document.getElementById('toClearActionPlan').value = '';
+            await populateProductDropdown(document.getElementById('toClearBrand'), document.getElementById('toClearProductName'));
+            document.getElementById('toClearModal').style.display = 'block';
+        }
+
+        async function showEditToClearModal(id) {
+            const productRef = doc(db, 'to_clear', id);
+            const productSnap = await getDoc(productRef);
+            if (!productSnap.exists()) {
+                showNotification("Product to Clear not found!", "error");
+                return;
+            }
+            const item = productSnap.data();
+
+            document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
+            document.getElementById('editToClearId').value = id;
+            document.getElementById('toClearBrand').value = item.brand;
+            await populateProductDropdown(document.getElementById('toClearBrand'), document.getElementById('toClearProductName'));
+            document.getElementById('toClearProductName').value = item.product;
+            document.getElementById('toClearCategory').value = item.category;
+            document.getElementById('toClearExpiryDate').value = item.expiryDate;
+            document.getElementById('toClearTotalQty').value = item.totalQty;
+            document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand;
+            document.getElementById('toClearActionPlan').value = item.actionPlan;
+            document.getElementById('toClearModal').style.display = 'block';
+        }
+
+        // --- Product Dropdown Population (from Master List) ---
+        async function populateProductDropdown(brandSelectElement, productSelectElement) {
+            const selectedBrand = brandSelectElement.value;
+            productSelectElement.innerHTML = '<option value="">Select Product</option>'; // Reset options
+
+            if (selectedBrand) {
+                await updateLocalData(); // Ensure masterProductsData is fresh
+                const filteredProducts = masterProductsData.filter(p => p.brand === selectedBrand);
+                filteredProducts.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.product;
+                    option.textContent = p.product;
+                    productSelectElement.appendChild(option);
+                });
+            }
+        }
+
+        // --- Search Functionality ---
+        function searchInventory(searchTerm) {
+            const filteredData = inventoryData.filter(item =>
+                item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.remarks.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            updateInventoryTable(filteredData);
+        }
+
+        function showFilteredInventory(status) {
+            const filteredData = inventoryData.filter(item => item.status === status);
+            switchTab('inventory'); // Switch to inventory tab
+            updateInventoryTable(filteredData); // Display filtered data
+        }
+
+        // --- Export/Import (CSV) ---
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            const header = Object.keys(data[0]).join(',');
+            const rows = data.map(row => Object.values(row).map(value => {
+                // Handle commas and quotes within values
+                if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            }).join(','));
+            return [header, ...rows].join('\n');
+        }
+
+        function exportMasterList() {
+            const csv = convertToCSV(masterProductsData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'master_list.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Master list exported successfully!', 'success');
+        }
+
+        async function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) {
+                    showNotification('CSV file is empty.', 'error');
+                    return;
+                }
+
+                const headers = parseCSVLine(lines[0]);
+                const importedItems = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCSVLine(lines[i]);
+                    if (values.length === headers.length) {
+                        const item = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            const key = headers[j].trim();
+                            let value = values[j].trim();
+                            // Convert price to number
+                            if (key === 'price' && !isNaN(parseFloat(value))) {
+                                value = parseFloat(value);
+                            }
+                            item[key] = value;
+                        }
+                        // Add isDeleted flag for new imports
+                        item.isDeleted = false; 
+                        importedItems.push(item);
+                    } else {
+                        console.warn(`Skipping malformed row: ${lines[i]}`);
+                    }
+                }
+
+                if (importedItems.length > 0) {
+                    showConfirmModal(`Import ${importedItems.length} items to Master List? Existing data will not be overwritten by import, but new items will be added.`, async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                let importedCount = 0;
+                                for (const item of importedItems) {
+                                    // Check if an item with the same brand and product name already exists
+                                    const q = query(masterProductsCol, where("brand", "==", item.brand), where("product", "==", item.product), where("isDeleted", "==", false));
+                                    const querySnapshot = await getDocs(q);
+                                    if (querySnapshot.empty) {
+                                        await addDoc(masterProductsCol, item);
+                                        importedCount++;
+                                    } else {
+                                        console.log(`Skipping existing master product: ${item.brand} - ${item.product}`);
+                                    }
+                                }
+                                showNotification(`${importedCount} items imported successfully to Master List!`, 'success');
+                                await updateLocalData();
+                            } catch (e) {
+                                console.error("Error importing CSV to Firestore: ", e);
+                                showNotification('Error importing CSV to Firestore.', 'error');
+                            }
+                        } else {
+                            showNotification('CSV import cancelled.', 'info');
+                        }
+                    });
+                } else {
+                    showNotification('No valid data found in CSV to import.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Helper function to parse CSV line (handles commas in quotes)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '\"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // Export all data to a single JSON file
+        async function exportAllData() {
+            try {
+                const allData = {
+                    inventory: await fetchDataFromFirestore(inventoryCol, true),
+                    new_products: await fetchDataFromFirestore(newProductsCol, true),
+                    to_clear: await fetchDataFromFirestore(toClearCol, true),
+                    master_products: await fetchDataFromFirestore(masterProductsCol, true)
+                };
+                const dataStr = JSON.stringify(allData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `inventory_data_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('All data exported successfully!', 'success');
+            } catch (e) {
+                console.error("Error exporting all data: ", e);
+                showNotification('Error exporting all data.', 'error');
+            }
+        }
+
+
         // Close modals when clicking outside
         window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
+            if (event.target.className === 'modal') {
                 event.target.style.display = 'none';
             }
         }
 
         // Initialize on load
-        window.onload = function() {
-            loadSampleData();
+        window.onload = async function() {
+            await loadSampleDataFirestore(); // Attempt to load sample data if collections are empty
+            await updateLocalData(); // Always refresh data from Firestore on load
         };
     </script>
 </body>
