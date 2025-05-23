@@ -252,7 +252,7 @@
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear: #e74c3c 0%, #c0392b 100%);
         }
 
         .btn-info {
@@ -397,13 +397,13 @@
         <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
         
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="switchTab('inventory')">📦 Inventory</div>
-            <div class="tab" onclick="switchTab('new-products')">✨ New Products</div>
-            <div class="tab" onclick="switchTab('to-clear')">🏷️ To Clear</div>
-            <div class="tab" onclick="switchTab('master-list')">📋 Master List</div>
-            <div class="tab" onclick="switchTab('recycle-bin')">🗑️ Recycle Bin</div>
-            <div class="tab" onclick="switchTab('management')">⚙️ Management</div>
+            <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
+            <div class="tab" onclick="switchTab(this, 'inventory')">📦 Inventory</div>
+            <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
+            <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
+            <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
+            <div class="tab" onclick="switchTab(this, 'recycle-bin')">🗑️ Recycle Bin</div>
+            <div class="tab" onclick="switchTab(this, 'management')">⚙️ Management</div>
         </div>
         
         <div id="dashboard" class="tab-content active">
@@ -420,7 +420,7 @@
                     <div class="stat-number" id="in-stock-count">0</div>
                     <div class="stat-label">In Stock</div>
                 </div>
-                <div class="stat-card info" onclick="switchTab('new-products')">
+                <div class="stat-card info" onclick="switchTab(document.querySelector('.tab[onclick*=\'new-products\']'), 'new-products')">
                     <div class="stat-number" id="new-count">0</div>
                     <div class="stat-label">New Products</div>
                 </div>
@@ -546,7 +546,7 @@
         <div id="management" class="tab-content">
             <div class="controls">
                 <button onclick="exportAllData()">📥 Export All Data</button>
-                <button onclick="loadSampleDataWrapper()">📊 Load Sample Data</button>
+                <button onclick="confirmLoadSampleData()">📊 Load Sample Data</button>
             </div>
             
             <h3>System Information</h3>
@@ -1574,6 +1574,33 @@
             }
         }
 
+        // --- Tab Switching Logic ---
+        function switchTab(clickedTabElement, tabId) {
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            // Deactivate all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Activate the clicked tab
+            clickedTabElement.classList.add('active');
+            // Activate the corresponding content
+            document.getElementById(tabId).classList.add('active');
+
+            // Specific updates for certain tabs if needed
+            if (tabId === 'inventory') {
+                updateInventoryTable();
+            } else if (tabId === 'new-products') {
+                updateNewProductsTable();
+            } else if (tabId === 'to-clear') {
+                updateToClearTable();
+            } else if (tabId === 'master-list') {
+                updateMasterTable();
+            } else if (tabId === 'recycle-bin') {
+                updateRecycleBinTable();
+            }
+        }
+
+
         // --- Search Functionality ---
         function searchInventory(searchTerm) {
             const tbody = document.getElementById('inventory-table');
@@ -1612,7 +1639,13 @@
 
         function showFilteredInventory(status) {
             const filteredData = inventoryData.filter(item => item.status === status);
-            switchTab('inventory'); // Switch to inventory tab
+            // Find the tab element associated with the inventory tab to pass to switchTab
+            const inventoryTabElement = document.querySelector('.tab[onclick*=\'inventory\']');
+            if (inventoryTabElement) {
+                switchTab(inventoryTabElement, 'inventory'); // Switch to inventory tab
+            } else {
+                switchTab(document.querySelector('.tab.active'), 'inventory'); // Fallback: try to get the currently active tab or just use 'inventory'
+            }
             updateInventoryTable(filteredData); // Display filtered data
         }
 
@@ -1809,7 +1842,15 @@
         window.onload = async function() {
             // Wait for data to load from Firestore before updating tables
             await updateLocalData();
-            switchTab('dashboard'); // Default to dashboard after load
+            // Set initial active tab. Pass the dashboard tab element itself.
+            const dashboardTab = document.querySelector('.tab[onclick*=\'dashboard\']');
+            if (dashboardTab) {
+                switchTab(dashboardTab, 'dashboard');
+            } else {
+                console.error("Dashboard tab element not found on load.");
+                // Fallback: just show the dashboard content if the tab element isn't directly selectable
+                document.getElementById('dashboard').classList.add('active');
+            }
         };
     </script>
 </body>
