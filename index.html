@@ -533,7 +533,9 @@
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
-                    <input type="text" id="productName" required>
+                    <select id="productName" required>
+                        <option value="">Select Product</option>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Status:</label>
@@ -579,7 +581,9 @@
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
-                    <input type="text" id="newProductName" required>
+                    <select id="newProductName" required>
+                        <option value="">Select Product</option>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Quantity:</label>
@@ -663,7 +667,9 @@
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
-                    <input type="text" id="toClearProductName" required>
+                    <select id="toClearProductName" required>
+                        <option value="">Select Product</option>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Category:</label>
@@ -702,14 +708,14 @@
         // Your Firebase project configuration
         // REPLACE WITH YOUR ACTUAL FIREBASE CONFIGURATION
         const firebaseConfig = {
-  apiKey: "AIzaSyDo1-y0Vj4XTQeeEUQK_6Y2wqDs94TOAX0",
-  authDomain: "inventory-c3bac.firebaseapp.com",
-  projectId: "inventory-c3bac",
-  storageBucket: "inventory-c3bac.firebasestorage.app",
-  messagingSenderId: "261015083855",
-  appId: "1:261015083855:web:e167f359928eb8ed8cc33a",
-  measurementId: "G-V744486L78"
-};
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID", // e.g., "inventory-c3bac"
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -858,8 +864,46 @@
             }
 
             updateAllTables();
+            populateProductDropdowns(); // NEW: Populate product dropdowns after master data is loaded
             document.getElementById('last-updated').textContent = new Date().toLocaleString();
         }
+
+        // NEW: Function to populate product dropdowns from master list
+        function populateProductDropdowns() {
+            const productDropdowns = [
+                document.getElementById('productName'),       // Inventory modal
+                document.getElementById('newProductName'),    // New Products modal
+                document.getElementById('toClearProductName') // To Clear modal
+            ];
+
+            productDropdowns.forEach(dropdown => {
+                // Store the currently selected value if any
+                const currentValue = dropdown.value;
+                dropdown.innerHTML = '<option value="">Select Product</option>'; // Clear existing options
+
+                // Sort master products alphabetically by product name
+                const sortedMasterProducts = [...masterProductsData].sort((a, b) => {
+                    const nameA = (a.product || '').toUpperCase();
+                    const nameB = (b.product || '').toUpperCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                });
+
+                sortedMasterProducts.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.product;
+                    option.textContent = product.product;
+                    dropdown.appendChild(option);
+                });
+
+                // Restore previous selection if it still exists in the new options
+                if ([...dropdown.options].some(option => option.value === currentValue)) {
+                    dropdown.value = currentValue;
+                }
+            });
+        }
+
 
         // Tab switching
         function switchTab(tabName) {
@@ -1095,6 +1139,7 @@
             document.getElementById('productModalTitle').textContent = 'Add New Product';
             document.getElementById('productModal').style.display = 'block';
             document.getElementById('productModal').querySelector('form').reset();
+            populateProductDropdowns(); // Ensure dropdown is populated on modal open
         }
 
         function showAddNewProductModal() {
@@ -1102,6 +1147,7 @@
             document.getElementById('newProductModalTitle').textContent = 'Add New Product';
             document.getElementById('newProductModal').style.display = 'block';
             document.getElementById('newProductModal').querySelector('form').reset();
+            populateProductDropdowns(); // Ensure dropdown is populated on modal open
         }
 
         function showAddMasterProductModal() {
@@ -1116,6 +1162,7 @@
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
             document.getElementById('toClearModal').style.display = 'block';
             document.getElementById('toClearModal').querySelector('form').reset();
+            populateProductDropdowns(); // Ensure dropdown is populated on modal open
         }
 
         function closeModal(modalId) {
@@ -1327,12 +1374,13 @@
                 document.getElementById('editProductId').value = product.id;
                 document.getElementById('productModalTitle').textContent = 'Edit Product';
                 document.getElementById('brand').value = product.brand || '';
-                document.getElementById('productName').value = product.product || '';
+                document.getElementById('productName').value = product.product || ''; // NEW: Select product in dropdown
                 document.getElementById('status').value = product.status || '';
                 document.getElementById('expiry').value = product.expiry || '';
                 document.getElementById('shipment').value = product.shipment || '';
                 document.getElementById('remarks').value = product.remarks || '';
                 document.getElementById('productModal').style.display = 'block';
+                populateProductDropdowns(); // Ensure dropdown is populated before setting value
             }
         }
 
@@ -1342,11 +1390,12 @@
                 document.getElementById('editNewProductId').value = product.id;
                 document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
                 document.getElementById('newBrand').value = product.brand || '';
-                document.getElementById('newProductName').value = product.product || '';
+                document.getElementById('newProductName').value = product.product || ''; // NEW: Select product in dropdown
                 document.getElementById('quantity').value = product.quantity || '';
                 document.getElementById('arrivalDate').value = product.arrivalDate || '';
                 document.getElementById('notes').value = product.notes || '';
                 document.getElementById('newProductModal').style.display = 'block';
+                populateProductDropdowns(); // Ensure dropdown is populated before setting value
             }
         }
 
@@ -1371,13 +1420,14 @@
                 document.getElementById('editToClearId').value = product.id;
                 document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
                 document.getElementById('toClearBrand').value = product.brand || '';
-                document.getElementById('toClearProductName').value = product.product || '';
+                document.getElementById('toClearProductName').value = product.product || ''; // NEW: Select product in dropdown
                 document.getElementById('toClearCategory').value = product.category || '';
                 document.getElementById('toClearExpiryDate').value = product.expiryDate || '';
                 document.getElementById('toClearTotalQty').value = product.totalQty || '';
                 document.getElementById('toClearWeeklyDemand').value = product.weeklyDemand || '';
                 document.getElementById('toClearActionPlan').value = product.actionPlan || '';
                 document.getElementById('toClearModal').style.display = 'block';
+                populateProductDropdowns(); // Ensure dropdown is populated before setting value
             }
         }
 
