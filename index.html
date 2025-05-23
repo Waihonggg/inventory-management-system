@@ -136,10 +136,6 @@
             background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
 
-        .stat-card.good {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-        }
-
         .stat-card.info {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
@@ -252,7 +248,7 @@
         }
 
         .btn-danger {
-            background: linear: #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         }
 
         .btn-info {
@@ -398,7 +394,7 @@
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="switchTab(this, 'inventory')">📦 Inventory</div>
+            <div class="tab" onclick="switchTab(this, 'oos-lowstock')">📦 OOS/LOW STOCK</div>
             <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
             <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
             <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
@@ -416,10 +412,6 @@
                     <div class="stat-number" id="low-count">0</div>
                     <div class="stat-label">Low Stock</div>
                 </div>
-                <div class="stat-card good" onclick="showFilteredInventory('In Stock')">
-                    <div class="stat-number" id="in-stock-count">0</div>
-                    <div class="stat-label">In Stock</div>
-                </div>
                 <div class="stat-card info" onclick="switchTab(document.querySelector('.tab[onclick*=\'new-products\']'), 'new-products')">
                     <div class="stat-number" id="new-count">0</div>
                     <div class="stat-label">New Products</div>
@@ -432,7 +424,7 @@
             </div>
         </div>
         
-        <div id="inventory" class="tab-content">
+        <div id="oos-lowstock" class="tab-content">
             <div class="controls">
                 <button onclick="showAddProductModal()">➕ Add Product</button>
                 <input type="text" class="search-box" placeholder="🔍 Search products..." onkeyup="searchInventory(this.value)">
@@ -441,7 +433,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Product Code</th> <th>Brand</th>
+                        <th>Product Code</th>
+                        <th>Brand</th>
                         <th>Product</th>
                         <th>Status</th>
                         <th>Expiry</th>
@@ -463,7 +456,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Product Code</th> <th>Brand</th>
+                        <th>Product Code</th>
+                        <th>Brand</th>
                         <th>Product</th>
                         <th>Added Date</th>
                         <th>Arrival Date</th>
@@ -485,7 +479,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Product Code</th> <th>Brand</th>
+                        <th>Product Code</th>
+                        <th>Brand</th>
                         <th>Product</th>
                         <th>Category</th>
                         <th>Expiry Date</th>
@@ -511,7 +506,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Product Code</th> <th>Brand</th>
+                        <th>Product Code</th>
+                        <th>Brand</th>
                         <th>Product Name</th>
                         <th>Category</th>
                         <th>Description</th>
@@ -532,7 +528,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Product Code</th> <th>Original Tab</th>
+                        <th>Product Code</th>
+                        <th>Original Tab</th>
                         <th>Brand</th>
                         <th>Product</th>
                         <th>Actions</th>
@@ -583,7 +580,6 @@
                         <option value="">Select Status</option>
                         <option value="OOS">Out of Stock</option>
                         <option value="Low stock">Low Stock</option>
-                        <option value="In Stock">In Stock</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -895,7 +891,7 @@
                 { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", sku: "GL-ENZ-001", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
                 { brand: "Greenlife", product: "GL VIT C + ZINC", sku: "GL-VCZ-002", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
                 { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", sku: "NN-KVC-001", status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", sku: "EZ-DPR-001", status: "In Stock", expiry: "", shipment: "", remarks: "", isDeleted: false }
+                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", sku: "EZ-DPR-001", status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false }
             ],
             new_products: [
                 { brand: "Greenlife", product: "GL SUPER PROBIOTIC", sku: "GL-SPR-003", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula", isDeleted: false },
@@ -966,7 +962,7 @@
             return masterProduct ? masterProduct.sku : '';
         }
 
-        // Save Product (Inventory Tab)
+        // Save Product (OOS/LOW STOCK Tab)
         async function saveProduct(event) {
             event.preventDefault();
             const editId = document.getElementById('editProductId').value;
@@ -1207,18 +1203,31 @@
             updateRecycleBinTable();
         }
 
-        function updateInventoryTable() {
+        function updateInventoryTable(dataToDisplay = inventoryData) { // Default to global inventoryData
             const tbody = document.getElementById('inventory-table');
             tbody.innerHTML = '';
-            inventoryData.forEach(item => {
+            // If dataToDisplay is empty, show a message
+            if (dataToDisplay.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 8; // Adjust to match number of columns
+                cell.textContent = "No products found for this view.";
+                cell.style.textAlign = "center";
+                cell.style.padding = "20px";
+                return;
+            }
+
+            dataToDisplay.forEach(item => {
                 const row = tbody.insertRow();
                 let statusClass = '';
                 if (item.status === 'OOS') statusClass = 'oos';
                 else if (item.status && item.status.includes('Low')) statusClass = 'low';
-                else statusClass = 'normal';
+                // No 'normal' status in inventory now
+                else statusClass = 'info'; // Fallback for any unexpected status
 
                 row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td> <td>${item.brand || ''}</td>
+                    <td>${item.sku || 'N/A'}</td>
+                    <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td><span class="status-badge ${statusClass}">${item.status || ''}</span></td>
                     <td>${item.expiry || 'N/A'}</td>
@@ -1238,7 +1247,8 @@
             newProductsData.forEach(item => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td> <td>${item.brand || ''}</td>
+                    <td>${item.sku || 'N/A'}</td>
+                    <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td>${item.addedDate || ''}</td>
                     <td>${item.arrivalDate || 'TBD'}</td>
@@ -1263,7 +1273,8 @@
                 else categoryClass = 'normal';
 
                 row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td> <td>${item.brand || ''}</td>
+                    <td>${item.sku || 'N/A'}</td>
+                    <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td><span class="status-badge ${categoryClass}">${item.category || ''}</span></td>
                     <td>${item.expiryDate || ''}</td>
@@ -1284,7 +1295,8 @@
             masterProductsData.forEach(item => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td> <td>${item.brand || ''}</td>
+                    <td>${item.sku || 'N/A'}</td>
+                    <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td>${item.category || ''}</td>
                     <td>${item.description || '-'}</td>
@@ -1313,7 +1325,8 @@
             deletedItemsData.forEach(item => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td> <td>${item.originalCollection.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase())}</td>
+                    <td>${item.sku || 'N/A'}</td>
+                    <td>${item.originalCollection.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase())}</td>
                     <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td>
@@ -1327,7 +1340,7 @@
         function updateDashboardStats() {
             document.getElementById('oos-count').textContent = inventoryData.filter(item => item.status === 'OOS').length;
             document.getElementById('low-count').textContent = inventoryData.filter(item => item.status && item.status.includes('Low')).length;
-            document.getElementById('in-stock-count').textContent = inventoryData.filter(item => item.status === 'In Stock').length;
+            // Removed 'In Stock' count as per requirement
             document.getElementById('new-count').textContent = newProductsData.length;
         }
 
@@ -1587,8 +1600,8 @@
             document.getElementById(tabId).classList.add('active');
 
             // Specific updates for certain tabs if needed
-            if (tabId === 'inventory') {
-                updateInventoryTable();
+            if (tabId === 'oos-lowstock') { // Changed from 'inventory'
+                updateInventoryTable(); // Call with no arguments to show all OOS/Low Stock
             } else if (tabId === 'new-products') {
                 updateNewProductsTable();
             } else if (tabId === 'to-clear') {
@@ -1611,43 +1624,29 @@
                 (item.brand && item.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (item.status && item.status.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (item.remarks && item.remarks.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase())) // NEW: Search by SKU
+                (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
             );
 
-            filtered.forEach(item => {
-                const row = tbody.insertRow();
-                let statusClass = '';
-                if (item.status === 'OOS') statusClass = 'oos';
-                else if (item.status && item.status.includes('Low')) statusClass = 'low';
-                else statusClass = 'normal';
+            // Filter for only OOS or Low Stock for the OOS/LOW STOCK tab
+            const oosLowStockFiltered = filtered.filter(item => item.status === 'OOS' || item.status === 'Low stock');
 
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status || ''}</span></td>
-                    <td>${item.expiry || 'N/A'}</td>
-                    <td>${item.shipment || 'TBD'}</td>
-                    <td>${item.remarks || '-'}</td>
-                    <td>
-                        <button onclick="showEditProductModal('${item.id}')">Edit</button>
-                        <button class="btn-danger" onclick="softDeleteProduct('${item.id}')">Delete</button>
-                    </td>
-                `;
-            });
+            updateInventoryTable(oosLowStockFiltered); // Pass filtered data to table update
         }
 
         function showFilteredInventory(status) {
             const filteredData = inventoryData.filter(item => item.status === status);
-            // Find the tab element associated with the inventory tab to pass to switchTab
-            const inventoryTabElement = document.querySelector('.tab[onclick*=\'inventory\']');
-            if (inventoryTabElement) {
-                switchTab(inventoryTabElement, 'inventory'); // Switch to inventory tab
+            // Find the tab element associated with the OOS/LOW STOCK tab
+            const oosLowStockTabElement = document.querySelector('.tab[onclick*=\'oos-lowstock\']');
+            if (oosLowStockTabElement) {
+                switchTab(oosLowStockTabElement, 'oos-lowstock'); // Switch to OOS/LOW STOCK tab
             } else {
-                switchTab(document.querySelector('.tab.active'), 'inventory'); // Fallback: try to get the currently active tab or just use 'inventory'
+                // Fallback, if tab element cannot be found, still try to switch content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById('oos-lowstock').classList.add('active');
             }
             updateInventoryTable(filteredData); // Display filtered data
         }
+
 
         // --- Export/Import (CSV) ---
         function convertToCSV(data, headers) {
