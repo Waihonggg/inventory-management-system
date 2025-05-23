@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            overflow-x: auto;
+            gap: 2px;
+        }
+
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            background-color: transparent;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            color: #7f8c8d;
+            min-width: 120px;
+            text-align: center;
+            border: 2px solid transparent;
+            border-bottom: none;
+        }
+
+        .tab:hover {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            border-color: #e1e8ed;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.urgent {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .stat-card.good {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .stat-card.info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e1e8ed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .oos {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .low {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .normal {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .search-box {
+            padding: 12px 16px;
+            width: 280px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: none;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 300px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory Management System</h1>
+        <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+            <div class="tab" onclick="switchTab('inventory')">📦 Inventory</div>
+            <div class="tab" onclick="switchTab('new-products')">✨ New Products</div>
+            <div class="tab" onclick="switchTab('to-clear')">🏷️ To Clear</div>
+            <div class="tab" onclick="switchTab('master-list')">📋 Master List</div>
+            <div class="tab" onclick="switchTab('management')">⚙️ Management</div>
+        </div>
+        
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-cards">
+                <div class="stat-card urgent" onclick="showFilteredInventory('OOS')">
+                    <div class="stat-number" id="oos-count">0</div>
+                    <div class="stat-label">Out of Stock</div>
+                </div>
+                <div class="stat-card warning" onclick="showFilteredInventory('Low stock')">
+                    <div class="stat-number" id="low-count">0</div>
+                    <div class="stat-label">Low Stock</div>
+                </div>
+                <div class="stat-card good" onclick="showFilteredInventory('In Stock')">
+                    <div class="stat-number" id="in-stock-count">0</div>
+                    <div class="stat-label">In Stock</div>
+                </div>
+                <div class="stat-card info" onclick="switchTab('new-products')">
+                    <div class="stat-number" id="new-count">0</div>
+                    <div class="stat-label">New Products</div>
+                </div>
+            </div>
+            
+            <h3>Recent Alerts</h3>
+            <div id="alerts" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                <p>Loading alerts...</p>
+            </div>
+        </div>
+        
+        <div id="inventory" class="tab-content">
+            <div class="controls">
+                <button onclick="showAddProductModal()">➕ Add Product</button>
+                <input type="text" class="search-box" placeholder="🔍 Search products..." onkeyup="searchInventory(this.value)">
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Expiry</th>
+                        <th>Shipment</th>
+                        <th>Remarks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="new-products" class="tab-content">
+            <div class="controls">
+                <button onclick="showAddNewProductModal()">➕ Add New Product</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Product</th>
+                        <th>Added Date</th>
+                        <th>Arrival Date</th>
+                        <th>Quantity</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="new-products-table">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="to-clear" class="tab-content">
+            <div class="controls">
+                <button onclick="showAddToClearModal()">➕ Add Product to Clear</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Expiry Date</th>
+                        <th>Total Qty</th>
+                        <th>Weekly Demand</th>
+                        <th>Action Plan</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="to-clear-table">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="master-list" class="tab-content">
+            <div class="controls">
+                <button onclick="showAddMasterProductModal()">➕ Add Product</button>
+                <button onclick="exportMasterList()">📥 Export List</button>
+                <button onclick="document.getElementById('csvFileInput').click()">📤 Import CSV</button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="importCSV(event)">
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>SKU</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="master-table">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="management" class="tab-content">
+            <div class="controls">
+                <button onclick="exportAllData()">📥 Export All Data</button>
+                <button onclick="loadSampleData()">📊 Load Sample Data</button>
+            </div>
+            
+            <h3>System Information</h3>
+            <p>Total Products: <span id="total-products">0</span></p>
+            <p>Last Updated: <span id="last-updated">Never</span></p>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('productModal')">&times;</span>
+            <h2 id="productModalTitle">Add New Product</h2>
+            <form onsubmit="saveProduct(event)">
+                <input type="hidden" id="editProductId" value="">
+                <div class="form-group">
+                    <label>Brand:</label>
+                    <select id="brand" required>
+                        <option value="">Select Brand</option>
+                        <option value="Greenlife">Greenlife</option>
+                        <option value="NN">Nordic Naturals</option>
+                        <option value="NaturesPlus">NaturesPlus</option>
+                        <option value="ENZYMEDICA">ENZYMEDICA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="status" required>
+                        <option value="">Select Status</option>
+                        <option value="OOS">Out of Stock</option>
+                        <option value="Low stock">Low Stock</option>
+                        <option value="In Stock">In Stock</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Expiry Date:</label>
+                    <input type="date" id="expiry">
+                </div>
+                <div class="form-group">
+                    <label>Estimated Shipment:</label>
+                    <input type="date" id="shipment">
+                </div>
+                <div class="form-group">
+                    <label>Remarks:</label>
+                    <textarea id="remarks"></textarea>
+                </div>
+                <button type="submit">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="newProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('newProductModal')">&times;</span>
+            <h2 id="newProductModalTitle">Add New Product</h2>
+            <form onsubmit="saveNewProduct(event)">
+                <input type="hidden" id="editNewProductId" value="">
+                <div class="form-group">
+                    <label>Brand:</label>
+                    <select id="newBrand" required>
+                        <option value="">Select Brand</option>
+                        <option value="Greenlife">Greenlife</option>
+                        <option value="NN">Nordic Naturals</option>
+                        <option value="NaturesPlus">NaturesPlus</option>
+                        <option value="ENZYMEDICA">ENZYMEDICA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="newProductName" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" id="quantity" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date:</label>
+                    <input type="date" id="arrivalDate">
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <button type="submit">Save New Product</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="masterProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('masterProductModal')">&times;</span>
+            <h2 id="masterProductModalTitle">Add Master Product</h2>
+            <form onsubmit="saveMasterProduct(event)">
+                <input type="hidden" id="editMasterProductId" value="">
+                <div class="form-group">
+                    <label>Brand:</label>
+                    <select id="masterBrand" required>
+                        <option value="">Select Brand</option>
+                        <option value="Greenlife">Greenlife</option>
+                        <option value="NN">Nordic Naturals</option>
+                        <option value="NaturesPlus">NaturesPlus</option>
+                        <option value="ENZYMEDICA">ENZYMEDICA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="masterProductName" required>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Vitamins">Vitamins</option>
+                        <option value="Probiotics">Probiotics</option>
+                        <option value="Joint Support">Joint Support</option>
+                        <option value="Digestive Health">Digestive Health</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>SKU:</label>
+                    <input type="text" id="sku">
+                </div>
+                <div class="form-group">
+                    <label>Price:</label>
+                    <input type="number" id="price" step="0.01" min="0">
+                </div>
+                <button type="submit">Save Master Product</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toClearModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('toClearModal')">&times;</span>
+            <h2 id="toClearModalTitle">Add Product to Clear</h2>
+            <form onsubmit="saveToClear(event)">
+                <input type="hidden" id="editToClearId" value="">
+                <div class="form-group">
+                    <label>Brand:</label>
+                    <select id="toClearBrand" required>
+                        <option value="">Select Brand</option>
+                        <option value="Greenlife">Greenlife</option>
+                        <option value="NN">Nordic Naturals</option>
+                        <option value="NaturesPlus">NaturesPlus</option>
+                        <option value="ENZYMEDICA">ENZYMEDICA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="toClearProductName" required>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="toClearCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Short Expiry">Short Expiry</option>
+                        <option value="Excess Stock">Excess Stock</option>
+                        <option value="Discontinued">Discontinued</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Expiry Date:</label>
+                    <input type="date" id="toClearExpiryDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Total Quantity:</label>
+                    <input type="number" id="toClearTotalQty" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Weekly Demand:</label>
+                    <input type="number" id="toClearWeeklyDemand" step="0.1" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Action Plan:</label>
+                    <textarea id="toClearActionPlan" required></textarea>
+                </div>
+                <button type="submit">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let inventoryData = [];
+        let newProductsData = [];
+        let toClearData = [];
+        let masterProductsData = [];
+
+        // Initialize with sample data
+        function loadSampleData() {
+            inventoryData = [
+                { id: 1, brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", status: "OOS", expiry: "", shipment: "", remarks: "" },
+                { id: 2, brand: "Greenlife", product: "GL VIT C + ZINC", status: "OOS", expiry: "", shipment: "", remarks: "" },
+                { id: 3, brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", status: "Low stock", expiry: "", shipment: "", remarks: "" },
+                { id: 4, brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", status: "In Stock", expiry: "", shipment: "", remarks: "" }
+            ];
+
+            newProductsData = [
+                { id: 1, brand: "Greenlife", product: "GL SUPER PROBIOTIC", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula" },
+                { id: 2, brand: "NN", product: "NORDIC OMEGA FOCUS", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support" }
+            ];
+
+            toClearData = [
+                { id: 1, brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Short Expiry", expiryDate: "2024-03-15", totalQty: 24, weeklyDemand: 3.5, actionPlan: "20% discount promotion" },
+                { id: 2, brand: "NN", product: "VITAMIN C GUMMIES", category: "Discontinued", expiryDate: "2024-12-10", totalQty: 18, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount" }
+            ];
+
+            masterProductsData = [
+                { id: 1, brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL001", price: 18.50 },
+                { id: 2, brand: "Greenlife", product: "GL VIT C + ZINC", category: "Vitamins", description: "Immune support", sku: "GL002", price: 15.99 },
+                { id: 3, brand: "NN", product: "NORDIC KIDS VIT C GUM", category: "Vitamins", description: "Kids vitamin C", sku: "NN001", price: 12.50 },
+                { id: 4, brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS", category: "Digestive Health", description: "Digestive enzymes", sku: "ENZ001", price: 28.50 }
+            ];
+
+            updateAllTables();
+            showNotification('Sample data loaded successfully!');
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const allTabButtons = document.querySelectorAll('.tab');
+            allTabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to the corresponding tab button
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName.replace('-', ' '))) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update data when switching tabs
+            updateAllTables();
+        }
+
+        // Show filtered inventory from dashboard
+        function showFilteredInventory(status) {
+            // Switch to inventory tab
+            switchTab('inventory');
+            
+            // Filter and display the inventory
+            const tbody = document.getElementById('inventory-table');
+            tbody.innerHTML = '';
+            
+            const filtered = inventoryData.filter(item => item.status === status);
+            
+            filtered.forEach(item => {
+                const row = tbody.insertRow();
+                let statusClass = '';
+                if (item.status === 'OOS') statusClass = 'oos';
+                else if (item.status.includes('Low')) statusClass = 'low';
+                else statusClass = 'normal';
+                
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.expiry || 'N/A'}</td>
+                    <td>${item.shipment || 'TBD'}</td>
+                    <td>${item.remarks || '-'}</td>
+                    <td>
+                        <button onclick="editProduct(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update all tables
+        function updateAllTables() {
+            updateInventoryTable();
+            updateNewProductsTable();
+            updateToClearTable();
+            updateMasterTable();
+            updateDashboard();
+        }
+
+        // Update inventory table
+        function updateInventoryTable() {
+            const tbody = document.getElementById('inventory-table');
+            tbody.innerHTML = '';
+            
+            inventoryData.forEach(item => {
+                const row = tbody.insertRow();
+                let statusClass = '';
+                if (item.status === 'OOS') statusClass = 'oos';
+                else if (item.status.includes('Low')) statusClass = 'low';
+                else statusClass = 'normal';
+                
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.expiry || 'N/A'}</td>
+                    <td>${item.shipment || 'TBD'}</td>
+                    <td>${item.remarks || '-'}</td>
+                    <td>
+                        <button onclick="editProduct(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update new products table
+        function updateNewProductsTable() {
+            const tbody = document.getElementById('new-products-table');
+            tbody.innerHTML = '';
+            
+            newProductsData.forEach(item => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td>${item.addedDate}</td>
+                    <td>${item.arrivalDate || 'TBD'}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.notes || '-'}</td>
+                    <td>
+                        <button onclick="editNewProduct(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteNewProduct(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update to clear table
+        function updateToClearTable() {
+            const tbody = document.getElementById('to-clear-table');
+            tbody.innerHTML = '';
+            
+            toClearData.forEach(item => {
+                const row = tbody.insertRow();
+                let categoryClass = '';
+                if (item.category === 'Short Expiry') categoryClass = 'oos';
+                else if (item.category === 'Excess Stock') categoryClass = 'low';
+                else categoryClass = 'normal';
+                
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td><span class="status-badge ${categoryClass}">${item.category}</span></td>
+                    <td>${item.expiryDate}</td>
+                    <td>${item.totalQty}</td>
+                    <td>${item.weeklyDemand}</td>
+                    <td>${item.actionPlan}</td>
+                    <td>
+                        <button onclick="editToClear(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteToClear(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update master table
+        function updateMasterTable() {
+            const tbody = document.getElementById('master-table');
+            tbody.innerHTML = '';
+            
+            masterProductsData.forEach(item => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td>${item.category}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.sku || '-'}</td>
+                    <td>$${item.price ? item.price.toFixed(2) : '0.00'}</td>
+                    <td>
+                        <button onclick="editMasterProduct(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteMasterProduct(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            const oosCount = inventoryData.filter(item => item.status === 'OOS').length;
+            const lowCount = inventoryData.filter(item => item.status.includes('Low')).length;
+            const inStockCount = inventoryData.filter(item => item.status === 'In Stock').length;
+            const newCount = newProductsData.length;
+            
+            document.getElementById('oos-count').textContent = oosCount;
+            document.getElementById('low-count').textContent = lowCount;
+            document.getElementById('in-stock-count').textContent = inStockCount;
+            document.getElementById('new-count').textContent = newCount;
+            
+            // Update alerts
+            const alertsDiv = document.getElementById('alerts');
+            let alertsHTML = '';
+            
+            if (oosCount > 0) {
+                alertsHTML += `<div style="padding: 10px; margin: 5px 0; background: #ffebee; border-left: 4px solid #e74c3c; border-radius: 5px;">
+                    🚨 ${oosCount} products are out of stock!</div>`;
+            }
+            if (lowCount > 0) {
+                alertsHTML += `<div style="padding: 10px; margin: 5px 0; background: #fff3cd; border-left: 4px solid #f39c12; border-radius: 5px;">
+                    ⚠️ ${lowCount} products are low in stock!</div>`;
+            }
+            if (alertsHTML === '') {
+                alertsHTML = '<p style="color: #2ecc71;">✅ No urgent alerts at this time</p>';
+            }
+            alertsDiv.innerHTML = alertsHTML;
+            
+            // Update last updated time
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
+            document.getElementById('total-products').textContent = inventoryData.length;
+        }
+
+        // Modal functions
+        function showAddProductModal() {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productModalTitle').textContent = 'Add New Product';
+            document.getElementById('productModal').style.display = 'block';
+            document.getElementById('productModal').querySelector('form').reset();
+        }
+
+        function showAddNewProductModal() {
+            document.getElementById('editNewProductId').value = '';
+            document.getElementById('newProductModalTitle').textContent = 'Add New Product';
+            document.getElementById('newProductModal').style.display = 'block';
+            document.getElementById('newProductModal').querySelector('form').reset();
+        }
+
+        function showAddMasterProductModal() {
+            document.getElementById('editMasterProductId').value = '';
+            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
+            document.getElementById('masterProductModal').style.display = 'block';
+            document.getElementById('masterProductModal').querySelector('form').reset();
+        }
+
+        function showAddToClearModal() {
+            document.getElementById('editToClearId').value = '';
+            document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
+            document.getElementById('toClearModal').style.display = 'block';
+            document.getElementById('toClearModal').querySelector('form').reset();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Save functions
+        function saveProduct(event) {
+            event.preventDefault();
+            
+            const editId = document.getElementById('editProductId').value;
+            
+            if (editId) {
+                // Edit existing product
+                const index = inventoryData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    inventoryData[index] = {
+                        id: parseInt(editId),
+                        brand: document.getElementById('brand').value,
+                        product: document.getElementById('productName').value,
+                        status: document.getElementById('status').value,
+                        expiry: document.getElementById('expiry').value,
+                        shipment: document.getElementById('shipment').value,
+                        remarks: document.getElementById('remarks').value
+                    };
+                }
+            } else {
+                // Add new product
+                const newProduct = {
+                    id: inventoryData.length + 1,
+                    brand: document.getElementById('brand').value,
+                    product: document.getElementById('productName').value,
+                    status: document.getElementById('status').value,
+                    expiry: document.getElementById('expiry').value,
+                    shipment: document.getElementById('shipment').value,
+                    remarks: document.getElementById('remarks').value
+                };
+                inventoryData.push(newProduct);
+            }
+            
+            updateAllTables();
+            closeModal('productModal');
+            showNotification(editId ? 'Product updated successfully!' : 'Product added successfully!');
+            event.target.reset();
+        }
+
+        function saveNewProduct(event) {
+            event.preventDefault();
+            
+            const editId = document.getElementById('editNewProductId').value;
+            
+            if (editId) {
+                // Edit existing product
+                const index = newProductsData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    newProductsData[index] = {
+                        id: parseInt(editId),
+                        brand: document.getElementById('newBrand').value,
+                        product: document.getElementById('newProductName').value,
+                        quantity: document.getElementById('quantity').value,
+                        arrivalDate: document.getElementById('arrivalDate').value,
+                        notes: document.getElementById('notes').value,
+                        addedDate: newProductsData[index].addedDate
+                    };
+                }
+            } else {
+                // Add new product
+                const newProduct = {
+                    id: newProductsData.length + 1,
+                    brand: document.getElementById('newBrand').value,
+                    product: document.getElementById('newProductName').value,
+                    quantity: document.getElementById('quantity').value,
+                    arrivalDate: document.getElementById('arrivalDate').value,
+                    notes: document.getElementById('notes').value,
+                    addedDate: new Date().toISOString().split('T')[0]
+                };
+                newProductsData.push(newProduct);
+            }
+            
+            updateAllTables();
+            closeModal('newProductModal');
+            showNotification(editId ? 'Product updated successfully!' : 'New product added successfully!');
+            event.target.reset();
+        }
+
+        function saveMasterProduct(event) {
+            event.preventDefault();
+            
+            const editId = document.getElementById('editMasterProductId').value;
+            
+            if (editId) {
+                // Edit existing product
+                const index = masterProductsData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    masterProductsData[index] = {
+                        id: parseInt(editId),
+                        brand: document.getElementById('masterBrand').value,
+                        product: document.getElementById('masterProductName').value,
+                        category: document.getElementById('category').value,
+                        description: document.getElementById('description').value,
+                        sku: document.getElementById('sku').value,
+                        price: parseFloat(document.getElementById('price').value) || 0
+                    };
+                }
+            } else {
+                // Add new product
+                const newProduct = {
+                    id: masterProductsData.length + 1,
+                    brand: document.getElementById('masterBrand').value,
+                    product: document.getElementById('masterProductName').value,
+                    category: document.getElementById('category').value,
+                    description: document.getElementById('description').value,
+                    sku: document.getElementById('sku').value,
+                    price: parseFloat(document.getElementById('price').value) || 0
+                };
+                masterProductsData.push(newProduct);
+            }
+            
+            updateAllTables();
+            closeModal('masterProductModal');
+            showNotification(editId ? 'Product updated successfully!' : 'Master product added successfully!');
+            event.target.reset();
+        }
+
+        function saveToClear(event) {
+            event.preventDefault();
+            
+            const editId = document.getElementById('editToClearId').value;
+            
+            if (editId) {
+                // Edit existing product
+                const index = toClearData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    toClearData[index] = {
+                        id: parseInt(editId),
+                        brand: document.getElementById('toClearBrand').value,
+                        product: document.getElementById('toClearProductName').value,
+                        category: document.getElementById('toClearCategory').value,
+                        expiryDate: document.getElementById('toClearExpiryDate').value,
+                        totalQty: parseInt(document.getElementById('toClearTotalQty').value),
+                        weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
+                        actionPlan: document.getElementById('toClearActionPlan').value
+                    };
+                }
+            } else {
+                // Add new product
+                const newProduct = {
+                    id: toClearData.length + 1,
+                    brand: document.getElementById('toClearBrand').value,
+                    product: document.getElementById('toClearProductName').value,
+                    category: document.getElementById('toClearCategory').value,
+                    expiryDate: document.getElementById('toClearExpiryDate').value,
+                    totalQty: parseInt(document.getElementById('toClearTotalQty').value),
+                    weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
+                    actionPlan: document.getElementById('toClearActionPlan').value
+                };
+                toClearData.push(newProduct);
+            }
+            
+            updateAllTables();
+            closeModal('toClearModal');
+            showNotification(editId ? 'Product updated successfully!' : 'Product added to clear list!');
+            event.target.reset();
+        }
+
+        // Delete functions with To Clear
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                inventoryData = inventoryData.filter(item => item.id !== id);
+                updateAllTables();
+                showNotification('Product deleted successfully!');
+            }
+        }
+
+        function deleteNewProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                newProductsData = newProductsData.filter(item => item.id !== id);
+                updateAllTables();
+                showNotification('Product deleted successfully!');
+            }
+        }
+
+        function deleteMasterProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                masterProductsData = masterProductsData.filter(item => item.id !== id);
+                updateAllTables();
+                showNotification('Product deleted successfully!');
+            }
+        }
+
+        function deleteToClear(id) {
+            if (confirm('Are you sure you want to delete this product from the clear list?')) {
+                toClearData = toClearData.filter(item => item.id !== id);
+                updateAllTables();
+                showNotification('Product removed from clear list!');
+            }
+        }
+
+        // Edit functions
+        function editProduct(id) {
+            const product = inventoryData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('productModalTitle').textContent = 'Edit Product';
+                document.getElementById('brand').value = product.brand;
+                document.getElementById('productName').value = product.product;
+                document.getElementById('status').value = product.status;
+                document.getElementById('expiry').value = product.expiry || '';
+                document.getElementById('shipment').value = product.shipment || '';
+                document.getElementById('remarks').value = product.remarks || '';
+                document.getElementById('productModal').style.display = 'block';
+            }
+        }
+
+        function editNewProduct(id) {
+            const product = newProductsData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('editNewProductId').value = product.id;
+                document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
+                document.getElementById('newBrand').value = product.brand;
+                document.getElementById('newProductName').value = product.product;
+                document.getElementById('quantity').value = product.quantity;
+                document.getElementById('arrivalDate').value = product.arrivalDate || '';
+                document.getElementById('notes').value = product.notes || '';
+                document.getElementById('newProductModal').style.display = 'block';
+            }
+        }
+
+        function editMasterProduct(id) {
+            const product = masterProductsData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('editMasterProductId').value = product.id;
+                document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
+                document.getElementById('masterBrand').value = product.brand;
+                document.getElementById('masterProductName').value = product.product;
+                document.getElementById('category').value = product.category;
+                document.getElementById('description').value = product.description || '';
+                document.getElementById('sku').value = product.sku || '';
+                document.getElementById('price').value = product.price || '';
+                document.getElementById('masterProductModal').style.display = 'block';
+            }
+        }
+
+        function editToClear(id) {
+            const product = toClearData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('editToClearId').value = product.id;
+                document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
+                document.getElementById('toClearBrand').value = product.brand;
+                document.getElementById('toClearProductName').value = product.product;
+                document.getElementById('toClearCategory').value = product.category;
+                document.getElementById('toClearExpiryDate').value = product.expiryDate;
+                document.getElementById('toClearTotalQty').value = product.totalQty;
+                document.getElementById('toClearWeeklyDemand').value = product.weeklyDemand;
+                document.getElementById('toClearActionPlan').value = product.actionPlan;
+                document.getElementById('toClearModal').style.display = 'block';
+            }
+        }
+
+        // Search function
+        function searchInventory(searchTerm) {
+            const tbody = document.getElementById('inventory-table');
+            tbody.innerHTML = '';
+            
+            const filtered = inventoryData.filter(item => 
+                item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.brand.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            filtered.forEach(item => {
+                const row = tbody.insertRow();
+                let statusClass = '';
+                if (item.status === 'OOS') statusClass = 'oos';
+                else if (item.status.includes('Low')) statusClass = 'low';
+                else statusClass = 'normal';
+                
+                row.innerHTML = `
+                    <td>${item.brand}</td>
+                    <td>${item.product}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.expiry || 'N/A'}</td>
+                    <td>${item.shipment || 'TBD'}</td>
+                    <td>${item.remarks || '-'}</td>
+                    <td>
+                        <button onclick="editProduct(${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteProduct(${item.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Export and Import functions
+        function exportAllData() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add inventory data
+            csvContent += "INVENTORY DATA\n";
+            csvContent += "Brand,Product,Status,Expiry,Shipment,Remarks\n";
+            inventoryData.forEach(item => {
+                csvContent += `${item.brand},${item.product},${item.status},${item.expiry || ''},${item.shipment || ''},${item.remarks || ''}\n`;
+            });
+            
+            // Add new products data
+            csvContent += "\n\nNEW PRODUCTS DATA\n";
+            csvContent += "Brand,Product,Added Date,Arrival Date,Quantity,Notes\n";
+            newProductsData.forEach(item => {
+                csvContent += `${item.brand},${item.product},${item.addedDate},${item.arrivalDate || ''},${item.quantity},${item.notes || ''}\n`;
+            });
+            
+            // Download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "inventory_export_" + new Date().toISOString().split('T')[0] + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Data exported successfully!');
+        }
+
+        function exportMasterList() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Brand,Product,Category,Description,SKU,Price\n";
+            
+            masterProductsData.forEach(item => {
+                csvContent += `${item.brand},${item.product},${item.category},${item.description || ''},${item.sku || ''},${item.price || 0}\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "master_products_" + new Date().toISOString().split('T')[0] + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Master list exported successfully!');
+        }
+
+        // Import CSV function
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+            
+            // Reset the input
+            event.target.value = '';
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            // Validate headers
+            const expectedHeaders = ['Brand', 'Product', 'Category', 'Description', 'SKU', 'Price'];
+            const hasValidHeaders = expectedHeaders.every(header => 
+                headers.some(h => h.toLowerCase() === header.toLowerCase())
+            );
+            
+            if (!hasValidHeaders) {
+                showNotification('Invalid CSV format! Headers should be: Brand, Product, Category, Description, SKU, Price', 'error');
+                return;
+            }
+            
+            // Find the highest existing ID
+            let maxId = Math.max(...masterProductsData.map(item => item.id), 0);
+            let importedCount = 0;
+            
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const values = parseCSVLine(line);
+                if (values.length >= headers.length) {
+                    const newProduct = {
+                        id: ++maxId,
+                        brand: values[headers.indexOf('Brand')] || '',
+                        product: values[headers.indexOf('Product')] || '',
+                        category: values[headers.indexOf('Category')] || '',
+                        description: values[headers.indexOf('Description')] || '',
+                        sku: values[headers.indexOf('SKU')] || '',
+                        price: parseFloat(values[headers.indexOf('Price')]) || 0
+                    };
+                    
+                    // Only add if brand and product name exist
+                    if (newProduct.brand && newProduct.product) {
+                        masterProductsData.push(newProduct);
+                        importedCount++;
+                    }
+                }
+            }
+            
+            if (importedCount > 0) {
+                updateAllTables();
+                showNotification(`Successfully imported ${importedCount} products!`);
+            } else {
+                showNotification('No valid products found in the CSV file!', 'error');
+            }
+        }
+
+        // Helper function to parse CSV line (handles commas in quotes)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // Notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            loadSampleData();
+        };
+    </script>
+</body>
+</html>
