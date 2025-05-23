@@ -590,6 +590,8 @@
                         <th>Product</th>
                         <th>Category</th>
                         <th>Expiry Date</th>
+                        <th>First Highlighted Date</th>
+                        <th>First Reported Balance</th>
                         <th>Warehouse Qty</th>
                         <th>Store Qty</th>
                         <th>Total Qty</th>
@@ -829,6 +831,14 @@
                     <input type="date" id="toClearExpiryDate" required>
                 </div>
                 <div class="form-group">
+                    <label>First Highlighted Date:</label>
+                    <input type="date" id="toClearFirstHighlightedDate" readonly>
+                </div>
+                <div class="form-group">
+                    <label>First Reported Balance:</label>
+                    <input type="number" id="toClearFirstReportedBalance" readonly min="0">
+                </div>
+                <div class="form-group">
                     <label>Warehouse Quantity:</label>
                     <input type="number" id="toClearWarehouseQty" required min="0">
                 </div>
@@ -1012,9 +1022,9 @@
                 { brand: "NN", product: "NORDIC OMEGA FOCUS", sku: "NN-OMF-002", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support", isDeleted: false }
             ],
             to_clear: [
-                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", sku: "GL-VBC-004", category: "Short Expiry", expiryDate: "2025-08-15", warehouseQty: 10, storeQty: 5, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
-                { brand: "NN", product: "VITAMIN C GUMMIES", sku: "NN-VCG-003", category: "Discontinued", expiryDate: "2025-12-10", warehouseQty: 8, storeQty: 2, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false },
-                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", category: "Excess Stock", expiryDate: "2026-06-01", warehouseQty: 50, storeQty: 10, weeklyDemand: 5.0, actionPlan: "Bundle offer", isDeleted: false }
+                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", sku: "GL-VBC-004", category: "Short Expiry", expiryDate: "2025-08-15", firstHighlightedDate: "2025-05-01", firstReportedBalance: 15, warehouseQty: 10, storeQty: 5, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
+                { brand: "NN", product: "VITAMIN C GUMMIES", sku: "NN-VCG-003", category: "Discontinued", expiryDate: "2025-12-10", firstHighlightedDate: "2025-04-20", firstReportedBalance: 10, warehouseQty: 8, storeQty: 2, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false },
+                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", category: "Excess Stock", expiryDate: "2026-06-01", firstHighlightedDate: "2025-03-10", firstReportedBalance: 60, warehouseQty: 50, storeQty: 10, weeklyDemand: 5.0, actionPlan: "Bundle offer", isDeleted: false }
             ],
             master_products: [
                 { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL-ENZ-001", price: 18.50, isDeleted: false },
@@ -1172,6 +1182,7 @@
 
             const warehouseQty = parseInt(document.getElementById('toClearWarehouseQty').value);
             const storeQty = parseInt(document.getElementById('toClearStoreQty').value);
+            const totalQtyAtCreation = warehouseQty + storeQty; // Calculate total for initial balance
 
             const toClearProductData = {
                 brand: selectedBrand,
@@ -1185,6 +1196,20 @@
                 actionPlan: document.getElementById('toClearActionPlan').value,
                 isDeleted: false
             };
+
+            // Only set these fields on NEW creation
+            if (!editId) {
+                toClearProductData.firstHighlightedDate = new Date().toISOString().slice(0, 10);
+                toClearProductData.firstReportedBalance = totalQtyAtCreation;
+            } else {
+                // For existing items, ensure these values are kept from previous state if not explicitly passed
+                const existingItem = toClearData.find(item => item.id === editId);
+                if (existingItem) {
+                    toClearProductData.firstHighlightedDate = existingItem.firstHighlightedDate;
+                    toClearProductData.firstReportedBalance = existingItem.firstReportedBalance;
+                }
+            }
+
 
             try {
                 await saveDataToFirestore(toClearColRef, editId, toClearProductData);
@@ -1387,7 +1412,7 @@
             if (toClearData.length === 0) {
                 const row = tbody.insertRow();
                 const cell = row.insertCell();
-                cell.colSpan = 12; // Adjusted colspan for new columns
+                cell.colSpan = 14; // Adjusted colspan for new columns
                 cell.textContent = "No products found for this view.";
                 cell.style.textAlign = "center";
                 cell.style.padding = "20px";
@@ -1444,6 +1469,8 @@
                     <td>${item.product || ''}</td>
                     <td><span class="status-badge ${categoryClass}">${item.category || ''}</span></td>
                     <td>${item.expiryDate || ''}</td>
+                    <td>${item.firstHighlightedDate || 'N/A'}</td>
+                    <td>${item.firstReportedBalance !== undefined ? item.firstReportedBalance : 'N/A'}</td>
                     <td>${warehouseQty}</td>
                     <td>${storeQty}</td>
                     <td>${totalQty}</td>
@@ -1691,6 +1718,13 @@
             document.getElementById('toClearStoreQty').value = '';     // Clear new field
             document.getElementById('toClearWeeklyDemand').value = '';
             document.getElementById('toClearActionPlan').value = '';
+            
+            // Set First Highlighted Date to today for new entries
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('toClearFirstHighlightedDate').value = today;
+            // First Reported Balance will be set when saving (totalQty)
+            document.getElementById('toClearFirstReportedBalance').value = ''; // Clear for new, will be set on save
+
             document.getElementById('toClearModal').style.display = 'block';
         }
 
@@ -1713,6 +1747,11 @@
             document.getElementById('toClearStoreQty').value = item.storeQty || '';     // Set new field
             document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand || '';
             document.getElementById('toClearActionPlan').value = item.actionPlan || '';
+
+            // Set First Highlighted Date and First Reported Balance for editing
+            document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate || '';
+            document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+
             document.getElementById('toClearModal').style.display = 'block';
         }
 
@@ -1854,7 +1893,7 @@
                 csvContent += convertToCSV(await fetchDataFromFirestore(newProductsColRef, true), newProdHeaders);
 
                 // To Clear Data (updated headers)
-                const toClearHeaders = ['sku', 'brand', 'product', 'category', 'expiryDate', 'warehouseQty', 'storeQty', 'weeklyDemand', 'actionPlan', 'isDeleted', 'deletedDate', 'originalCollection'];
+                const toClearHeaders = ['sku', 'brand', 'product', 'category', 'expiryDate', 'firstHighlightedDate', 'firstReportedBalance', 'warehouseQty', 'storeQty', 'weeklyDemand', 'actionPlan', 'isDeleted', 'deletedDate', 'originalCollection'];
                 csvContent += "\n\nTO CLEAR DATA\n";
                 csvContent += convertToCSV(await fetchDataFromFirestore(toClearColRef, true), toClearHeaders);
 
