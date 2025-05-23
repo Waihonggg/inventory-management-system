@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
+    <title>Inventory Management System</title>
     <style>
         /* General Reset */
         * {
@@ -220,6 +220,14 @@
 
         .normal {
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .danger-status {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .alert-status {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
 
         /* Buttons */
@@ -488,6 +496,7 @@
 <body>
     <div class="container">
         <h1>Inventory Management System</h1>
+        <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
@@ -581,8 +590,12 @@
                         <th>Product</th>
                         <th>Category</th>
                         <th>Expiry Date</th>
+                        <th>Warehouse Qty</th>
+                        <th>Store Qty</th>
                         <th>Total Qty</th>
                         <th>Weekly Demand</th>
+                        <th>Weeks Supply</th>
+                        <th>Supply Status</th>
                         <th>Action Plan</th>
                         <th>Actions</th>
                     </tr>
@@ -816,8 +829,12 @@
                     <input type="date" id="toClearExpiryDate" required>
                 </div>
                 <div class="form-group">
-                    <label>Total Quantity:</label>
-                    <input type="number" id="toClearTotalQty" required min="1">
+                    <label>Warehouse Quantity:</label>
+                    <input type="number" id="toClearWarehouseQty" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Store Quantity:</label>
+                    <input type="number" id="toClearStoreQty" required min="0">
                 </div>
                 <div class="form-group">
                     <label>Weekly Demand:</label>
@@ -995,8 +1012,9 @@
                 { brand: "NN", product: "NORDIC OMEGA FOCUS", sku: "NN-OMF-002", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support", isDeleted: false }
             ],
             to_clear: [
-                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", sku: "GL-VBC-004", category: "Short Expiry", expiryDate: "2024-03-15", totalQty: 24, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
-                { brand: "NN", product: "VITAMIN C GUMMIES", sku: "NN-VCG-003", category: "Discontinued", expiryDate: "2024-12-10", totalQty: 18, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false }
+                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", sku: "GL-VBC-004", category: "Short Expiry", expiryDate: "2025-08-15", warehouseQty: 10, storeQty: 5, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
+                { brand: "NN", product: "VITAMIN C GUMMIES", sku: "NN-VCG-003", category: "Discontinued", expiryDate: "2025-12-10", warehouseQty: 8, storeQty: 2, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false },
+                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", category: "Excess Stock", expiryDate: "2026-06-01", warehouseQty: 50, storeQty: 10, weeklyDemand: 5.0, actionPlan: "Bundle offer", isDeleted: false }
             ],
             master_products: [
                 { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL-ENZ-001", price: 18.50, isDeleted: false },
@@ -1152,13 +1170,17 @@
             const selectedProduct = document.getElementById('toClearProductName').value;
             const productSku = getSkuForProduct(selectedBrand, selectedProduct);
 
+            const warehouseQty = parseInt(document.getElementById('toClearWarehouseQty').value);
+            const storeQty = parseInt(document.getElementById('toClearStoreQty').value);
+
             const toClearProductData = {
                 brand: selectedBrand,
                 product: selectedProduct,
                 sku: productSku, // NEW: Save the SKU
                 category: document.getElementById('toClearCategory').value,
                 expiryDate: document.getElementById('toClearExpiryDate').value,
-                totalQty: parseInt(document.getElementById('toClearTotalQty').value),
+                warehouseQty: warehouseQty,
+                storeQty: storeQty,
                 weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
                 actionPlan: document.getElementById('toClearActionPlan').value,
                 isDeleted: false
@@ -1229,7 +1251,7 @@
                         showNotification('"To Clear" product moved to Recycle Bin!', 'success');
                         await updateLocalData();
                     } catch (e) {
-                        console.error("Error deleting item: ", e);
+                        console.error("Error moving item: ", e);
                         showNotification('Error moving product to Recycle Bin.', 'error');
                     }
                 }
@@ -1362,6 +1384,19 @@
         function updateToClearTable() {
             const tbody = document.getElementById('to-clear-table');
             tbody.innerHTML = '';
+            if (toClearData.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 12; // Adjusted colspan for new columns
+                cell.textContent = "No products found for this view.";
+                cell.style.textAlign = "center";
+                cell.style.padding = "20px";
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
+
             toClearData.forEach(item => {
                 const row = tbody.insertRow();
                 let categoryClass = '';
@@ -1369,14 +1404,52 @@
                 else if (item.category === 'Excess Stock') categoryClass = 'low';
                 else categoryClass = 'normal';
 
+                const warehouseQty = item.warehouseQty || 0;
+                const storeQty = item.storeQty || 0;
+                const totalQty = warehouseQty + storeQty;
+
+                const weeklyDemand = item.weeklyDemand || 0;
+                const noOfWeekSupply = weeklyDemand > 0 ? (totalQty / weeklyDemand).toFixed(1) : 'N/A'; // Rounded to 1 decimal
+
+                let supplyStatus = 'N/A';
+                let supplyStatusClass = '';
+
+                if (item.expiryDate && noOfWeekSupply !== 'N/A') {
+                    const expiryDate = new Date(item.expiryDate);
+                    expiryDate.setHours(0, 0, 0, 0); // Normalize expiry date to start of day
+
+                    const diffTimeExpiry = expiryDate.getTime() - today.getTime();
+                    const diffDaysExpiry = Math.ceil(diffTimeExpiry / (1000 * 60 * 60 * 24));
+                    const monthsUntilExpiry = diffDaysExpiry / 30.44; // Approximate months
+
+                    const daysOfSupply = parseFloat(noOfWeekSupply) * 7;
+                    const monthsOfSupply = daysOfSupply / 30.44; // Approximate months
+
+                    if (monthsUntilExpiry <= 6 && monthsOfSupply > monthsUntilExpiry) {
+                        supplyStatus = 'Danger';
+                        supplyStatusClass = 'danger-status';
+                    } else if (monthsUntilExpiry <= 12 && monthsOfSupply > monthsUntilExpiry) {
+                        supplyStatus = 'Alert';
+                        supplyStatusClass = 'alert-status';
+                    } else {
+                        supplyStatus = 'Normal';
+                        supplyStatusClass = 'normal';
+                    }
+                }
+
+
                 row.innerHTML = `
                     <td>${item.sku || 'N/A'}</td>
                     <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
                     <td><span class="status-badge ${categoryClass}">${item.category || ''}</span></td>
                     <td>${item.expiryDate || ''}</td>
-                    <td>${item.totalQty || ''}</td>
+                    <td>${warehouseQty}</td>
+                    <td>${storeQty}</td>
+                    <td>${totalQty}</td>
                     <td>${item.weeklyDemand || ''}</td>
+                    <td>${noOfWeekSupply}</td>
+                    <td><span class="status-badge ${supplyStatusClass}">${supplyStatus}</span></td>
                     <td>${item.actionPlan || ''}</td>
                     <td>
                         <button onclick="showEditToClearModal('${item.id}')">Edit</button>
@@ -1614,7 +1687,8 @@
             document.getElementById('toClearProductsDatalist').innerHTML = ''; // Clear datalist
             document.getElementById('toClearCategory').value = '';
             document.getElementById('toClearExpiryDate').value = '';
-            document.getElementById('toClearTotalQty').value = '';
+            document.getElementById('toClearWarehouseQty').value = ''; // Clear new field
+            document.getElementById('toClearStoreQty').value = '';     // Clear new field
             document.getElementById('toClearWeeklyDemand').value = '';
             document.getElementById('toClearActionPlan').value = '';
             document.getElementById('toClearModal').style.display = 'block';
@@ -1635,7 +1709,8 @@
             document.getElementById('toClearProductName').value = item.product || ''; // Set value after datalist is populated
             document.getElementById('toClearCategory').value = item.category || '';
             document.getElementById('toClearExpiryDate').value = item.expiryDate || '';
-            document.getElementById('toClearTotalQty').value = item.totalQty || '';
+            document.getElementById('toClearWarehouseQty').value = item.warehouseQty || ''; // Set new field
+            document.getElementById('toClearStoreQty').value = item.storeQty || '';     // Set new field
             document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand || '';
             document.getElementById('toClearActionPlan').value = item.actionPlan || '';
             document.getElementById('toClearModal').style.display = 'block';
@@ -1778,8 +1853,8 @@
                 csvContent += "\n\nNEW PRODUCTS DATA\n";
                 csvContent += convertToCSV(await fetchDataFromFirestore(newProductsColRef, true), newProdHeaders);
 
-                // To Clear Data
-                const toClearHeaders = ['sku', 'brand', 'product', 'category', 'expiryDate', 'totalQty', 'weeklyDemand', 'actionPlan', 'isDeleted', 'deletedDate', 'originalCollection'];
+                // To Clear Data (updated headers)
+                const toClearHeaders = ['sku', 'brand', 'product', 'category', 'expiryDate', 'warehouseQty', 'storeQty', 'weeklyDemand', 'actionPlan', 'isDeleted', 'deletedDate', 'originalCollection'];
                 csvContent += "\n\nTO CLEAR DATA\n";
                 csvContent += convertToCSV(await fetchDataFromFirestore(toClearColRef, true), toClearHeaders);
 
