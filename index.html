@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
+    <title>Inventory Management System</title>
     <style>
         /* General Reset */
         * {
@@ -495,7 +495,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Inventory Management </h1>
+        <h1>Inventory Management System</h1>
+        <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
@@ -541,7 +542,7 @@
                         <th>Product Code</th>
                         <th>Brand</th>
                         <th>Product</th>
-                        <th>Status</th>
+                        <th>Quantity</th> <th>Status</th>
                         <th>Expiry</th>
                         <th>Shipment</th>
                         <th>Remarks</th>
@@ -686,12 +687,16 @@
                     <datalist id="productsDatalist"></datalist>
                 </div>
                 <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" id="inventoryQuantity" required min="0">
+                </div>
+                <div class="form-group">
                     <label>Status:</label>
                     <select id="status" required>
                         <option value="">Select Status</option>
                         <option value="OOS">Out of Stock</option>
                         <option value="Low stock">Low Stock</option>
-                    </select>
+                        <option value="In Stock">In Stock</option> </select>
                 </div>
                 <div class="form-group">
                     <label>Expiry Date:</label>
@@ -1011,10 +1016,11 @@
         // Initial sample data (to be added only if collections are empty)
         const initialSampleData = {
             inventory: [
-                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", sku: "GL-ENZ-001", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "Greenlife", product: "GL VIT C + ZINC", sku: "GL-VCZ-002", status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", sku: "NN-KVC-001", status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", sku: "EZ-DPR-001", status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false }
+                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", sku: "GL-ENZ-001", quantity: 0, status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "Greenlife", product: "GL VIT C + ZINC", sku: "GL-VCZ-002", quantity: 0, status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", sku: "NN-KVC-001", quantity: 5, status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", sku: "EZ-DPR-001", quantity: 8, status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
+                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", quantity: 25, status: "In Stock", expiry: "2026-10-01", shipment: "", remarks: "Regular stock", isDeleted: false } // Added In Stock item
             ],
             new_products: [
                 { brand: "Greenlife", product: "GL SUPER PROBIOTIC", sku: "GL-SPR-003", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula", isDeleted: false },
@@ -1098,6 +1104,7 @@
                 brand: selectedBrand,
                 product: selectedProduct,
                 sku: productSku, // NEW: Save the SKU
+                quantity: parseInt(document.getElementById('inventoryQuantity').value), // NEW: Quantity field
                 status: document.getElementById('status').value,
                 expiry: document.getElementById('expiry').value,
                 shipment: document.getElementById('shipment').value,
@@ -1353,7 +1360,7 @@
             if (dataToDisplay.length === 0) {
                 const row = tbody.insertRow();
                 const cell = row.insertCell();
-                cell.colSpan = 8; // Adjust to match number of columns
+                cell.colSpan = 9; // Adjusted to match number of columns including Quantity
                 cell.textContent = "No products found for this view.";
                 cell.style.textAlign = "center";
                 cell.style.padding = "20px";
@@ -1365,14 +1372,13 @@
                 let statusClass = '';
                 if (item.status === 'OOS') statusClass = 'oos';
                 else if (item.status && item.status.includes('Low')) statusClass = 'low';
-                // No 'normal' status in inventory now
-                else statusClass = 'info'; // Fallback for any unexpected status
+                else if (item.status === 'In Stock') statusClass = 'normal'; // Added In Stock class
 
                 row.innerHTML = `
                     <td>${item.sku || 'N/A'}</td>
                     <td>${item.brand || ''}</td>
                     <td>${item.product || ''}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status || ''}</span></td>
+                    <td>${item.quantity !== undefined ? item.quantity : 'N/A'}</td> <td><span class="status-badge ${statusClass}">${item.status || ''}</span></td>
                     <td>${item.expiry || 'N/A'}</td>
                     <td>${item.shipment || 'TBD'}</td>
                     <td>${item.remarks || '-'}</td>
@@ -1616,6 +1622,7 @@
             document.getElementById('brand').value = '';
             document.getElementById('productName').value = ''; // Clear input
             document.getElementById('productsDatalist').innerHTML = ''; // Clear datalist
+            document.getElementById('inventoryQuantity').value = ''; // Clear new quantity field
             document.getElementById('status').value = '';
             document.getElementById('expiry').value = '';
             document.getElementById('shipment').value = '';
@@ -1636,6 +1643,7 @@
             document.getElementById('brand').value = item.brand || '';
             filterProductsForBrand(item.brand || '', 'productName', 'productsDatalist'); // Populate datalist
             document.getElementById('productName').value = item.product || ''; // Set value after datalist is populated
+            document.getElementById('inventoryQuantity').value = item.quantity !== undefined ? item.quantity : ''; // Set quantity field
             document.getElementById('status').value = item.status || '';
             document.getElementById('expiry').value = item.expiry || '';
             document.getElementById('shipment').value = item.shipment || '';
@@ -1837,10 +1845,9 @@
                 (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
             );
 
-            // Filter for only OOS or Low Stock for the OOS/LOW STOCK tab
-            const oosLowStockFiltered = filtered.filter(item => item.status === 'OOS' || item.status === 'Low stock');
-
-            updateInventoryTable(oosLowStockFiltered); // Pass filtered data to table update
+            // Filter for only OOS or Low Stock for the OOS/LOW STOCK tab - NO, now it also includes "In Stock"
+            // The OOS/LOW STOCK tab can now display all inventory items based on the search result.
+            updateInventoryTable(filtered); // Pass filtered data to table update
         }
 
         function showFilteredInventory(status) {
@@ -1881,8 +1888,8 @@
             try {
                 let csvContent = "";
 
-                // Inventory Data
-                const invHeaders = ['sku', 'brand', 'product', 'status', 'expiry', 'shipment', 'remarks', 'isDeleted', 'deletedDate', 'originalCollection'];
+                // Inventory Data (updated headers)
+                const invHeaders = ['sku', 'brand', 'product', 'quantity', 'status', 'expiry', 'shipment', 'remarks', 'isDeleted', 'deletedDate', 'originalCollection'];
                 csvContent += "INVENTORY DATA\n";
                 csvContent += convertToCSV(await fetchDataFromFirestore(inventoryColRef, true), invHeaders);
 
