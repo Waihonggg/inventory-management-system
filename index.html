@@ -986,6 +986,22 @@
                 statusesData = await fetchDataFromFirestore(statusesColRef);
                 categoriesData = await fetchDataFromFirestore(categoriesColRef);
 
+                // --- NEW LOGIC: Sync Brands from Master Products to Brands Collection ---
+                const uniqueBrandsFromMaster = [...new Set(masterProductsData.map(item => item.brand).filter(Boolean))];
+                const existingBrandNames = new Set(brandsData.map(b => b.name));
+                const brandsToAdd = uniqueBrandsFromMaster.filter(brandName => !existingBrandNames.has(brandName));
+
+                if (brandsToAdd.length > 0) {
+                    const brandBatch = db.batch();
+                    brandsToAdd.forEach(brandName => {
+                        brandBatch.set(brandsColRef.doc(), { name: brandName });
+                    });
+                    await brandBatch.commit();
+                    // Re-fetch brandsData after adding new ones
+                    brandsData = await fetchDataFromFirestore(brandsColRef);
+                }
+                // --- END NEW LOGIC ---
+
                 // Fetch all items (including deleted) for recycle bin
                 const allInventoryItems = await fetchDataFromFirestore(inventoryColRef, true);
                 const allNewProductsItems = await fetchDataFromFirestore(newProductsColRef, true);
