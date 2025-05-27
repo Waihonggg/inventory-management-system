@@ -14,7 +14,7 @@
 
         /* Body Styling */
         body {
-            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -675,12 +675,7 @@
                 <div class="form-group">
                     <label>Brand:</label>
                     <select id="brand" required onchange="filterProductsForBrand(this.value, 'productName', 'productsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
@@ -694,10 +689,7 @@
                 <div class="form-group">
                     <label>Status:</label>
                     <select id="status" required>
-                        <option value="">Select Status</option>
-                        <option value="OOS">Out of Stock</option>
-                        <option value="Low stock">Low Stock</option>
-                        <option value="In Stock">In Stock</option> </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Expiry Date:</label>
@@ -725,12 +717,7 @@
                 <div class="form-group">
                     <label>Brand:</label>
                     <select id="newBrand" required onchange="filterProductsForBrand(this.value, 'newProductName', 'newProductsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
@@ -763,12 +750,7 @@
                 <div class="form-group">
                     <label>Brand:</label>
                     <select id="masterBrand" required>
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
@@ -777,12 +759,7 @@
                 <div class="form-group">
                     <label>Category:</label>
                     <select id="category" required>
-                        <option value="">Select Category</option>
-                        <option value="Vitamins">Vitamins</option>
-                        <option value="Probiotics">Probiotics</option>
-                        <option value="Joint Support">Joint Support</option>
-                        <option value="Digestive Health">Digestive Health</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Description:</label>
@@ -810,12 +787,7 @@
                 <div class="form-group">
                     <label>Brand:</label>
                     <select id="toClearBrand" required onchange="filterProductsForBrand(this.value, 'toClearProductName', 'toClearProductsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Product Name:</label>
@@ -825,11 +797,7 @@
                 <div class="form-group">
                     <label>Category:</label>
                     <select id="toClearCategory" required>
-                        <option value="">Select Category</option>
-                        <option value="Short Expiry">Short Expiry</option>
-                        <option value="Excess Stock">Excess Stock</option>
-                        <option value="Discontinued">Discontinued</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="form-group">
                     <label>Expiry Date:</label>
@@ -875,6 +843,49 @@
         </div>
     </div>
 
+    <div id="addNewBrandModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addNewBrandModal')">&times;</span>
+            <h2>Add New Brand</h2>
+            <form onsubmit="handleAddNewBrand(event)">
+                <div class="form-group">
+                    <label for="newBrandNameInput">Brand Name:</label>
+                    <input type="text" id="newBrandNameInput" required>
+                </div>
+                <button type="submit">Add Brand</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addNewStatusModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addNewStatusModal')">&times;</span>
+            <h2>Add New Status</h2>
+            <form onsubmit="handleAddNewStatus(event)">
+                <div class="form-group">
+                    <label for="newStatusNameInput">Status Name:</label>
+                    <input type="text" id="newStatusNameInput" required>
+                </div>
+                <button type="submit">Add Status</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addNewCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addNewCategoryModal')">&times;</span>
+            <h2>Add New Category</h2>
+            <form onsubmit="handleAddNewCategory(event)">
+                <div class="form-group">
+                    <label for="newCategoryNameInput">Category Name:</label>
+                    <input type="text" id="newCategoryNameInput" required>
+                </div>
+                <button type="submit">Add Category</button>
+            </form>
+        </div>
+    </div>
+
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
@@ -901,6 +912,9 @@
         let toClearData = [];
         let masterProductsData = [];
         let deletedItemsData = []; // To store items marked as deleted
+        let brandsData = []; // New: To store dynamic brands
+        let statusesData = []; // New: To store dynamic statuses
+        let categoriesData = []; // New: To store dynamic categories
 
         // Variable to hold the callback for the confirmation modal
         let confirmCallback = null;
@@ -910,6 +924,9 @@
         const newProductsColRef = db.collection('new_products');
         const toClearColRef = db.collection('to_clear');
         const masterProductsColRef = db.collection('master_products');
+        const brandsColRef = db.collection('brands'); // New collection reference
+        const statusesColRef = db.collection('statuses'); // New collection reference
+        const categoriesColRef = db.collection('categories'); // New collection reference
 
         // --- Utility Functions ---
 
@@ -964,6 +981,11 @@
                 toClearData = await fetchDataFromFirestore(toClearColRef);
                 masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
                 
+                // New: Fetch dynamic dropdown data
+                brandsData = await fetchDataFromFirestore(brandsColRef);
+                statusesData = await fetchDataFromFirestore(statusesColRef);
+                categoriesData = await fetchDataFromFirestore(categoriesColRef);
+
                 // Fetch all items (including deleted) for recycle bin
                 const allInventoryItems = await fetchDataFromFirestore(inventoryColRef, true);
                 const allNewProductsItems = await fetchDataFromFirestore(newProductsColRef, true);
@@ -980,7 +1002,7 @@
                 updateDashboardStats();
                 updateAlerts();
                 updateManagementStats();
-                populateProductDatalists(); // NEW: Populate datalists after master data is loaded
+                populateAllDropdowns(); // Modified: Call a new comprehensive function
             } catch (e) {
                 console.error("Error updating local data from Firestore: ", e);
                 showNotification("Error loading data from server.", "error");
@@ -1043,6 +1065,41 @@
                 { brand: "Greenlife", product: "GL SUPER PROBIOTIC", category: "Probiotics", description: "High-potency probiotic formula", sku: "GL-SPR-003", price: 22.00, isDeleted: false },
                 { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Vitamins", description: "Energy support B-complex", sku: "GL-VBC-004", price: 17.50, isDeleted: false },
                 { brand: "NN", product: "VITAMIN C GUMMIES", category: "Vitamins", description: "Chewable Vitamin C for adults", sku: "NN-VCG-003", price: 10.00, isDeleted: false }
+            ],
+            brands: [ // Initial sample brands
+                { name: "Greenlife" },
+                { name: "NN" },
+                { name: "NaturesPlus" },
+                { name: "ENZYMEDICA" },
+                { name: "SHAKLEE" },
+                { name: "ENFUSELLE" },
+                { name: "VITAGREEN" },
+                { name: "NORDIC NATURALS" },
+                { name: "NATURE'S PLUS" },
+                { name: "MORISHITA JINTAN" },
+                { name: "SHANG SHI TANG" },
+                { name: "MOVE FREE" },
+                { name: "NEURIVA" },
+                { name: "GRANDPAWPAW" },
+                { name: "JUNG KWAN JANG" },
+                { name: "ENER-C" },
+                { name: "ENZYMATIC" }
+            ],
+            statuses: [ // Initial sample statuses
+                { name: "OOS" },
+                { name: "Low stock" },
+                { name: "In Stock" }
+            ],
+            categories: [ // Initial sample categories
+                { name: "Vitamins" },
+                { name: "Probiotics" },
+                { name: "Joint Support" },
+                { name: "Digestive Health" },
+                { name: "Short Expiry" },
+                { name: "Excess Stock" },
+                { name: "Discontinued" },
+                { name: "Brain Health" },
+                { name: "Multivitamins" }
             ]
         };
 
@@ -1053,18 +1110,39 @@
                 const invSnapshot = await inventoryColRef.limit(1).get();
                 if (invSnapshot.empty) {
                     showNotification("Loading sample data...", "info");
-                    for (const item of initialSampleData.inventory) {
-                        await inventoryColRef.add(item);
-                    }
-                    for (const item of initialSampleData.new_products) {
-                        await newProductsColRef.add(item);
-                    }
-                    for (const item of initialSampleData.to_clear) {
-                        await toClearColRef.add(item);
-                    }
-                    for (const item of initialSampleData.master_products) {
-                        await masterProductsColRef.add(item);
-                    }
+                    // Use a batch for faster initial loading
+                    const batch = db.batch();
+
+                    // Load inventory data
+                    initialSampleData.inventory.forEach(item => {
+                        batch.set(inventoryColRef.doc(), item);
+                    });
+                    // Load new products data
+                    initialSampleData.new_products.forEach(item => {
+                        batch.set(newProductsColRef.doc(), item);
+                    });
+                    // Load to clear data
+                    initialSampleData.to_clear.forEach(item => {
+                        batch.set(toClearColRef.doc(), item);
+                    });
+                    // Load master products data
+                    initialSampleData.master_products.forEach(item => {
+                        batch.set(masterProductsColRef.doc(), item);
+                    });
+                    // Load brands data
+                    initialSampleData.brands.forEach(item => {
+                        batch.set(brandsColRef.doc(), item);
+                    });
+                    // Load statuses data
+                    initialSampleData.statuses.forEach(item => {
+                        batch.set(statusesColRef.doc(), item);
+                    });
+                    // Load categories data
+                    initialSampleData.categories.forEach(item => {
+                        batch.set(categoriesColRef.doc(), item);
+                    });
+
+                    await batch.commit(); // Commit all batched writes
                     showNotification("Sample data loaded successfully!", "success");
                 } else {
                     showNotification("Data already exists in Firestore. Not loading sample data.", "info");
@@ -1629,6 +1707,7 @@
             document.getElementById('shipment').value = '';
             document.getElementById('remarks').value = '';
             document.getElementById('productModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showEditProductModal(id) {
@@ -1650,6 +1729,7 @@
             document.getElementById('shipment').value = item.shipment || '';
             document.getElementById('remarks').value = item.remarks || '';
             document.getElementById('productModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showAddNewProductModal() {
@@ -1662,6 +1742,7 @@
             document.getElementById('arrivalDate').value = '';
             document.getElementById('notes').value = '';
             document.getElementById('newProductModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showEditNewProductModal(id) {
@@ -1681,6 +1762,7 @@
             document.getElementById('arrivalDate').value = item.arrivalDate || '';
             document.getElementById('notes').value = item.notes || '';
             document.getElementById('newProductModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showAddMasterProductModal() {
@@ -1693,6 +1775,7 @@
             document.getElementById('sku').value = '';
             document.getElementById('price').value = '';
             document.getElementById('masterProductModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showEditMasterProductModal(id) {
@@ -1712,6 +1795,7 @@
             document.getElementById('sku').value = item.sku || '';
             document.getElementById('price').value = item.price || '';
             document.getElementById('masterProductModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showAddToClearModal() {
@@ -1734,6 +1818,7 @@
             document.getElementById('toClearFirstReportedBalance').value = ''; // Clear for new, will be set on save
 
             document.getElementById('toClearModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
         }
 
         async function showEditToClearModal(id) {
@@ -1761,6 +1846,132 @@
             document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
 
             document.getElementById('toClearModal').style.display = 'block';
+            populateProductDatalists(); // Re-populate product datalists when modal opens
+        }
+
+        // --- Dynamic Dropdown Population Logic ---
+
+        // Generic function to populate a select element
+        function populateSelect(selectElementId, dataArray, valueKey, textKey, addNewOption = false, addNewModalId = '') {
+            const selectElement = document.getElementById(selectElementId);
+            if (!selectElement) {
+                console.error(`Select element with ID "${selectElementId}" not found.`);
+                return;
+            }
+            selectElement.innerHTML = '<option value="">Select...</option>'; // Clear existing options and add default
+
+            // Sort data alphabetically by the textKey
+            dataArray.sort((a, b) => (a[textKey] || '').localeCompare(b[textKey] || ''));
+
+            dataArray.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = item[textKey];
+                selectElement.appendChild(option);
+            });
+
+            if (addNewOption) {
+                const addOption = document.createElement('option');
+                addOption.value = `__add_new_${selectElementId}__`; // Unique value to trigger add modal
+                addOption.textContent = `+ Add New ${textKey.charAt(0).toUpperCase() + textKey.slice(1)}...`;
+                selectElement.appendChild(addOption);
+
+                // Add event listener for the "Add New" option
+                selectElement.onchange = function() {
+                    if (this.value === `__add_new_${selectElementId}__`) {
+                        closeAllModals(); // Close current modal before opening new one
+                        document.getElementById(addNewModalId).style.display = 'block';
+                        // Reset select value to default after opening modal
+                        this.value = ''; 
+                    }
+                };
+            }
+        }
+
+        // Function to populate all dynamic dropdowns
+        function populateAllDropdowns() {
+            // Brands
+            populateSelect('brand', brandsData, 'name', 'name', true, 'addNewBrandModal');
+            populateSelect('newBrand', brandsData, 'name', 'name', true, 'addNewBrandModal');
+            populateSelect('masterBrand', brandsData, 'name', 'name', true, 'addNewBrandModal');
+            populateSelect('toClearBrand', brandsData, 'name', 'name', true, 'addNewBrandModal');
+
+            // Statuses
+            populateSelect('status', statusesData, 'name', 'name', true, 'addNewStatusModal');
+
+            // Categories (for Master List and To Clear)
+            populateSelect('category', categoriesData, 'name', 'name', true, 'addNewCategoryModal');
+            populateSelect('toClearCategory', categoriesData, 'name', 'name', true, 'addNewCategoryModal');
+
+            // Re-call populateProductDatalists to ensure product datalists are updated if brands changed
+            populateProductDatalists();
+        }
+
+        // Handle adding new Brand
+        async function handleAddNewBrand(event) {
+            event.preventDefault();
+            const newBrandName = document.getElementById('newBrandNameInput').value.trim();
+            if (newBrandName && !brandsData.some(b => b.name.toLowerCase() === newBrandName.toLowerCase())) {
+                try {
+                    await brandsColRef.add({ name: newBrandName });
+                    showNotification(`Brand "${newBrandName}" added!`, 'success');
+                    closeModal('addNewBrandModal');
+                    document.getElementById('newBrandNameInput').value = ''; // Clear input
+                    await updateLocalData(); // Re-fetch all data and re-populate dropdowns
+                } catch (e) {
+                    console.error("Error adding new brand:", e);
+                    showNotification('Error adding new brand.', 'error');
+                }
+            } else {
+                showNotification('Brand name is empty or already exists!', 'warning');
+            }
+        }
+
+        // Handle adding new Status
+        async function handleAddNewStatus(event) {
+            event.preventDefault();
+            const newStatusName = document.getElementById('newStatusNameInput').value.trim();
+            if (newStatusName && !statusesData.some(s => s.name.toLowerCase() === newStatusName.toLowerCase())) {
+                try {
+                    await statusesColRef.add({ name: newStatusName });
+                    showNotification(`Status "${newStatusName}" added!`, 'success');
+                    closeModal('addNewStatusModal');
+                    document.getElementById('newStatusNameInput').value = ''; // Clear input
+                    await updateLocalData(); // Re-fetch all data and re-populate dropdowns
+                } catch (e) {
+                    console.error("Error adding new status:", e);
+                    showNotification('Error adding new status.', 'error');
+                }
+            } else {
+                showNotification('Status name is empty or already exists!', 'warning');
+            }
+        }
+
+        // Handle adding new Category
+        async function handleAddNewCategory(event) {
+            event.preventDefault();
+            const newCategoryName = document.getElementById('newCategoryNameInput').value.trim();
+            if (newCategoryName && !categoriesData.some(c => c.name.toLowerCase() === newCategoryName.toLowerCase())) {
+                try {
+                    await categoriesColRef.add({ name: newCategoryName });
+                    showNotification(`Category "${newCategoryName}" added!`, 'success');
+                    closeModal('addNewCategoryModal');
+                    document.getElementById('newCategoryNameInput').value = ''; // Clear input
+                    await updateLocalData(); // Re-fetch all data and re-populate dropdowns
+                } catch (e) {
+                    console.error("Error adding new category:", e);
+                    showNotification('Error adding new category.', 'error');
+                }
+            } else {
+                showNotification('Category name is empty or already exists!', 'warning');
+            }
+        }
+
+        // Close all modals helper
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
         }
 
         // --- Product Datalist Population (from Master List, filtered by Brand) ---
@@ -1785,7 +1996,7 @@
             const datalist = document.getElementById(datalistId);
             datalist.innerHTML = ''; // Clear existing options
 
-            if (selectedBrand) {
+            if (selectedBrand && selectedBrand !== `__add_new_${productInputId.replace('Name', '')}__`) { // Exclude 'Add New' option
                 const filteredProducts = masterProductsData.filter(item => item.brand === selectedBrand);
                 // Sort products alphabetically
                 filteredProducts.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
