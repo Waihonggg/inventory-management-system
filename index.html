@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management System</title>
     <style>
-        /* General Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Body Styling */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +18,6 @@
             padding: 20px;
         }
 
-        /* Main Container */
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -30,7 +27,6 @@
             border-radius: 15px;
         }
 
-        /* Headings */
         h1 {
             color: #2c3e50;
             text-align: center;
@@ -42,1986 +38,1266 @@
             background-clip: text;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-
-        /* Tabs Navigation */
         .tabs {
             display: flex;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #ecf0f1;
-            overflow-x: auto;
-            gap: 2px;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
         }
 
-        .tab {
-            padding: 15px 20px;
+        .tab-button {
+            background-color: #f4f4f4;
+            border: none;
+            padding: 12px 25px;
             cursor: pointer;
-            background-color: transparent;
-            border-radius: 10px 10px 0 0;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 11px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            color: #7f8c8d;
-            min-width: 120px;
-            text-align: center;
-            border: 2px solid transparent;
-            border-bottom: none;
+            font-size: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 8px 8px 0 0;
+            margin: 0 5px;
+            color: #555;
         }
 
-        .tab:hover {
-            background-color: #f8f9fa;
-            color: #2c3e50;
-            border-color: #e1e8ed;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .tab-button.active {
+            background-color: #667eea;
             color: white;
-            transform: translateY(-2px);
-            border-color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            border-bottom: 3px solid #764ba2;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
+            padding: 20px 0;
         }
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease-in;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Stats Cards for Dashboard */
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s ease;
-            cursor: pointer;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card.urgent {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .stat-card.warning {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .stat-card.info {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Controls (Buttons, Search) */
-        .controls {
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 15px;
-            background: #f8f9fa;
-            padding: 20px;
+        form {
+            background-color: #f9f9f9;
+            padding: 25px;
             border-radius: 10px;
-            border: 1px solid #e1e8ed;
+            margin-bottom: 25px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
 
-        /* Table Styling */
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        form input[type="text"],
+        form input[type="date"],
+        form select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        form button {
+            background-color: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        form button:hover {
+            background-color: #5a6ae3;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            background-color: #fff;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            min-width: 800px;
         }
 
-        th, td {
-            padding: 15px 12px;
+        table th,
+        table td {
+            padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #ecf0f1;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+            color: #333;
         }
 
-        th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 12px;
-        }
-
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        /* Status Badges */
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        table th {
+            background-color: #f2f2f2;
             font-weight: bold;
-            color: white;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
+            letter-spacing: 0.05em;
         }
 
-        .oos {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        table tbody tr:hover {
+            background-color: #f5f5f5;
         }
 
-        .low {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .normal {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-        }
-
-        .danger-status {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .alert-status {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        /* Buttons */
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .action-buttons button {
+            background-color: #28a745;
             color: white;
             border: none;
-            padding: 12px 18px;
-            border-radius: 25px;
+            padding: 8px 12px;
+            border-radius: 5px;
             cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 11px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            margin-right: 5px;
+            transition: background-color 0.2s;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .action-buttons button.delete {
+            background-color: #dc3545;
         }
 
-        .btn-success {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        .action-buttons button:hover {
+            opacity: 0.9;
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .btn-info {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        }
-
-        /* Search Box */
-        .search-box {
-            padding: 12px 16px;
-            width: 280px;
-            border: 2px solid #e1e8ed;
-            border-radius: 25px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        /* Modal Styling */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px;
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            margin: 5% auto; /* 15% from the top and centered */
             padding: 30px;
-            border: none;
-            width: 90%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            position: relative;
         }
 
-        .close {
+        .close-button {
             color: #aaa;
             float: right;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-            transition: color 0.3s ease;
         }
 
-        .close:hover {
-            color: #e74c3c;
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        /* Form Group */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        /* Alert Notifications */
-        .alert {
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            font-weight: 600;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Confirmation Modal Specific Styles */
-        #confirmModal .modal-content {
+        .card {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             text-align: center;
-            padding: 40px;
-            max-width: 450px;
+            transition: transform 0.2s ease-in-out;
         }
 
-        #confirmModal .modal-content h2 {
-            margin-bottom: 20px;
-            color: #333;
+        .card:hover {
+            transform: translateY(-5px);
         }
 
-        #confirmModal .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+        .card h3 {
+            color: #4a4a4a;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .recent-alerts {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-top: 30px;
         }
 
-        #confirmModal .modal-buttons button {
-            flex: 1;
-            max-width: 150px;
-            padding: 12px 25px;
-            font-size: 14px;
+        .recent-alerts h3 {
+            color: #dc3545;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
-        /* --- Mobile Responsiveness --- */
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
+        .recent-alerts p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
 
-            .container {
-                padding: 15px;
-                border-radius: 10px;
-            }
+        .recent-alerts .no-alerts {
+            color: #28a745;
+            text-align: center;
+            font-weight: bold;
+        }
 
-            h1 {
-                font-size: 2rem;
-            }
+        .table-actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
 
-            .subtitle {
-                font-size: 1rem;
-                margin-bottom: 20px;
-            }
+        .table-actions button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background-color 0.2s;
+        }
 
-            .tabs {
-                flex-wrap: wrap; /* Allow tabs to wrap to next line */
-                justify-content: center; /* Center tabs when wrapped */
-                border-bottom: none; /* Remove border when wrapped */
-            }
+        .table-actions button:hover {
+            background-color: #0056b3;
+        }
 
-            .tab {
-                min-width: unset; /* Remove fixed min-width */
-                flex: 1 1 auto; /* Allow tabs to grow/shrink */
-                padding: 10px 15px;
-                font-size: 10px;
-                border-bottom: 2px solid #ecf0f1; /* Add border to each tab */
-            }
+        .table-actions input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
 
-            .tab.active {
-                transform: none; /* Remove transform on active tab */
-                box-shadow: none; /* Remove shadow on active tab */
-                border-bottom: 2px solid #667eea;
-            }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
 
-            .stats-cards {
-                grid-template-columns: 1fr; /* Stack cards vertically */
-            }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
 
-            .stat-card {
-                padding: 20px;
-            }
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
 
-            .stat-number {
-                font-size: 2.5rem;
-            }
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
 
-            .controls {
-                flex-direction: column; /* Stack buttons and search vertically */
-                align-items: stretch; /* Stretch items to full width */
-                padding: 15px;
-            }
-
-            button {
-                width: 100%;
-                margin-bottom: 10px; /* Add space between stacked buttons */
-                font-size: 12px;
-                padding: 10px 15px;
-            }
-
-            .search-box {
-                width: 100%; /* Make search box full width */
-            }
-
-            /* Responsive Tables: force table to scroll horizontally */
-            table {
-                display: block; /* Make table a block element */
-                width: 100%;
-                overflow-x: auto; /* Enable horizontal scrolling */
-                -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
-                white-space: nowrap; /* Prevent content from wrapping */
-            }
-
-            th, td {
-                min-width: 120px; /* Ensure columns have a minimum width */
-                padding: 10px;
-            }
-
-            .modal-content {
-                margin: 20px auto; /* Adjust margin for smaller screens */
-                padding: 20px;
-                width: 95%; /* Make modal content a bit wider */
-            }
-
-            .alert {
-                width: calc(100% - 40px); /* Full width minus padding */
-                left: 20px;
-                right: 20px;
-                top: 10px; /* Move notification higher */
-                text-align: center;
-            }
+        .alert.show {
+            opacity: 1;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Inventory Management System</h1>
-        <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
-        
+        <h1>Inventory Management Dashboard</h1>
+
         <div class="tabs">
-            <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="switchTab(this, 'oos-lowstock')">📦 OOS/LOW STOCK</div>
-            <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
-            <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
-            <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
-            <div class="tab" onclick="switchTab(this, 'recycle-bin')">🗑️ Recycle Bin</div>
-            <div class="tab" onclick="switchTab(this, 'management')">⚙️ Management</div>
+            <button class="tab-button active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-button" onclick="switchTab('inventory')">Inventory</button>
+            <button class="tab-button" onclick="switchTab('newProducts')">New Products</button>
+            <button class="tab-button" onclick="switchTab('toClear')">To Clear</button>
+            <button class="tab-button" onclick="switchTab('masterProductList')">Master Product List</button>
         </div>
-        
+
         <div id="dashboard" class="tab-content active">
-            <div class="stats-cards">
-                <div class="stat-card urgent" onclick="showFilteredInventory('OOS')">
-                    <div class="stat-number" id="oos-count">0</div>
-                    <div class="stat-label">Out of Stock</div>
+            <h2>Dashboard Overview</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Total Products</h3>
+                    <p id="totalProductsCount">0</p>
                 </div>
-                <div class="stat-card warning" onclick="showFilteredInventory('Low stock')">
-                    <div class="stat-number" id="low-count">0</div>
-                    <div class="stat-label">Low Stock</div>
+                <div class="card">
+                    <h3>Low Stock</h3>
+                    <p id="lowStockCount">0</p>
                 </div>
-                <div class="stat-card info" onclick="switchTab(document.querySelector('.tab[onclick*=\'new-products\']'), 'new-products')">
-                    <div class="stat-number" id="new-count">0</div>
-                    <div class="stat-label">New Products</div>
+                <div class="card">
+                    <h3>Out of Stock</h3>
+                    <p id="oosCount">0</p>
+                </div>
+                <div class="card">
+                    <h3>Expiring Soon</h3>
+                    <p id="expiringSoonCount">0</p>
                 </div>
             </div>
-            
-            <h3>Recent Alerts</h3>
-            <div id="alerts" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                <p>Loading alerts...</p>
+            <div class="recent-alerts">
+                <h3>Recent Alerts</h3>
+                <div id="alertsContainer">
+                    </div>
             </div>
-        </div>
-        
-        <div id="oos-lowstock" class="tab-content">
-            <div class="controls">
-                <button onclick="showAddProductModal()">➕ Add Product</button>
-                <input type="text" class="search-box" placeholder="🔍 Search products..." onkeyup="searchInventory(this.value)">
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Code</th>
-                        <th>Brand</th>
-                        <th>Product</th>
-                        <th>Quantity</th> <th>Status</th>
-                        <th>Expiry</th>
-                        <th>Shipment</th>
-                        <th>Remarks</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="inventory-table">
-                    </tbody>
-            </table>
-        </div>
-        
-        <div id="new-products" class="tab-content">
-            <div class="controls">
-                <button onclick="showAddNewProductModal()">➕ Add New Product</button>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Code</th>
-                        <th>Brand</th>
-                        <th>Product</th>
-                        <th>Added Date</th>
-                        <th>Arrival Date</th>
-                        <th>Quantity</th>
-                        <th>Notes</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="new-products-table">
-                    </tbody>
-            </table>
-        </div>
-        
-        <div id="to-clear" class="tab-content">
-            <div class="controls">
-                <button onclick="showAddToClearModal()">➕ Add Product to Clear</button>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Code</th>
-                        <th>Brand</th>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Expiry Date</th>
-                        <th>First Highlighted Date</th>
-                        <th>First Reported Balance</th>
-                        <th>Warehouse Qty</th>
-                        <th>Store Qty</th>
-                        <th>Total Qty</th>
-                        <th>Weekly Demand</th>
-                        <th>Weeks Supply</th>
-                        <th>Supply Status</th>
-                        <th>Action Plan</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="to-clear-table">
-                    </tbody>
-            </table>
-        </div>
-        
-        <div id="master-list" class="tab-content">
-            <div class="controls">
-                <button onclick="showAddMasterProductModal()">➕ Add Product</button>
-                <button onclick="exportMasterList()">📥 Export List</button>
-                <button onclick="document.getElementById('csvFileInput').click()">📤 Import CSV</button>
-                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="importCSV(event)">
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Code</th>
-                        <th>Brand</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="master-table">
-                    </tbody>
-            </table>
         </div>
 
-        <div id="recycle-bin" class="tab-content">
-            <div class="controls">
-                <h3>Recycle Bin</h3>
-                <button class="btn-danger" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Code</th>
-                        <th>Original Tab</th>
-                        <th>Brand</th>
-                        <th>Product</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="recycle-bin-table">
-                    </tbody>
-            </table>
-        </div>
-        
-        <div id="management" class="tab-content">
-            <div class="controls">
-                <button onclick="exportAllData()">📥 Export All Data</button>
-                <button onclick="confirmLoadSampleData()">📊 Load Sample Data</button>
-            </div>
-            
-            <h3>System Information</h3>
-            <p>Total Products (active): <span id="total-products">0</span></p>
-            <p>Total Products (including deleted): <span id="total-products-all">0</span></p>
-            <p>Last Synced: <span id="last-updated">Never</span></p>
-        </div>
-    </div>
+        <div id="inventory" class="tab-content">
+            <h2>Manage Inventory</h2>
+            <form id="productForm">
+                <input type="hidden" id="editProductId">
+                <label for="brand">Brand:</label>
+                <input type="text" id="brand" required>
 
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('productModal')">&times;</span>
-            <h2 id="productModalTitle">Add New Product</h2>
-            <form onsubmit="saveProduct(event)">
-                <input type="hidden" id="editProductId" value="">
-                <div class="form-group">
-                    <label>Brand:</label>
-                    <select id="brand" required onchange="filterProductsForBrand(this.value, 'productName', 'productsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Product Name:</label>
-                    <input type="text" id="productName" list="productsDatalist" required placeholder="Select or type product name">
-                    <datalist id="productsDatalist"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>Quantity:</label>
-                    <input type="number" id="inventoryQuantity" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Status:</label>
-                    <select id="status" required>
-                        <option value="">Select Status</option>
-                        <option value="OOS">Out of Stock</option>
-                        <option value="Low stock">Low Stock</option>
-                        <option value="In Stock">In Stock</option> </select>
-                </div>
-                <div class="form-group">
-                    <label>Expiry Date:</label>
-                    <input type="date" id="expiry">
-                </div>
-                <div class="form-group">
-                    <label>Estimated Shipment:</label>
-                    <input type="date" id="shipment">
-                </div>
-                <div class="form-group">
-                    <label>Remarks:</label>
-                    <textarea id="remarks"></textarea>
-                </div>
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+
+                <label for="status">Status:</label>
+                <select id="status" required>
+                    <option value="">Select Status</option>
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low stock">Low stock</option>
+                    <option value="OOS">OOS</option>
+                </select>
+
+                <label for="expiry">Expiry Date:</label>
+                <input type="date" id="expiry">
+
+                <label for="shipment">Shipment:</label>
+                <input type="text" id="shipment">
+
+                <label for="remarks">Remarks:</label>
+                <input type="text" id="remarks">
+
                 <button type="submit">Save Product</button>
             </form>
-        </div>
-    </div>
 
-    <div id="newProductModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('newProductModal')">&times;</span>
-            <h2 id="newProductModalTitle">Add New Product</h2>
-            <form onsubmit="saveNewProduct(event)">
-                <input type="hidden" id="editNewProductId" value="">
-                <div class="form-group">
-                    <label>Brand:</label>
-                    <select id="newBrand" required onchange="filterProductsForBrand(this.value, 'newProductName', 'newProductsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Product Name:</label>
-                    <input type="text" id="newProductName" list="newProductsDatalist" required placeholder="Select or type product name">
-                    <datalist id="newProductsDatalist"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>Quantity:</label>
-                    <input type="number" id="quantity" required min="1">
-                </div>
-                <div class="form-group">
-                    <label>Arrival Date:</label>
-                    <input type="date" id="arrivalDate">
-                </div>
-                <div class="form-group">
-                    <label>Notes:</label>
-                    <textarea id="notes"></textarea>
-                </div>
-                <button type="submit">Save New Product</button>
+            <div class="table-actions">
+                <button onclick="exportTableToCSV('inventoryTable')">Export CSV</button>
+                <input type="file" id="importInventoryCSV" accept=".csv" onchange="importCSVToTable(event, 'inventory')">
+            </div>
+
+            <div class="table-container">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Brand</th>
+                            <th>Product Name</th>
+                            <th>Status</th>
+                            <th>Expiry Date</th>
+                            <th>Shipment</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="newProducts" class="tab-content">
+            <h2>New Products</h2>
+            <form id="newProductForm">
+                <label for="newBrand">Brand:</label>
+                <input type="text" id="newBrand" required>
+
+                <label for="newProductName">Product Name:</label>
+                <input type="text" id="newProductName" required>
+
+                <label for="newStatus">Status:</label>
+                <select id="newStatus" required>
+                    <option value="">Select Status</option>
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low stock">Low stock</option>
+                    <option value="OOS">OOS</option>
+                </select>
+
+                <label for="newExpiry">Expiry Date:</label>
+                <input type="date" id="newExpiry">
+
+                <label for="newShipment">Shipment:</label>
+                <input type="text" id="newShipment">
+
+                <label for="newRemarks">Remarks:</label>
+                <input type="text" id="newRemarks">
+
+                <button type="submit">Add New Product</button>
             </form>
+            <div class="table-actions">
+                <button onclick="mergeNewProductsToMaster()">Merge All to Master Inventory</button> <button onclick="exportTableToCSV('newProductsTable')">Export CSV</button>
+                <input type="file" id="importNewProductsCSV" accept=".csv" onchange="importCSVToTable(event, 'newProducts')">
+            </div>
+            <div class="table-container">
+                <table id="newProductsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Brand</th>
+                            <th>Product Name</th>
+                            <th>Status</th>
+                            <th>Expiry Date</th>
+                            <th>Shipment</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newProductsTableBody">
+                        </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <div id="masterProductModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('masterProductModal')">&times;</span>
-            <h2 id="masterProductModalTitle">Add Master Product</h2>
-            <form onsubmit="saveMasterProduct(event)">
-                <input type="hidden" id="editMasterProductId" value="">
-                <div class="form-group">
-                    <label>Brand:</label>
-                    <select id="masterBrand" required>
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Product Name:</label>
-                    <input type="text" id="masterProductName" required>
-                </div>
-                <div class="form-group">
-                    <label>Category:</label>
-                    <select id="category" required>
-                        <option value="">Select Category</option>
-                        <option value="Vitamins">Vitamins</option>
-                        <option value="Probiotics">Probiotics</option>
-                        <option value="Joint Support">Joint Support</option>
-                        <option value="Digestive Health">Digestive Health</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description:</label>
-                    <textarea id="description"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Product Code (SKU):</label>
-                    <input type="text" id="sku">
-                </div>
-                <div class="form-group">
-                    <label>Price:</label>
-                    <input type="number" id="price" step="0.01" min="0">
-                </div>
+        <div id="toClear" class="tab-content">
+            <h2>To Clear Products</h2>
+            <form id="toClearForm">
+                <input type="hidden" id="toClearEditId">
+                <label for="toClearBrand">Brand:</label>
+                <input type="text" id="toClearBrand" required>
+
+                <label for="toClearProduct">Product Name:</label>
+                <input type="text" id="toClearProduct" required>
+
+                <label for="toClearCategory">Category:</label>
+                <select id="toClearCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="Promotional">Promotional</option>
+                    <option value="Damaged">Damaged</option>
+                    <option value="Short Expiry">Short Expiry</option>
+                    <option value="Discontinued">Discontinued</option>
+                </select>
+
+                <label for="toClearExpiryDate">Expiry Date:</label>
+                <input type="date" id="toClearExpiryDate">
+
+                <label for="toClearQuantity">Quantity:</label>
+                <input type="text" id="toClearQuantity">
+
+                <label for="toClearReason">Reason:</label>
+                <input type="text" id="toClearReason">
+
+                <button type="submit">Save To Clear Item</button>
+            </form>
+
+            <div class="table-actions">
+                <button onclick="exportTableToCSV('toClearTable')">Export CSV</button>
+                <input type="file" id="importToClearCSV" accept=".csv" onchange="importCSVToTable(event, 'toClear')">
+            </div>
+
+            <div class="table-container">
+                <table id="toClearTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Brand</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Expiry Date</th>
+                            <th>Quantity</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="toClearTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="masterProductList" class="tab-content">
+            <h2>Master Product List</h2>
+            <form id="masterProductForm">
+                <input type="hidden" id="masterEditId">
+                <label for="masterBrand">Brand:</label>
+                <input type="text" id="masterBrand" required>
+
+                <label for="masterProduct">Product Name:</label>
+                <input type="text" id="masterProduct" required>
+
+                <label for="masterRemarks">Remarks:</label>
+                <input type="text" id="masterRemarks">
+
                 <button type="submit">Save Master Product</button>
             </form>
-        </div>
-    </div>
 
-    <div id="toClearModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('toClearModal')">&times;</span>
-            <h2 id="toClearModalTitle">Add Product to Clear</h2>
-            <form onsubmit="saveToClear(event)">
-                <input type="hidden" id="editToClearId" value="">
-                <div class="form-group">
-                    <label>Brand:</label>
-                    <select id="toClearBrand" required onchange="filterProductsForBrand(this.value, 'toClearProductName', 'toClearProductsDatalist')">
-                        <option value="">Select Brand</option>
-                        <option value="Greenlife">Greenlife</option>
-                        <option value="NN">Nordic Naturals</option>
-                        <option value="NaturesPlus">NaturesPlus</option>
-                        <option value="ENZYMEDICA">ENZYMEDICA</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Product Name:</label>
-                    <input type="text" id="toClearProductName" list="toClearProductsDatalist" required placeholder="Select or type product name">
-                    <datalist id="toClearProductsDatalist"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>Category:</label>
-                    <select id="toClearCategory" required>
-                        <option value="">Select Category</option>
-                        <option value="Short Expiry">Short Expiry</option>
-                        <option value="Excess Stock">Excess Stock</option>
-                        <option value="Discontinued">Discontinued</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Expiry Date:</label>
-                    <input type="date" id="toClearExpiryDate" required>
-                </div>
-                <div class="form-group">
-                    <label>First Highlighted Date:</label>
-                    <input type="date" id="toClearFirstHighlightedDate" readonly>
-                </div>
-                <div class="form-group">
-                    <label>First Reported Balance:</label>
-                    <input type="number" id="toClearFirstReportedBalance" readonly min="0">
-                </div>
-                <div class="form-group">
-                    <label>Warehouse Quantity:</label>
-                    <input type="number" id="toClearWarehouseQty" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Store Quantity:</label>
-                    <input type="number" id="toClearStoreQty" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Weekly Demand:</label>
-                    <input type="number" id="toClearWeeklyDemand" step="0.1" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>Action Plan:</label>
-                    <textarea id="toClearActionPlan" required></textarea>
-                </div>
-                <button type="submit">Save Product</button>
-            </form>
-        </div>
-    </div>
+            <div class="table-actions">
+                <button onclick="exportTableToCSV('masterProductListTable')">Export CSV</button>
+                <input type="file" id="importMasterProductCSV" accept=".csv" onchange="importCSVToTable(event, 'masterProductList')">
+            </div>
 
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('confirmModal')">&times;</span>
-            <h2 id="confirmMessage">Are you sure?</h2>
-            <div class="modal-buttons">
-                <button class="btn-danger" id="confirmNo">No</button>
-                <button class="btn-success" id="confirmYes">Yes</button>
+            <div class="table-container">
+                <table id="masterProductListTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Brand</th>
+                            <th>Product Name</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterProductListTableBody">
+                        </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    
+    <div id="editMasterProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('editMasterProductModal').style.display='none'">&times;</span>
+            <h2>Edit Master Product</h2>
+            <form id="editMasterProductForm">
+                <input type="hidden" id="modalMasterProductId">
+                <label for="modalMasterBrand">Brand:</label>
+                <input type="text" id="modalMasterBrand" required>
+
+                <label for="modalMasterProduct">Product Name:</label>
+                <input type="text" id="modalMasterProduct" required>
+
+                <label for="modalMasterRemarks">Remarks:</label>
+                <input type="text" id="modalMasterRemarks">
+
+                <button type="submit">Update Master Product</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Your Firebase project configuration
-        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIGURATION
+        // Firebase configuration (REPLACE WITH YOUR ACTUAL CONFIG)
         const firebaseConfig = {
-            apiKey: "AIzaSyDo1-y0Vj4XTQeeEUQK_6Y2wqDs94TOAX0",
-            authDomain: "inventory-c3bac.firebaseapp.com",
-            projectId: "inventory-c3bac",
-            storageBucket: "inventory-c3bac.firebasestorage.app",
-            messagingSenderId: "261015083855",
-            appId: "1:261015083855:web:e167f359928eb8ed8cc33a",
-            measurementId: "G-V744486L78"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Data storage (local copies, kept in sync with Firestore)
+        // Global data arrays
         let inventoryData = [];
         let newProductsData = [];
         let toClearData = [];
-        let masterProductsData = [];
-        let deletedItemsData = []; // To store items marked as deleted
+        let masterProductListData = [];
 
-        // Variable to hold the callback for the confirmation modal
-        let confirmCallback = null;
+        // Function to switch tabs
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
 
-        // Firestore Collection References (for direct use in functions)
-        const inventoryColRef = db.collection('inventory');
-        const newProductsColRef = db.collection('new_products');
-        const toClearColRef = db.collection('to_clear');
-        const masterProductsColRef = db.collection('master_products');
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
 
-        // --- Utility Functions ---
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
 
-        // Helper function to show notifications
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Fetch data from Firestore
-        async function fetchDataFromFirestore(collectionRef, includeDeleted = false) {
-            let data = [];
-            let queryRef = collectionRef;
-            if (!includeDeleted) {
-                queryRef = collectionRef.where("isDeleted", "==", false);
-            }
-            const querySnapshot = await queryRef.get();
-            querySnapshot.forEach((doc) => {
-                data.push({ id: doc.id, ...doc.data() });
-            });
-            return data;
-        }
-
-        // Save data to Firestore (add or update)
-        async function saveDataToFirestore(collectionRef, docId, data) {
-            try {
-                if (docId) {
-                    await collectionRef.doc(docId).update(data);
-                } else {
-                    const docRef = await collectionRef.add(data);
-                    return docRef.id; // Return the new document ID
-                }
-                return docId; // Return original docId for updates
-            } catch (error) {
-                console.error(`Error saving data to ${collectionRef.id}:`, error);
-                showNotification(`Error saving data to server for ${collectionRef.id}.`, 'error');
-                throw error; // Propagate error for calling functions to handle
-            }
-        }
-
-        // Update all local data arrays from Firestore and then refresh tables
-        async function updateLocalData() {
-            try {
-                inventoryData = await fetchDataFromFirestore(inventoryColRef);
-                newProductsData = await fetchDataFromFirestore(newProductsColRef);
-                toClearData = await fetchDataFromFirestore(toClearColRef);
-                masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
-                
-                // Fetch all items (including deleted) for recycle bin
-                const allInventoryItems = await fetchDataFromFirestore(inventoryColRef, true);
-                const allNewProductsItems = await fetchDataFromFirestore(newProductsColRef, true);
-                const allToClearItems = await fetchDataFromFirestore(toClearColRef, true);
-                const allMasterProductsItems = await fetchDataFromFirestore(masterProductsColRef, true);
-
-                deletedItemsData = [];
-                allInventoryItems.filter(item => item.isDeleted).forEach(item => deletedItemsData.push({ ...item, originalCollection: inventoryColRef.id }));
-                allNewProductsItems.filter(item => item.isDeleted).forEach(item => deletedItemsData.push({ ...item, originalCollection: newProductsColRef.id }));
-                allToClearItems.filter(item => item.isDeleted).forEach(item => deletedItemsData.push({ ...item, originalCollection: toClearColRef.id }));
-                allMasterProductsItems.filter(item => item.isDeleted).forEach(item => deletedItemsData.push({ ...item, originalCollection: masterProductsColRef.id }));
-
-                updateAllTables();
-                updateDashboardStats();
+            // Update tables when switching tabs
+            if (tabId === 'inventory') {
+                updateInventoryTable();
+            } else if (tabId === 'newProducts') {
+                updateNewProductsTable();
+            } else if (tabId === 'toClear') {
+                updateToClearTable();
+            } else if (tabId === 'masterProductList') {
+                updateMasterProductListTable();
+            } else if (tabId === 'dashboard') {
+                updateDashboardCounts();
                 updateAlerts();
-                updateManagementStats();
-                populateProductDatalists(); // NEW: Populate datalists after master data is loaded
-            } catch (e) {
-                console.error("Error updating local data from Firestore: ", e);
-                showNotification("Error loading data from server.", "error");
             }
         }
 
-        // --- Confirmation Modal Logic ---
-        function showConfirmModal(message, callback) {
-            document.getElementById('confirmMessage').textContent = message;
-            document.getElementById('confirmModal').style.display = 'block';
-            confirmCallback = callback;
-        }
+        // --- Firebase Data Operations ---
 
-        document.getElementById('confirmYes').onclick = function() {
-            if (confirmCallback) {
-                confirmCallback(true);
-            }
-            closeModal('confirmModal');
-        };
-
-        document.getElementById('confirmNo').onclick = function() {
-            if (confirmCallback) {
-                confirmCallback(false);
-            }
-            closeModal('confirmModal');
-        };
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // --- Data Management Functions (Firestore Integrated) ---
-
-        // Initial sample data (to be added only if collections are empty)
-        const initialSampleData = {
-            inventory: [
-                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", sku: "GL-ENZ-001", quantity: 0, status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "Greenlife", product: "GL VIT C + ZINC", sku: "GL-VCZ-002", quantity: 0, status: "OOS", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", sku: "NN-KVC-001", quantity: 5, status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", sku: "EZ-DPR-001", quantity: 8, status: "Low stock", expiry: "", shipment: "", remarks: "", isDeleted: false },
-                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", quantity: 25, status: "In Stock", expiry: "2026-10-01", shipment: "", remarks: "Regular stock", isDeleted: false } // Added In Stock item
-            ],
-            new_products: [
-                { brand: "Greenlife", product: "GL SUPER PROBIOTIC", sku: "GL-SPR-003", addedDate: "2024-01-15", arrivalDate: "2024-02-01", quantity: 60, notes: "New formula", isDeleted: false },
-                { brand: "NN", product: "NORDIC OMEGA FOCUS", sku: "NN-OMF-002", addedDate: "2024-01-20", arrivalDate: "2024-02-15", quantity: 48, notes: "Cognitive support", isDeleted: false }
-            ],
-            to_clear: [
-                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", sku: "GL-VBC-004", category: "Short Expiry", expiryDate: "2025-08-15", firstHighlightedDate: "2025-05-01", firstReportedBalance: 15, warehouseQty: 10, storeQty: 5, weeklyDemand: 3.5, actionPlan: "20% discount promotion", isDeleted: false },
-                { brand: "NN", product: "VITAMIN C GUMMIES", sku: "NN-VCG-003", category: "Discontinued", expiryDate: "2025-12-10", firstHighlightedDate: "2025-04-20", firstReportedBalance: 10, warehouseQty: 8, storeQty: 2, weeklyDemand: 2.0, actionPlan: "Clear with 30% discount", isDeleted: false },
-                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", sku: "NP-SLG-001", category: "Excess Stock", expiryDate: "2026-06-01", firstHighlightedDate: "2025-03-10", firstReportedBalance: 60, warehouseQty: 50, storeQty: 10, weeklyDemand: 5.0, actionPlan: "Bundle offer", isDeleted: false }
-            ],
-            master_products: [
-                { brand: "Greenlife", product: "ENZ PEARLS ACIDOPHILUS", category: "Probiotics", description: "Probiotic supplement", sku: "GL-ENZ-001", price: 18.50, isDeleted: false },
-                { brand: "Greenlife", product: "GL VIT C + ZINC", category: "Vitamins", description: "Immune support", sku: "GL-VCZ-002", price: 15.99, isDeleted: false },
-                { brand: "NN", product: "NORDIC KIDS VIT C GUM 60'S", category: "Vitamins", description: "Kids vitamin C", sku: "NN-KVC-001", price: 12.50, isDeleted: false },
-                { brand: "NN", product: "NORDIC OMEGA FOCUS", category: "Brain Health", description: "Omega-3 for cognitive support", sku: "NN-OMF-002", price: 35.00, isDeleted: false },
-                { brand: "NaturesPlus", product: "SOURCE OF LIFE GOLD", category: "Multivitamins", description: "Comprehensive multivitamin", sku: "NP-SLG-001", price: 30.00, isDeleted: false },
-                { brand: "ENZYMEDICA", product: "DIGEST GOLD", category: "Digestive Health", description: "Advanced digestive enzymes", sku: "EZ-DGL-002", price: 40.00, isDeleted: false },
-                { brand: "ENZYMEDICA", product: "DIGEST + PROBIOTICS 30'S", category: "Digestive Health", description: "Enzymes and probiotics combo", sku: "EZ-DPR-001", price: 35.00, isDeleted: false },
-                { brand: "Greenlife", product: "GL SUPER PROBIOTIC", category: "Probiotics", description: "High-potency probiotic formula", sku: "GL-SPR-003", price: 22.00, isDeleted: false },
-                { brand: "Greenlife", product: "GL VITAMIN B COMPLEX", category: "Vitamins", description: "Energy support B-complex", sku: "GL-VBC-004", price: 17.50, isDeleted: false },
-                { brand: "NN", product: "VITAMIN C GUMMIES", category: "Vitamins", description: "Chewable Vitamin C for adults", sku: "NN-VCG-003", price: 10.00, isDeleted: false }
-            ]
-        };
-
-
-        // Load sample data into Firestore if collections are empty
-        async function loadSampleDataFirestore() {
+        // Fetch data from Firestore collections
+        async function fetchDataFromFirestore(collectionName) {
             try {
-                const invSnapshot = await inventoryColRef.limit(1).get();
-                if (invSnapshot.empty) {
-                    showNotification("Loading sample data...", "info");
-                    for (const item of initialSampleData.inventory) {
-                        await inventoryColRef.add(item);
-                    }
-                    for (const item of initialSampleData.new_products) {
-                        await newProductsColRef.add(item);
-                    }
-                    for (const item of initialSampleData.to_clear) {
-                        await toClearColRef.add(item);
-                    }
-                    for (const item of initialSampleData.master_products) {
-                        await masterProductsColRef.add(item);
-                    }
-                    showNotification("Sample data loaded successfully!", "success");
-                } else {
-                    showNotification("Data already exists in Firestore. Not loading sample data.", "info");
-                }
-                await updateLocalData(); // Refresh all data from Firestore
-            } catch (e) {
-                console.error("Error loading sample data: ", e);
-                showNotification("Error loading sample data.", "error");
+                const snapshot = await db.collection(collectionName).get();
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error(`Error fetching data from ${collectionName}:`, error);
+                showNotification(`Error loading ${collectionName} data.`, 'error');
+                return [];
             }
         }
 
-        // Confirmation for loading sample data
-        function confirmLoadSampleData() {
-            showConfirmModal("This will add sample data to your Firestore. Existing data will not be overwritten. Are you sure?", async (confirmed) => {
-                if (confirmed) {
-                    await loadSampleDataFirestore();
-                }
-            });
+        // Save data to a Firestore collection
+        async function saveDataToFirestore(collectionName, dataArray) {
+            try {
+                const batch = db.batch();
+                const collectionRef = db.collection(collectionName);
+
+                // Clear existing documents in the collection first
+                const existingDocs = await collectionRef.get();
+                existingDocs.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // Add new documents
+                dataArray.forEach(item => {
+                    // Firestore auto-generates ID if you use .add()
+                    // If you want to use your own 'id' field, use .doc(item.id.toString()).set(item)
+                    // For simplicity, let's use generated IDs and save our 'id' as a field
+                    const docRef = collectionRef.doc(); // Let Firestore generate ID
+                    batch.set(docRef, { ...item, id: item.id }); // Save the item's 'id' field too
+                });
+
+                await batch.commit();
+                // showNotification(`Data saved to ${collectionName} successfully!`, 'success');
+            } catch (error) {
+                console.error(`Error saving data to ${collectionName}:`, error);
+                showNotification(`Error saving ${collectionName} data.`, 'error');
+            }
+        }
+        
+        // Update local data arrays from Firestore
+        async function updateLocalData() {
+            inventoryData = await fetchDataFromFirestore('inventory');
+            newProductsData = await fetchDataFromFirestore('newProducts');
+            toClearData = await fetchDataFromFirestore('toClear');
+            masterProductListData = await fetchDataFromFirestore('masterProductList');
         }
 
-        // Save/Edit functions (Firestore)
+        // --- Save Functions ---
 
-        // Helper to get SKU from master list
-        function getSkuForProduct(brand, product) {
-            const masterProduct = masterProductsData.find(item => item.brand === brand && item.product === product);
-            return masterProduct ? masterProduct.sku : '';
-        }
-
-        // Save Product (OOS/LOW STOCK Tab)
-        async function saveProduct(event) {
+        // Save Inventory Product (Edit or Add)
+        document.getElementById('productForm').addEventListener('submit', async function(event) {
             event.preventDefault();
+            
             const editId = document.getElementById('editProductId').value;
-            const selectedBrand = document.getElementById('brand').value;
-            const selectedProduct = document.getElementById('productName').value;
-            const productSku = getSkuForProduct(selectedBrand, selectedProduct);
-
-            const productData = {
-                brand: selectedBrand,
-                product: selectedProduct,
-                sku: productSku, // NEW: Save the SKU
-                quantity: parseInt(document.getElementById('inventoryQuantity').value), // NEW: Quantity field
+            const newProduct = {
+                brand: document.getElementById('brand').value,
+                product: document.getElementById('productName').value,
                 status: document.getElementById('status').value,
                 expiry: document.getElementById('expiry').value,
                 shipment: document.getElementById('shipment').value,
-                remarks: document.getElementById('remarks').value,
-                isDeleted: false
+                remarks: document.getElementById('remarks').value
             };
 
-            try {
-                await saveDataToFirestore(inventoryColRef, editId, productData);
-                showNotification(editId ? 'Product updated successfully!' : 'Product added successfully!', 'success');
-                closeModal('productModal');
-                event.target.reset();
-                await updateLocalData(); // Refresh data
-            } catch (e) {
-                // Error handled by saveDataToFirestore notification
+            if (editId) {
+                // Edit existing product
+                const index = inventoryData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    inventoryData[index] = { ...inventoryData[index], ...newProduct };
+                    showNotification('Product updated successfully!', 'success');
+                }
+            } else {
+                // Add new product
+                newProduct.id = inventoryData.length > 0 ? Math.max(...inventoryData.map(item => item.id)) + 1 : 1;
+                inventoryData.push(newProduct);
+                showNotification('Product added to inventory!', 'success');
             }
-        }
+            
+            await saveDataToFirestore('inventory', inventoryData);
+            updateInventoryTable();
+            updateDashboardCounts();
+            updateAlerts();
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = ''; // Clear edit ID
+        });
 
-        // Save New Product (New Products Tab)
-        async function saveNewProduct(event) {
+        // Save New Product
+        document.getElementById('newProductForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            const editId = document.getElementById('editNewProductId').value;
-            const selectedBrand = document.getElementById('newBrand').value;
-            const selectedProduct = document.getElementById('newProductName').value;
-            const productSku = getSkuForProduct(selectedBrand, selectedProduct);
-
-            const newProductData = {
-                brand: selectedBrand,
-                product: selectedProduct,
-                sku: productSku, // NEW: Save the SKU
-                addedDate: new Date().toISOString().slice(0, 10), // Set current date
-                arrivalDate: document.getElementById('arrivalDate').value,
-                quantity: parseInt(document.getElementById('quantity').value),
-                notes: document.getElementById('notes').value,
-                isDeleted: false
+            const newProduct = {
+                id: newProductsData.length > 0 ? Math.max(...newProductsData.map(item => item.id)) + 1 : 1,
+                brand: document.getElementById('newBrand').value,
+                product: document.getElementById('newProductName').value,
+                status: document.getElementById('newStatus').value,
+                expiry: document.getElementById('newExpiry').value,
+                shipment: document.getElementById('newShipment').value,
+                remarks: document.getElementById('newRemarks').value
             };
+            newProductsData.push(newProduct);
+            await saveDataToFirestore('newProducts', newProductsData);
+            updateNewProductsTable();
+            showNotification('New product added to staging list!', 'success');
+            document.getElementById('newProductForm').reset();
+        });
 
-            try {
-                await saveDataToFirestore(newProductsColRef, editId, newProductData);
-                showNotification(editId ? 'New product updated successfully!' : 'New product added successfully!', 'success');
-                closeModal('newProductModal');
-                event.target.reset();
-                await updateLocalData();
-            } catch (e) {
-                // Error handled
-            }
-        }
-
-        // Save Master Product (Master List Tab)
-        async function saveMasterProduct(event) {
+        // Save To Clear Item
+        document.getElementById('toClearForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            const editId = document.getElementById('editMasterProductId').value;
-            const masterProductData = {
-                brand: document.getElementById('masterBrand').value,
-                product: document.getElementById('masterProductName').value,
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value,
-                sku: document.getElementById('sku').value, // SKU is directly entered here
-                price: parseFloat(document.getElementById('price').value),
-                isDeleted: false
-            };
-
-            try {
-                await saveDataToFirestore(masterProductsColRef, editId, masterProductData);
-                showNotification(editId ? 'Master product updated successfully!' : 'Master product added successfully!', 'success');
-                closeModal('masterProductModal');
-                event.target.reset();
-                await updateLocalData();
-            } catch (e) {
-                // Error handled
-            }
-        }
-
-        // Save To Clear Product (To Clear Tab)
-        async function saveToClear(event) {
-            event.preventDefault();
-            const editId = document.getElementById('editToClearId').value;
-            const selectedBrand = document.getElementById('toClearBrand').value;
-            const selectedProduct = document.getElementById('toClearProductName').value;
-            const productSku = getSkuForProduct(selectedBrand, selectedProduct);
-
-            const warehouseQty = parseInt(document.getElementById('toClearWarehouseQty').value);
-            const storeQty = parseInt(document.getElementById('toClearStoreQty').value);
-            const totalQtyAtCreation = warehouseQty + storeQty; // Calculate total for initial balance
-
-            const toClearProductData = {
-                brand: selectedBrand,
-                product: selectedProduct,
-                sku: productSku, // NEW: Save the SKU
+            const editId = document.getElementById('toClearEditId').value;
+            const newToClearItem = {
+                brand: document.getElementById('toClearBrand').value,
+                product: document.getElementById('toClearProduct').value,
                 category: document.getElementById('toClearCategory').value,
                 expiryDate: document.getElementById('toClearExpiryDate').value,
-                warehouseQty: warehouseQty,
-                storeQty: storeQty,
-                weeklyDemand: parseFloat(document.getElementById('toClearWeeklyDemand').value),
-                actionPlan: document.getElementById('toClearActionPlan').value,
-                isDeleted: false
+                quantity: document.getElementById('toClearQuantity').value,
+                reason: document.getElementById('toClearReason').value
             };
 
-            // Only set these fields on NEW creation
-            if (!editId) {
-                toClearProductData.firstHighlightedDate = new Date().toISOString().slice(0, 10);
-                toClearProductData.firstReportedBalance = totalQtyAtCreation;
+            if (editId) {
+                const index = toClearData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    toClearData[index] = { ...toClearData[index], ...newToClearItem };
+                    showNotification('To Clear item updated!', 'success');
+                }
             } else {
-                // For existing items, ensure these values are kept from previous state if not explicitly passed
-                const existingItem = toClearData.find(item => item.id === editId);
-                if (existingItem) {
-                    toClearProductData.firstHighlightedDate = existingItem.firstHighlightedDate;
-                    toClearProductData.firstReportedBalance = existingItem.firstReportedBalance;
-                }
+                newToClearItem.id = toClearData.length > 0 ? Math.max(...toClearData.map(item => item.id)) + 1 : 1;
+                toClearData.push(newToClearItem);
+                showNotification('Item added to To Clear list!', 'success');
             }
 
-
-            try {
-                await saveDataToFirestore(toClearColRef, editId, toClearProductData);
-                showNotification(editId ? 'Product to clear updated successfully!' : 'Product to clear added successfully!', 'success');
-                closeModal('toClearModal');
-                event.target.reset();
-                await updateLocalData();
-            } catch (e) {
-                // Error handled
-            }
-        }
-
-        // Delete functions (Soft Delete)
-        async function softDeleteProduct(id) {
-            showConfirmModal("Are you sure you want to move this product to the Recycle Bin?", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        await saveDataToFirestore(inventoryColRef, id, { isDeleted: true, deletedDate: new Date().toISOString().slice(0, 10), originalCollection: inventoryColRef.id });
-                        showNotification('Product moved to Recycle Bin!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error deleting item: ", e);
-                        showNotification('Error moving product to Recycle Bin.', 'error');
-                    }
-                }
-            });
-        }
-
-        async function softDeleteNewProduct(id) {
-            showConfirmModal("Are you sure you want to move this new product entry to the Recycle Bin?", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        await saveDataToFirestore(newProductsColRef, id, { isDeleted: true, deletedDate: new Date().toISOString().slice(0, 10), originalCollection: newProductsColRef.id });
-                        showNotification('New product moved to Recycle Bin!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error deleting item: ", e);
-                        showNotification('Error moving product to Recycle Bin.', 'error');
-                    }
-                }
-            });
-        }
-
-        async function softDeleteMasterProduct(id) {
-            showConfirmModal("Are you sure you want to move this master product to the Recycle Bin? This will affect product dropdowns!", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        await saveDataToFirestore(masterProductsColRef, id, { isDeleted: true, deletedDate: new Date().toISOString().slice(0, 10), originalCollection: masterProductsColRef.id });
-                        showNotification('Master product moved to Recycle Bin!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error deleting item: ", e);
-                        showNotification('Error moving product to Recycle Bin.', 'error');
-                    }
-                }
-            });
-        }
-
-        async function softDeleteToClear(id) {
-            showConfirmModal("Are you sure you want to move this 'To Clear' product to the Recycle Bin?", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        await saveDataToFirestore(toClearColRef, id, { isDeleted: true, deletedDate: new Date().toISOString().slice(0, 10), originalCollection: toClearColRef.id });
-                        showNotification('"To Clear" product moved to Recycle Bin!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error moving item: ", e);
-                        showNotification('Error moving product to Recycle Bin.', 'error');
-                    }
-                }
-            });
-        }
-        
-        // Restore item from Recycle Bin
-        async function restoreItem(id, originalCollectionName) {
-            showConfirmModal("Are you sure you want to restore this item? It will return to its original tab.", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        const collectionRef = db.collection(originalCollectionName);
-                        await saveDataToFirestore(collectionRef, id, { isDeleted: false, deletedDate: null, originalCollection: null });
-                        showNotification('Item restored successfully!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error restoring item: ", e);
-                        showNotification('Error restoring item.', 'error');
-                    }
-                }
-            });
-        }
-
-        // Permanently delete item from Recycle Bin
-        async function hardDeleteItem(id, originalCollectionName) {
-            showConfirmModal("Are you sure you want to permanently delete this item? This action cannot be undone.", async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        await db.collection(originalCollectionName).doc(id).delete();
-                        showNotification('Item permanently deleted!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error permanently deleting document: ", e);
-                        showNotification('Error permanently deleting item.', 'error');
-                    }
-                }
-            });
-        }
-
-        // Empty Recycle Bin (permanently delete all deleted items)
-        async function emptyRecycleBin() {
-            showConfirmModal('WARNING: Are you sure you want to PERMANENTLY delete ALL items in the Recycle Bin? This action cannot be undone.', async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        const batch = db.batch();
-                        deletedItemsData.forEach(item => {
-                            const docRef = db.collection(item.originalCollection).doc(item.id);
-                            batch.delete(docRef);
-                        });
-                        await batch.commit();
-                        showNotification('Recycle Bin emptied successfully!', 'success');
-                        await updateLocalData();
-                    } catch (e) {
-                        console.error("Error emptying Recycle Bin:", e);
-                        showNotification('Error emptying Recycle Bin.', 'error');
-                    }
-                }
-            });
-        }
-
-        // --- Display Functions ---
-
-        function updateAllTables() {
-            updateInventoryTable();
-            updateNewProductsTable();
+            await saveDataToFirestore('toClear', toClearData);
             updateToClearTable();
-            updateMasterTable();
-            updateRecycleBinTable();
-        }
+            updateAlerts();
+            document.getElementById('toClearForm').reset();
+            document.getElementById('toClearEditId').value = '';
+        });
 
-        function updateInventoryTable(dataToDisplay = inventoryData) { // Default to global inventoryData
-            const tbody = document.getElementById('inventory-table');
-            tbody.innerHTML = '';
-            // If dataToDisplay is empty, show a message
-            if (dataToDisplay.length === 0) {
-                const row = tbody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 9; // Adjusted to match number of columns including Quantity
-                cell.textContent = "No products found for this view.";
-                cell.style.textAlign = "center";
-                cell.style.padding = "20px";
-                return;
+        // Save Master Product List Item
+        document.getElementById('masterProductForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const editId = document.getElementById('masterEditId').value;
+            const newMasterProduct = {
+                brand: document.getElementById('masterBrand').value,
+                product: document.getElementById('masterProduct').value,
+                remarks: document.getElementById('masterRemarks').value
+            };
+
+            if (editId) {
+                const index = masterProductListData.findIndex(item => item.id == editId);
+                if (index !== -1) {
+                    masterProductListData[index] = { ...masterProductListData[index], ...newMasterProduct };
+                    showNotification('Master product updated!', 'success');
+                }
+            } else {
+                newMasterProduct.id = masterProductListData.length > 0 ? Math.max(...masterProductListData.map(item => item.id)) + 1 : 1;
+                masterProductListData.push(newMasterProduct);
+                showNotification('Master product added!', 'success');
             }
 
-            dataToDisplay.forEach(item => {
-                const row = tbody.insertRow();
-                let statusClass = '';
-                if (item.status === 'OOS') statusClass = 'oos';
-                else if (item.status && item.status.includes('Low')) statusClass = 'low';
-                else if (item.status === 'In Stock') statusClass = 'normal'; // Added In Stock class
+            await saveDataToFirestore('masterProductList', masterProductListData);
+            updateMasterProductListTable();
+            document.getElementById('masterProductForm').reset();
+            document.getElementById('masterEditId').value = '';
+        });
 
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.quantity !== undefined ? item.quantity : 'N/A'}</td> <td><span class="status-badge ${statusClass}">${item.status || ''}</span></td>
-                    <td>${item.expiry || 'N/A'}</td>
-                    <td>${item.shipment || 'TBD'}</td>
-                    <td>${item.remarks || '-'}</td>
-                    <td>
-                        <button onclick="showEditProductModal('${item.id}')">Edit</button>
-                        <button class="btn-danger" onclick="softDeleteProduct('${item.id}')">Delete</button>
-                    </td>
-                `;
+        // Save Master Product from Modal
+        document.getElementById('editMasterProductForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('modalMasterProductId').value;
+            const index = masterProductListData.findIndex(item => item.id == id);
+            if (index !== -1) {
+                masterProductListData[index].brand = document.getElementById('modalMasterBrand').value;
+                masterProductListData[index].product = document.getElementById('modalMasterProduct').value;
+                masterProductListData[index].remarks = document.getElementById('modalMasterRemarks').value;
+                await saveDataToFirestore('masterProductList', masterProductListData);
+                updateMasterProductListTable();
+                document.getElementById('editMasterProductModal').style.display = 'none';
+                showNotification('Master Product updated successfully!', 'success');
+            }
+        });
+
+
+        // --- Update Table Functions ---
+
+        function updateInventoryTable() {
+            const tableBody = document.getElementById('inventoryTableBody');
+            tableBody.innerHTML = '';
+            inventoryData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.id;
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.status;
+                row.insertCell().textContent = item.expiry;
+                row.insertCell().textContent = item.shipment;
+                row.insertCell().textContent = item.remarks;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editProduct(item.id);
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.onclick = () => deleteProduct(item.id);
+                actionsCell.appendChild(deleteButton);
             });
         }
 
         function updateNewProductsTable() {
-            const tbody = document.getElementById('new-products-table');
-            tbody.innerHTML = '';
+            const tableBody = document.getElementById('newProductsTableBody');
+            tableBody.innerHTML = '';
             newProductsData.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.addedDate || ''}</td>
-                    <td>${item.arrivalDate || 'TBD'}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${item.notes || '-'}</td>
-                    <td>
-                        <button onclick="showEditNewProductModal('${item.id}')">Edit</button>
-                        <button class="btn-danger" onclick="softDeleteNewProduct('${item.id}')">Delete</button>
-                    </td>
-                `;
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.id;
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.status;
+                row.insertCell().textContent = item.expiry;
+                row.insertCell().textContent = item.shipment;
+                row.insertCell().textContent = item.remarks;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editNewProduct(item.id);
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.onclick = () => deleteNewProduct(item.id);
+                actionsCell.appendChild(deleteButton);
             });
         }
 
         function updateToClearTable() {
-            const tbody = document.getElementById('to-clear-table');
-            tbody.innerHTML = '';
-            if (toClearData.length === 0) {
-                const row = tbody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 14; // Adjusted colspan for new columns
-                cell.textContent = "No products found for this view.";
-                cell.style.textAlign = "center";
-                cell.style.padding = "20px";
-                return;
+            const tableBody = document.getElementById('toClearTableBody');
+            tableBody.innerHTML = '';
+            toClearData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.id;
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.category;
+                row.insertCell().textContent = item.expiryDate;
+                row.insertCell().textContent = item.quantity;
+                row.insertCell().textContent = item.reason;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editToClear(item.id);
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.onclick = () => deleteToClear(item.id);
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        function updateMasterProductListTable() {
+            const tableBody = document.getElementById('masterProductListTableBody');
+            tableBody.innerHTML = '';
+            masterProductListData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.id;
+                row.insertCell().textContent = item.brand;
+                row.insertCell().textContent = item.product;
+                row.insertCell().textContent = item.remarks;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'action-buttons';
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => openEditMasterProductModal(item.id);
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'delete';
+                deleteButton.onclick = () => deleteMasterProduct(item.id);
+                actionsCell.appendChild(deleteButton);
+            });
+        }
+
+        // --- Edit Functions ---
+
+        function editProduct(id) {
+            const product = inventoryData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('brand').value = product.brand;
+                document.getElementById('productName').value = product.product;
+                document.getElementById('status').value = product.status;
+                document.getElementById('expiry').value = product.expiry;
+                document.getElementById('shipment').value = product.shipment;
+                document.getElementById('remarks').value = product.remarks;
+                showNotification('Editing existing product.', 'info');
             }
+        }
+
+        function editNewProduct(id) {
+            const product = newProductsData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('newBrand').value = product.brand;
+                document.getElementById('newProductName').value = product.product;
+                document.getElementById('newStatus').value = product.status;
+                document.getElementById('newExpiry').value = product.expiry;
+                document.getElementById('newShipment').value = product.shipment;
+                document.getElementById('newRemarks').value = product.remarks;
+                // For editing new products, you might add a hidden input for ID if you need to update it
+                // For now, let's just pre-fill the form. To actually save changes, you'd need similar logic as saveProduct
+                showNotification('Currently only pre-filling. Re-add to update.', 'info');
+            }
+        }
+
+        function editToClear(id) {
+            const item = toClearData.find(item => item.id === id);
+            if (item) {
+                document.getElementById('toClearEditId').value = item.id;
+                document.getElementById('toClearBrand').value = item.brand;
+                document.getElementById('toClearProduct').value = item.product;
+                document.getElementById('toClearCategory').value = item.category;
+                document.getElementById('toClearExpiryDate').value = item.expiryDate;
+                document.getElementById('toClearQuantity').value = item.quantity;
+                document.getElementById('toClearReason').value = item.reason;
+                showNotification('Editing To Clear item.', 'info');
+            }
+        }
+
+        function openEditMasterProductModal(id) {
+            const product = masterProductListData.find(item => item.id === id);
+            if (product) {
+                document.getElementById('modalMasterProductId').value = product.id;
+                document.getElementById('modalMasterBrand').value = product.brand;
+                document.getElementById('modalMasterProduct').value = product.product;
+                document.getElementById('modalMasterRemarks').value = product.remarks;
+                document.getElementById('editMasterProductModal').style.display = 'block';
+            }
+        }
+
+        // --- Delete Functions ---
+
+        async function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product from Inventory?')) {
+                inventoryData = inventoryData.filter(item => item.id !== id);
+                await saveDataToFirestore('inventory', inventoryData);
+                updateInventoryTable();
+                updateDashboardCounts();
+                updateAlerts();
+                showNotification('Product deleted from inventory.', 'success');
+            }
+        }
+
+        async function deleteNewProduct(id) {
+            if (confirm('Are you sure you want to delete this new product?')) {
+                newProductsData = newProductsData.filter(item => item.id !== id);
+                await saveDataToFirestore('newProducts', newProductsData);
+                updateNewProductsTable();
+                showNotification('New product deleted.', 'success');
+            }
+        }
+
+        async function deleteToClear(id) {
+            if (confirm('Are you sure you want to delete this To Clear item?')) {
+                toClearData = toClearData.filter(item => item.id !== id);
+                await saveDataToFirestore('toClear', toClearData);
+                updateToClearTable();
+                updateAlerts();
+                showNotification('To Clear item deleted.', 'success');
+            }
+        }
+
+        async function deleteMasterProduct(id) {
+            if (confirm('Are you sure you want to delete this Master Product?')) {
+                masterProductListData = masterProductListData.filter(item => item.id !== id);
+                await saveDataToFirestore('masterProductList', masterProductListData);
+                updateMasterProductListTable();
+                showNotification('Master Product deleted.', 'success');
+            }
+        }
+
+        // --- Dashboard Functions ---
+
+        function updateDashboardCounts() {
+            document.getElementById('totalProductsCount').textContent = inventoryData.length;
+            const lowStock = inventoryData.filter(item => item.status === 'Low stock').length;
+            const oos = inventoryData.filter(item => item.status === 'OOS').length;
+            document.getElementById('lowStockCount').textContent = lowStock;
+            document.getElementById('oosCount').textContent = oos;
 
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
-
-            toClearData.forEach(item => {
-                const row = tbody.insertRow();
-                let categoryClass = '';
-                if (item.category === 'Short Expiry') categoryClass = 'oos';
-                else if (item.category === 'Excess Stock') categoryClass = 'low';
-                else categoryClass = 'normal';
-
-                const warehouseQty = item.warehouseQty || 0;
-                const storeQty = item.storeQty || 0;
-                const totalQty = warehouseQty + storeQty;
-
-                const weeklyDemand = item.weeklyDemand || 0;
-                const noOfWeekSupply = weeklyDemand > 0 ? (totalQty / weeklyDemand).toFixed(1) : 'N/A'; // Rounded to 1 decimal
-
-                let supplyStatus = 'N/A';
-                let supplyStatusClass = '';
-
-                if (item.expiryDate && noOfWeekSupply !== 'N/A') {
-                    const expiryDate = new Date(item.expiryDate);
-                    expiryDate.setHours(0, 0, 0, 0); // Normalize expiry date to start of day
-
-                    const diffTimeExpiry = expiryDate.getTime() - today.getTime();
-                    const diffDaysExpiry = Math.ceil(diffTimeExpiry / (1000 * 60 * 60 * 24));
-                    const monthsUntilExpiry = diffDaysExpiry / 30.44; // Approximate months
-
-                    const daysOfSupply = parseFloat(noOfWeekSupply) * 7;
-                    const monthsOfSupply = daysOfSupply / 30.44; // Approximate months
-
-                    if (monthsUntilExpiry <= 6 && monthsOfSupply > monthsUntilExpiry) {
-                        supplyStatus = 'Danger';
-                        supplyStatusClass = 'danger-status';
-                    } else if (monthsUntilExpiry <= 12 && monthsOfSupply > monthsUntilExpiry) {
-                        supplyStatus = 'Alert';
-                        supplyStatusClass = 'alert-status';
-                    } else {
-                        supplyStatus = 'Normal';
-                        supplyStatusClass = 'normal';
-                    }
+            const expiringSoon = inventoryData.filter(item => {
+                if (item.expiry) {
+                    const expiryDate = new Date(item.expiry);
+                    const diffTime = expiryDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays > 0 && diffDays <= 30; // Expiring within 30 days
                 }
-
-
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td><span class="status-badge ${categoryClass}">${item.category || ''}</span></td>
-                    <td>${item.expiryDate || ''}</td>
-                    <td>${item.firstHighlightedDate || 'N/A'}</td>
-                    <td>${item.firstReportedBalance !== undefined ? item.firstReportedBalance : 'N/A'}</td>
-                    <td>${warehouseQty}</td>
-                    <td>${storeQty}</td>
-                    <td>${totalQty}</td>
-                    <td>${item.weeklyDemand || ''}</td>
-                    <td>${noOfWeekSupply}</td>
-                    <td><span class="status-badge ${supplyStatusClass}">${supplyStatus}</span></td>
-                    <td>${item.actionPlan || ''}</td>
-                    <td>
-                        <button onclick="showEditToClearModal('${item.id}')">Edit</button>
-                        <button class="btn-danger" onclick="softDeleteToClear('${item.id}')">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        function updateMasterTable() {
-            const tbody = document.getElementById('master-table');
-            tbody.innerHTML = '';
-            masterProductsData.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.category || ''}</td>
-                    <td>${item.description || '-'}</td>
-                    <td>$${item.price ? item.price.toFixed(2) : '0.00'}</td>
-                    <td>
-                        <button onclick="showEditMasterProductModal('${item.id}')">Edit</button>
-                        <button class="btn-danger" onclick="softDeleteMasterProduct('${item.id}')">Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        function updateRecycleBinTable() {
-            const tbody = document.getElementById('recycle-bin-table');
-            tbody.innerHTML = '';
-            if (deletedItemsData.length === 0) {
-                const row = tbody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 5;
-                cell.textContent = "Recycle Bin is empty.";
-                cell.style.textAlign = "center";
-                cell.style.padding = "20px";
-                return;
-            }
-
-            deletedItemsData.forEach(item => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${item.sku || 'N/A'}</td>
-                    <td>${item.originalCollection.replace('_', ' ').replace(/\b\w/g, char => char.toUpperCase())}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>
-                        <button class="btn-info" onclick="restoreItem('${item.id}', '${item.originalCollection}')">Restore</button>
-                        <button class="btn-danger" onclick="hardDeleteItem('${item.id}', '${item.originalCollection}')">Permanently Delete</button>
-                    </td>
-                `;
-            });
-        }
-
-        function updateDashboardStats() {
-            document.getElementById('oos-count').textContent = inventoryData.filter(item => item.status === 'OOS').length;
-            document.getElementById('low-count').textContent = inventoryData.filter(item => item.status && item.status.includes('Low')).length;
-            // Removed 'In Stock' count as per requirement
-            document.getElementById('new-count').textContent = newProductsData.length;
+                return false;
+            }).length;
+            document.getElementById('expiringSoonCount').textContent = expiringSoon;
         }
 
         function updateAlerts() {
-            const alertsDiv = document.getElementById('alerts');
-            alertsDiv.innerHTML = '';
-
-            const today = new Date();
+            const alertsContainer = document.getElementById('alertsContainer');
+            alertsContainer.innerHTML = '';
             let hasAlerts = false;
 
-            // Expiry alerts for Inventory
+            // Check for expiry dates
+            const today = new Date();
             inventoryData.forEach(item => {
                 if (item.expiry) {
                     const expiryDate = new Date(item.expiry);
-                    const diffTime = expiryDate.getTime() - today.getTime();
+                    const diffTime = expiryDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                    if (diffDays <= 30 && diffDays > 0) {
-                        alertsDiv.innerHTML += `<p>⚠️ Product "${item.product}" (Brand: ${item.brand}) expires in ${diffDays} days!</p>`;
+                    if (diffDays <= 0) {
+                        const p = document.createElement('p');
+                        p.textContent = `🚨 ${item.brand} - ${item.product} has EXPIRED!`;
+                        alertsContainer.appendChild(p);
                         hasAlerts = true;
-                    } else if (diffDays <= 0) {
-                        alertsDiv.innerHTML += `<p>🚨 Product "${item.product}" (Brand: ${item.brand}) has expired!</p>`;
+                    } else if (diffDays <= 30) {
+                        const p = document.createElement('p');
+                        p.textContent = `⚠️ ${item.brand} - ${item.product} will expire in ${diffDays} days.`;
+                        alertsContainer.appendChild(p);
                         hasAlerts = true;
                     }
                 }
             });
 
-            // Low stock alerts
+            // Check for low stock/OOS
             inventoryData.forEach(item => {
                 if (item.status === 'Low stock') {
-                    alertsDiv.innerHTML += `<p>📉 Product "${item.product}" (Brand: ${item.brand}) is running low on stock.</p>`;
+                    const p = document.createElement('p');
+                    p.textContent = `📉 ${item.brand} - ${item.product} is Low stock.`;
+                    alertsContainer.appendChild(p);
+                    hasAlerts = true;
+                } else if (item.status === 'OOS') {
+                    const p = document.createElement('p');
+                    p.textContent = `🚫 ${item.brand} - ${item.product} is Out of Stock!`;
+                    alertsContainer.appendChild(p);
                     hasAlerts = true;
                 }
             });
 
-            // Out of stock alerts
-            inventoryData.forEach(item => {
-                if (item.status === 'OOS') {
-                    alertsDiv.innerHTML += `<p>❌ Product "${item.product}" (Brand: ${item.brand}) is out of stock!</p>`;
-                    hasAlerts = true;
-                }
-            });
-
-            // To Clear - Critical items
+            // Check for To Clear - Short Expiry
             toClearData.forEach(item => {
-                if (item.expiryDate) {
+                if (item.category === 'Short Expiry' && item.expiryDate) {
                     const expiryDate = new Date(item.expiryDate);
-                    const diffTime = expiryDate.getTime() - today.getTime();
+                    const diffTime = expiryDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays <= 60 && item.category === "Short Expiry") {
-                        alertsDiv.innerHTML += `<p>🔥 Action Required: Product "${item.product}" (To Clear) has short expiry (${diffDays} days).</p>`;
+                    if (diffDays <= 60) { // Alert if short expiry within 60 days
+                        const p = document.createElement('p');
+                        p.textContent = `🗑️ To Clear: ${item.brand} - ${item.product} (Short Expiry) in ${diffDays} days.`;
+                        alertsContainer.appendChild(p);
                         hasAlerts = true;
                     }
                 }
             });
 
+
             if (!hasAlerts) {
-                alertsDiv.innerHTML = '<p>🎉 No urgent alerts at the moment. Everything looks good!</p>';
+                const p = document.createElement('p');
+                p.className = 'no-alerts';
+                p.textContent = 'Everything looks good! No urgent alerts.';
+                alertsContainer.appendChild(p);
             }
         }
-
-        function updateManagementStats() {
-            const totalActive = inventoryData.length + newProductsData.length + toClearData.length + masterProductsData.length;
-            const totalAll = totalActive + deletedItemsData.length; // Simple sum, assuming unique IDs across collections for simplicity
-            
-            document.getElementById('total-products').textContent = totalActive;
-            document.getElementById('total-products-all').textContent = totalAll;
-            document.getElementById('last-updated').textContent = new Date().toLocaleString();
-        }
-
-        // --- Modal Display Functions ---
-
-        async function showAddProductModal() {
-            document.getElementById('productModalTitle').textContent = 'Add New Product';
-            document.getElementById('editProductId').value = '';
-            document.getElementById('brand').value = '';
-            document.getElementById('productName').value = ''; // Clear input
-            document.getElementById('productsDatalist').innerHTML = ''; // Clear datalist
-            document.getElementById('inventoryQuantity').value = ''; // Clear new quantity field
-            document.getElementById('status').value = '';
-            document.getElementById('expiry').value = '';
-            document.getElementById('shipment').value = '';
-            document.getElementById('remarks').value = '';
-            document.getElementById('productModal').style.display = 'block';
-        }
-
-        async function showEditProductModal(id) {
-            const productSnap = await inventoryColRef.doc(id).get();
-            if (!productSnap.exists) {
-                showNotification("Product not found!", "error");
+        
+        // Function to merge new products into the master inventory
+        async function mergeNewProductsToMaster() {
+            if (newProductsData.length === 0) {
+                showNotification('No new products to merge.', 'info');
                 return;
             }
-            const item = productSnap.data();
 
-            document.getElementById('productModalTitle').textContent = 'Edit Product';
-            document.getElementById('editProductId').value = id;
-            document.getElementById('brand').value = item.brand || '';
-            filterProductsForBrand(item.brand || '', 'productName', 'productsDatalist'); // Populate datalist
-            document.getElementById('productName').value = item.product || ''; // Set value after datalist is populated
-            document.getElementById('inventoryQuantity').value = item.quantity !== undefined ? item.quantity : ''; // Set quantity field
-            document.getElementById('status').value = item.status || '';
-            document.getElementById('expiry').value = item.expiry || '';
-            document.getElementById('shipment').value = item.shipment || '';
-            document.getElementById('remarks').value = item.remarks || '';
-            document.getElementById('productModal').style.display = 'block';
-        }
+            // Assign unique IDs to new products before merging
+            let currentMaxId = inventoryData.length > 0 ? Math.max(...inventoryData.map(item => item.id)) : 0;
 
-        async function showAddNewProductModal() {
-            document.getElementById('newProductModalTitle').textContent = 'Add New Product';
-            document.getElementById('editNewProductId').value = '';
-            document.getElementById('newBrand').value = '';
-            document.getElementById('newProductName').value = ''; // Clear input
-            document.getElementById('newProductsDatalist').innerHTML = ''; // Clear datalist
-            document.getElementById('quantity').value = '';
-            document.getElementById('arrivalDate').value = '';
-            document.getElementById('notes').value = '';
-            document.getElementById('newProductModal').style.display = 'block';
-        }
-
-        async function showEditNewProductModal(id) {
-            const productSnap = await newProductsColRef.doc(id).get();
-            if (!productSnap.exists) {
-                showNotification("New Product not found!", "error");
-                return;
-            }
-            const item = productSnap.data();
-
-            document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
-            document.getElementById('editNewProductId').value = id;
-            document.getElementById('newBrand').value = item.brand || '';
-            filterProductsForBrand(item.brand || '', 'newProductName', 'newProductsDatalist'); // Populate datalist
-            document.getElementById('newProductName').value = item.product || ''; // Set value after datalist is populated
-            document.getElementById('quantity').value = item.quantity || '';
-            document.getElementById('arrivalDate').value = item.arrivalDate || '';
-            document.getElementById('notes').value = item.notes || '';
-            document.getElementById('newProductModal').style.display = 'block';
-        }
-
-        async function showAddMasterProductModal() {
-            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
-            document.getElementById('editMasterProductId').value = '';
-            document.getElementById('masterBrand').value = '';
-            document.getElementById('masterProductName').value = '';
-            document.getElementById('category').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('sku').value = '';
-            document.getElementById('price').value = '';
-            document.getElementById('masterProductModal').style.display = 'block';
-        }
-
-        async function showEditMasterProductModal(id) {
-            const productSnap = await masterProductsColRef.doc(id).get();
-            if (!productSnap.exists) {
-                showNotification("Master Product not found!", "error");
-                return;
-            }
-            const item = productSnap.data();
-
-            document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
-            document.getElementById('editMasterProductId').value = id;
-            document.getElementById('masterBrand').value = item.brand || '';
-            document.getElementById('masterProductName').value = item.product || '';
-            document.getElementById('category').value = item.category || '';
-            document.getElementById('description').value = item.description || '';
-            document.getElementById('sku').value = item.sku || '';
-            document.getElementById('price').value = item.price || '';
-            document.getElementById('masterProductModal').style.display = 'block';
-        }
-
-        async function showAddToClearModal() {
-            document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
-            document.getElementById('editToClearId').value = '';
-            document.getElementById('toClearBrand').value = '';
-            document.getElementById('toClearProductName').value = ''; // Clear input
-            document.getElementById('toClearProductsDatalist').innerHTML = ''; // Clear datalist
-            document.getElementById('toClearCategory').value = '';
-            document.getElementById('toClearExpiryDate').value = '';
-            document.getElementById('toClearWarehouseQty').value = ''; // Clear new field
-            document.getElementById('toClearStoreQty').value = '';     // Clear new field
-            document.getElementById('toClearWeeklyDemand').value = '';
-            document.getElementById('toClearActionPlan').value = '';
-            
-            // Set First Highlighted Date to today for new entries
-            const today = new Date().toISOString().slice(0, 10);
-            document.getElementById('toClearFirstHighlightedDate').value = today;
-            // First Reported Balance will be set when saving (totalQty)
-            document.getElementById('toClearFirstReportedBalance').value = ''; // Clear for new, will be set on save
-
-            document.getElementById('toClearModal').style.display = 'block';
-        }
-
-        async function showEditToClearModal(id) {
-            const productSnap = await toClearColRef.doc(id).get();
-            if (!productSnap.exists) {
-                showNotification("Product to Clear not found!", "error");
-                return;
-            }
-            const item = productSnap.data();
-
-            document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
-            document.getElementById('editToClearId').value = id;
-            document.getElementById('toClearBrand').value = item.brand || '';
-            filterProductsForBrand(item.brand || '', 'toClearProductName', 'toClearProductsDatalist'); // Populate datalist
-            document.getElementById('toClearProductName').value = item.product || ''; // Set value after datalist is populated
-            document.getElementById('toClearCategory').value = item.category || '';
-            document.getElementById('toClearExpiryDate').value = item.expiryDate || '';
-            document.getElementById('toClearWarehouseQty').value = item.warehouseQty || ''; // Set new field
-            document.getElementById('toClearStoreQty').value = item.storeQty || '';     // Set new field
-            document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand || '';
-            document.getElementById('toClearActionPlan').value = item.actionPlan || '';
-
-            // Set First Highlighted Date and First Reported Balance for editing
-            document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate || '';
-            document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
-
-            document.getElementById('toClearModal').style.display = 'block';
-        }
-
-        // --- Product Datalist Population (from Master List, filtered by Brand) ---
-        function populateProductDatalists() {
-            // Get all brand select elements and their corresponding product input/datalist IDs
-            const formGroups = [
-                { brandSelectId: 'brand', productInputId: 'productName', datalistId: 'productsDatalist' },
-                { brandSelectId: 'newBrand', productInputId: 'newProductName', datalistId: 'newProductsDatalist' },
-                { brandSelectId: 'toClearBrand', productInputId: 'toClearProductName', datalistId: 'toClearProductsDatalist' }
-            ];
-
-            formGroups.forEach(group => {
-                const brandSelect = document.getElementById(group.brandSelectId);
-                // Trigger the filter function for the currently selected brand
-                filterProductsForBrand(brandSelect.value, group.productInputId, group.datalistId);
+            const productsToMerge = newProductsData.map(item => {
+                currentMaxId++;
+                return {
+                    id: currentMaxId, // Assign a new unique ID
+                    brand: item.brand,
+                    product: item.product,
+                    status: item.status,
+                    expiry: item.expiry,
+                    shipment: item.shipment, // Corrected typo here
+                    remarks: item.remarks
+                };
             });
+
+            // Add products to inventoryData
+            inventoryData.push(...productsToMerge);
+
+            // Clear newProductsData
+            newProductsData = [];
+
+            // Save updated data to Firestore
+            await saveDataToFirestore('inventory', inventoryData);
+            await saveDataToFirestore('newProducts', newProductsData); // Clear new products collection
+
+            // Update UI tables
+            updateInventoryTable();
+            updateNewProductsTable();
+            updateAlerts(); // Re-evaluate alerts with updated inventory
+            updateDashboardCounts(); // Update dashboard counts as well
+
+            showNotification(`${productsToMerge.length} new products merged into Master Inventory!`, 'success');
         }
 
-        // Function to filter and populate product datalists based on brand
-        function filterProductsForBrand(selectedBrand, productInputId, datalistId) {
-            const productInput = document.getElementById(productInputId);
-            const datalist = document.getElementById(datalistId);
-            datalist.innerHTML = ''; // Clear existing options
 
-            if (selectedBrand) {
-                const filteredProducts = masterProductsData.filter(item => item.brand === selectedBrand);
-                // Sort products alphabetically
-                filteredProducts.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
+        // --- CSV Export/Import ---
 
-                filteredProducts.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.product;
-                    datalist.appendChild(option);
-                });
+        function exportTableToCSV(tableId) {
+            const table = document.getElementById(tableId);
+            let csv = [];
+            for (let i = 0; i < table.rows.length; i++) {
+                let row = [], cols = table.rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length - (tableId === 'inventoryTable' || tableId === 'newProductsTable' || tableId === 'toClearTable' || tableId === 'masterProductListTable' ? 1 : 0); j++) {
+                    let data = cols[j].innerText.replace(/"/g, '""'); // Escape double quotes
+                    row.push(`"${data}"`); // Enclose in double quotes
+                }
+                csv.push(row.join(','));
             }
-            // If the currently typed product is no longer valid for the new brand, clear it.
-            // This prevents a product from a different brand remaining in the input field
-            // if the brand is changed.
-            const currentProductValue = productInput.value;
-            if (currentProductValue && selectedBrand && 
-                !masterProductsData.some(p => p.brand === selectedBrand && p.product === currentProductValue)) {
-                productInput.value = '';
-            }
-        }
 
-        // --- Tab Switching Logic ---
-        function switchTab(clickedTabElement, tabId) {
-            // Deactivate all tabs
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            // Deactivate all tab contents
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            // Activate the clicked tab
-            clickedTabElement.classList.add('active');
-            // Activate the corresponding content
-            document.getElementById(tabId).classList.add('active');
-
-            // Specific updates for certain tabs if needed
-            if (tabId === 'oos-lowstock') { // Changed from 'inventory'
-                updateInventoryTable(); // Call with no arguments to show all OOS/Low Stock
-            } else if (tabId === 'new-products') {
-                updateNewProductsTable();
-            } else if (tabId === 'to-clear') {
-                updateToClearTable();
-            } else if (tabId === 'master-list') {
-                updateMasterTable();
-            } else if (tabId === 'recycle-bin') {
-                updateRecycleBinTable();
-            }
-        }
-
-
-        // --- Search Functionality ---
-        function searchInventory(searchTerm) {
-            const tbody = document.getElementById('inventory-table');
-            tbody.innerHTML = '';
-
-            const filtered = inventoryData.filter(item =>
-                (item.product && item.product.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.brand && item.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.status && item.status.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.remarks && item.remarks.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
-
-            // Filter for only OOS or Low Stock for the OOS/LOW STOCK tab - NO, now it also includes "In Stock"
-            // The OOS/LOW STOCK tab can now display all inventory items based on the search result.
-            updateInventoryTable(filtered); // Pass filtered data to table update
-        }
-
-        function showFilteredInventory(status) {
-            const filteredData = inventoryData.filter(item => item.status === status);
-            // Find the tab element associated with the OOS/LOW STOCK tab
-            const oosLowStockTabElement = document.querySelector('.tab[onclick*=\'oos-lowstock\']');
-            if (oosLowStockTabElement) {
-                switchTab(oosLowStockTabElement, 'oos-lowstock'); // Switch to OOS/LOW STOCK tab
-            } else {
-                // Fallback, if tab element cannot be found, still try to switch content
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.getElementById('oos-lowstock').classList.add('active');
-            }
-            updateInventoryTable(filteredData); // Display filtered data
-        }
-
-
-        // --- Export/Import (CSV) ---
-        function convertToCSV(data, headers) {
-            if (data.length === 0) return headers.join(',') + '\n';
-            const csvRows = [];
-            csvRows.push(headers.join(',')); // Add header row
-
-            data.forEach(row => {
-                const values = headers.map(header => {
-                    let value = row[header] !== undefined ? row[header] : '';
-                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
-                        return `"${value.replace(/"/g, '""')}"`; // Escape quotes and enclose in quotes
-                    }
-                    return value;
-                });
-                csvRows.push(values.join(','));
-            });
-            return csvRows.join('\n');
-        }
-
-        async function exportAllData() {
-            try {
-                let csvContent = "";
-
-                // Inventory Data (updated headers)
-                const invHeaders = ['sku', 'brand', 'product', 'quantity', 'status', 'expiry', 'shipment', 'remarks', 'isDeleted', 'deletedDate', 'originalCollection'];
-                csvContent += "INVENTORY DATA\n";
-                csvContent += convertToCSV(await fetchDataFromFirestore(inventoryColRef, true), invHeaders);
-
-                // New Products Data
-                const newProdHeaders = ['sku', 'brand', 'product', 'addedDate', 'arrivalDate', 'quantity', 'notes', 'isDeleted', 'deletedDate', 'originalCollection'];
-                csvContent += "\n\nNEW PRODUCTS DATA\n";
-                csvContent += convertToCSV(await fetchDataFromFirestore(newProductsColRef, true), newProdHeaders);
-
-                // To Clear Data (updated headers)
-                const toClearHeaders = ['sku', 'brand', 'product', 'category', 'expiryDate', 'firstHighlightedDate', 'firstReportedBalance', 'warehouseQty', 'storeQty', 'weeklyDemand', 'actionPlan', 'isDeleted', 'deletedDate', 'originalCollection'];
-                csvContent += "\n\nTO CLEAR DATA\n";
-                csvContent += convertToCSV(await fetchDataFromFirestore(toClearColRef, true), toClearHeaders);
-
-                // Master Products Data
-                const masterHeaders = ['sku', 'brand', 'product', 'category', 'description', 'price', 'isDeleted', 'deletedDate', 'originalCollection'];
-                csvContent += "\n\nMASTER PRODUCTS DATA\n";
-                csvContent += convertToCSV(await fetchDataFromFirestore(masterProductsColRef, true), masterHeaders);
-                
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.setAttribute('download', `all_inventory_data_${new Date().toISOString().slice(0, 10)}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-                showNotification('All data exported successfully!', 'success');
-            } catch (error) {
-                console.error("Error exporting all data:", error);
-                showNotification('Error exporting all data. Check console for details.', 'error');
-            }
-        }
-
-        function exportMasterList() {
-            const headers = ['sku', 'brand', 'product', 'category', 'description', 'price'];
-            const csv = convertToCSV(masterProductsData, headers);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', `master_products_${new Date().toISOString().slice(0, 10)}.csv`);
+            const csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${tableId}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-            showNotification('Master list exported successfully!', 'success');
+            showNotification(`Exported ${tableId}.csv`, 'success');
         }
 
-        // Import CSV function (for master list, imports to Firestore)
-        async function importCSV(event) {
+        async function importCSVToTable(event, targetCollection) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const text = e.target.result;
-                await parseCSVAndUpload(text); // Async upload
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) {
+                    showNotification('CSV file is empty or malformed.', 'error');
+                    return;
+                }
+
+                const headers = parseCSVLine(lines[0]);
+                const importedData = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCSVLine(lines[i]);
+                    if (values.length !== headers.length) {
+                        console.warn(`Skipping malformed row ${i + 1}: ${lines[i]}`);
+                        continue;
+                    }
+                    let item = {};
+                    headers.forEach((header, index) => {
+                        item[header.trim().toLowerCase().replace(/ /g, '')] = values[index].trim();
+                    });
+                    
+                    // Assign a new ID for imported items
+                    let newId;
+                    if (targetCollection === 'inventory') {
+                        newId = inventoryData.length > 0 ? Math.max(...inventoryData.map(d => d.id)) + 1 : 1;
+                    } else if (targetCollection === 'newProducts') {
+                        newId = newProductsData.length > 0 ? Math.max(...newProductsData.map(d => d.id)) + 1 : 1;
+                    } else if (targetCollection === 'toClear') {
+                        newId = toClearData.length > 0 ? Math.max(...toClearData.map(d => d.id)) + 1 : 1;
+                    } else if (targetCollection === 'masterProductList') {
+                        newId = masterProductListData.length > 0 ? Math.max(...masterProductListData.map(d => d.id)) + 1 : 1;
+                    }
+                    item.id = newId;
+
+                    importedData.push(item);
+                }
+
+                let currentData;
+                if (targetCollection === 'inventory') {
+                    currentData = inventoryData;
+                } else if (targetCollection === 'newProducts') {
+                    currentData = newProductsData;
+                } else if (targetCollection === 'toClear') {
+                    currentData = toClearData;
+                } else if (targetCollection === 'masterProductList') {
+                    currentData = masterProductListData;
+                }
+
+                // Check for duplicates based on a combination of brand and product (basic check)
+                const uniqueImportedData = [];
+                const existingProductKeys = new Set(currentData.map(item => `${item.brand}-${item.product}`));
+
+                importedData.forEach(item => {
+                    const key = `${item.brand}-${item.product}`;
+                    if (!existingProductKeys.has(key)) {
+                        uniqueImportedData.push(item);
+                        existingProductKeys.add(key);
+                    } else {
+                        console.warn(`Duplicate found and skipped: ${item.brand} - ${item.product}`);
+                    }
+                });
+
+                if (uniqueImportedData.length > 0) {
+                    // Append unique imported data to current data
+                    if (targetCollection === 'inventory') {
+                        inventoryData.push(...uniqueImportedData);
+                        await saveDataToFirestore('inventory', inventoryData);
+                        updateInventoryTable();
+                    } else if (targetCollection === 'newProducts') {
+                        newProductsData.push(...uniqueImportedData);
+                        await saveDataToFirestore('newProducts', newProductsData);
+                        updateNewProductsTable();
+                    } else if (targetCollection === 'toClear') {
+                        toClearData.push(...uniqueImportedData);
+                        await saveDataToFirestore('toClear', toClearData);
+                        updateToClearTable();
+                    } else if (targetCollection === 'masterProductList') {
+                        masterProductListData.push(...uniqueImportedData);
+                        await saveDataToFirestore('masterProductList', masterProductListData);
+                        updateMasterProductListTable();
+                    }
+                    showNotification(`Successfully imported ${uniqueImportedData.length} unique items to ${targetCollection}!`, 'success');
+                } else {
+                    showNotification('No unique items to import or all were duplicates!', 'error');
+                }
+                
+                // Update dashboard counts and alerts after importing to inventory
+                if (targetCollection === 'inventory') {
+                    updateDashboardCounts();
+                    updateAlerts();
+                }
+
             };
             reader.readAsText(file);
-
-            event.target.value = ''; // Reset the input
-        }
-
-        async function parseCSVAndUpload(csvText) {
-            const lines = csvText.split('\n').filter(line => line.trim() !== ''); // Filter empty lines
-            if (lines.length === 0) {
-                showNotification('CSV file is empty!', 'error');
-                return;
-            }
-
-            const headers = parseCSVLine(lines[0]); // Use helper to parse headers
-            const expectedHeaders = ['Brand', 'Product', 'Category', 'Description', 'SKU', 'Price'];
-            const hasValidHeaders = expectedHeaders.every(header =>
-                headers.some(h => h.toLowerCase() === header.toLowerCase())
-            );
-
-            if (!hasValidHeaders) {
-                showNotification('Invalid CSV format! Headers should be: Brand, Product, Category, Description, SKU, Price', 'error');
-                return;
-            }
-
-            let importedCount = 0;
-            const batch = db.batch(); // Use a batch for multiple writes
-
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                const values = parseCSVLine(line);
-                if (values.length >= headers.length) {
-                    const newProduct = {
-                        brand: values[headers.findIndex(h => h.toLowerCase() === 'brand')] || '',
-                        product: values[headers.findIndex(h => h.toLowerCase() === 'product')] || '',
-                        category: values[headers.findIndex(h => h.toLowerCase() === 'category')] || '',
-                        description: values[headers.findIndex(h => h.toLowerCase() === 'description')] || '',
-                        sku: values[headers.findIndex(h => h.toLowerCase() === 'sku')] || '',
-                        price: parseFloat(values[headers.findIndex(h => h.toLowerCase() === 'price')]) || 0,
-                        isDeleted: false // Ensure imported items are not marked deleted
-                    };
-
-                    // Only add if brand and product name exist and it's not a duplicate
-                    if (newProduct.brand && newProduct.product && newProduct.sku) {
-                        // Check for existing product to avoid duplicates (by SKU, or by Brand+Product)
-                        const q = masterProductsColRef
-                            .where("sku", "==", newProduct.sku)
-                            .where("isDeleted", "==", false);
-                        const querySnapshot = await q.get();
-
-                        if (querySnapshot.empty) {
-                            const docRef = masterProductsColRef.doc(); // Auto-generate ID
-                            batch.set(docRef, newProduct);
-                            importedCount++;
-                        } else {
-                            console.warn(`Skipping duplicate (SKU already exists): ${newProduct.sku}`);
-                        }
-                    } else {
-                        console.warn(`Skipping row due to missing Brand, Product, or SKU: ${line}`);
-                    }
-                }
-            }
-
-            try {
-                if (importedCount > 0) {
-                    await batch.commit();
-                    showNotification(`Successfully imported ${importedCount} products to Master List!`);
-                    await updateLocalData(); // Refresh data after import
-                } else {
-                    showNotification('No new valid products found in the CSV file or all were duplicates!', 'error');
-                }
-            } catch (error) {
-                console.error("Error importing CSV to Firestore:", error);
-                showNotification('Error importing CSV. Check console for details.', 'error');
-            }
         }
 
         // Helper function to parse CSV line (handles commas in quotes)
@@ -2047,9 +1323,26 @@
             return result;
         }
 
+        // Notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Trigger reflow to ensure transition works
+            void notification.offsetWidth; 
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                notification.addEventListener('transitionend', () => notification.remove());
+            }, 3000);
+        }
+
         // Close modals when clicking outside
         window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
+            if (event.target.className === 'modal') {
                 event.target.style.display = 'none';
             }
         }
@@ -2058,15 +1351,7 @@
         window.onload = async function() {
             // Wait for data to load from Firestore before updating tables
             await updateLocalData();
-            // Set initial active tab. Pass the dashboard tab element itself.
-            const dashboardTab = document.querySelector('.tab[onclick*=\'dashboard\']');
-            if (dashboardTab) {
-                switchTab(dashboardTab, 'dashboard');
-            } else {
-                console.error("Dashboard tab element not found on load.");
-                // Fallback: just show the dashboard content if the tab element isn't directly selectable
-                document.getElementById('dashboard').classList.add('active');
-            }
+            switchTab('dashboard'); // Default to dashboard after load
         };
     </script>
 </body>
