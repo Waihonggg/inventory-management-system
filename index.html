@@ -14,7 +14,7 @@
 
         /* Body Styling */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -1938,213 +1938,136 @@
             showNotification('Master list exported successfully!', 'success');
         }
 
-        // Import CSV function (for master list, imports to Firestore)
-        async function importCSV(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const text = e.target.result;
-                await parseCSVAndUpload(text); // Async upload
-            };
-            reader.readAsText(file);
-
-            event.target.value = ''; // Reset the input
+        // Helper function to parse CSV line (handles commas in quotes)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '\"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
         }
 
+        // Function to handle parsing CSV text and uploading to Firestore
         async function parseCSVAndUpload(csvText) {
             const lines = csvText.split('\n').filter(line => line.trim() !== ''); // Filter empty lines
+
             if (lines.length === 0) {
                 showNotification('CSV file is empty!', 'error');
                 return;
             }
 
-            const headers = parseCSVLine(lines[0]); // Use helper to parse headers
-            const expectedHeaders = ['Brand', 'Product', 'Category', 'Description', 'SKU', 'Price'];
-            const hasValidHeaders = expectedHeaders.every(header =>
-                headers.some(h => h.toLowerCase() === header.toLowerCase())
-            );
+            // Assume first line is header
+            const headers = parseCSVLine(lines[0]);
+            const dataLines = lines.slice(1); // Skip header
 
-            if (!hasValidHeaders) {
-                showNotification('Invalid CSV format! Headers should be: Brand, Product, Category, Description, SKU, Price', 'error');
+            const expectedHeaders = {
+                "Product Code": "sku",
+                "Brand": "brand",
+                "Product Name": "product",
+                "Category": "category",
+                "Description": "description",
+                "Price": "price"
+            };
+
+            const headerIndices = {};
+            for (const key in expectedHeaders) {
+                const index = headers.findIndex(h => h.trim().toLowerCase() === key.toLowerCase());
+                if (index === -1) {
+                    showNotification(`CSV missing required header: "${key}"`, 'error');
+                    return; // Stop if essential header is missing
+                }
+                headerIndices[expectedHeaders[key]] = index;
+            }
+
+            const productsToBatch = [];
+            const skippedSKUs = [];
+
+            for (const line of dataLines) {
+                const values = parseCSVLine(line);
+                // Ensure the number of values matches the number of headers for a valid row
+                if (values.length < headers.length) {
+                    console.warn(`Skipping malformed row: ${line}`);
+                    continue;
+                }
+
+                const productData = {};
+                for (const prop in headerIndices) {
+                    productData[prop] = values[headerIndices[prop]] || '';
+                }
+
+                // Convert price to number
+                productData.price = parseFloat(productData.price) || 0;
+                productData.isDeleted = false; // Ensure imported products are not marked as deleted
+
+                // Check for duplicates in masterProductsData based on SKU
+                // Ensure masterProductsData is fully loaded before this check
+                const existingProduct = masterProductsData.find(item => item.sku === productData.sku && !item.isDeleted);
+
+                if (existingProduct) {
+                    skippedSKUs.push(productData.sku);
+                } else {
+                    productsToBatch.push(productData);
+                }
+            }
+
+            if (productsToBatch.length === 0 && skippedSKUs.length === 0) {
+                showNotification('No valid products found in CSV or all were duplicates.', 'info');
                 return;
             }
 
-            let importedCount = 0;
-            const batch = db.batch(); // Use a batch for multiple writes
+            const batch = db.batch(); // Use 'db' for Firestore instance
+            // masterProductsColRef is already defined globally as db.collection('master_products')
 
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                const values = parseCSVLine(line);
-                if (values.length >= headers.length) {
-                    const newProduct = {
-                        brand: values[headers.findIndex(h => h.toLowerCase() === 'brand')] || '',
-                        product: values[headers.findIndex(h => h.toLowerCase() === 'product')] || '',
-                        category: values[headers.findIndex(h => h.toLowerCase() === 'category')] || '',
-                        description: values[headers.findIndex(h => h.toLowerCase() === 'description')] || '',
-                        sku: values[headers.findIndex(h => h.toLowerCase() === 'sku')] || '',
-                        price: parseFloat(values[headers.findIndex(h => h.toLowerCase() === 'price')]) || 0,
-                        isDeleted: false // Ensure imported items are not marked deleted
-                    };
-
-                    // Only add if brand and product name exist and it's not a duplicate
-                    if (newProduct.brand && newProduct.product && newProduct.sku) {
-                        // Check for existing product to avoid duplicates (by SKU, or by Brand+Product)
-                        const q = masterProductsColRef
-                            .where("sku", "==", newProduct.sku)
-                            .where("isDeleted", "==", false);
-                        const querySnapshot = await q.get();
-
-                        if (querySnapshot.empty) {
-                            const docRef = masterProductsColRef.doc(); // Auto-generate ID
-                            batch.set(docRef, newProduct);
-                            importedCount++;
-                        } else {
-                            console.warn(`Skipping duplicate (SKU already exists): ${newProduct.sku}`);
-                        }
-                    } else {
-                        console.warn(`Skipping row due to missing Brand, Product, or SKU: ${line}`);
-                    }
-                }
-            }
+            productsToBatch.forEach(product => {
+                const docRef = masterProductsColRef.doc(); // Let Firestore generate ID
+                batch.set(docRef, product);
+            });
 
             try {
-                if (importedCount > 0) {
-                    await batch.commit();
-                    showNotification(`Successfully imported ${importedCount} products to Master List!`);
-                    await updateLocalData(); // Refresh data after import
-                } else {
-                    showNotification('No new valid products found in the CSV file or all were duplicates!', 'error');
+                await batch.commit();
+                showNotification(`Successfully imported ${productsToBatch.length} new products to Master List!`, 'success');
+                if (skippedSKUs.length > 0) {
+                    showNotification(`Skipped ${skippedSKUs.length} products (duplicate SKUs): ${skippedSKUs.join(', ')}`, 'warning');
                 }
+                await updateLocalData(); // Refresh local data and tables after successful import
             } catch (error) {
                 console.error("Error importing CSV to Firestore:", error);
                 showNotification('Error importing CSV. Check console for details.', 'error');
             }
         }
 
-        // Helper function to parse CSV line (handles commas in quotes)
-         function parseCSVLine(line) {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-
-        result.push(current.trim());
-        return result;
-    }
-
-    // Notification function (ensure this is present)
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    // Function to handle parsing CSV text and uploading to Firestore
-    async function parseCSVAndUpload(csvText) {
-        const lines = csvText.split('\n').filter(line => line.trim() !== ''); // Filter empty lines
-
-        if (lines.length === 0) {
-            showNotification('CSV file is empty!', 'error');
-            return;
-        }
-
-        // Assume first line is header
-        const headers = parseCSVLine(lines[0]); // You can optionally store or use headers if needed
-        const dataLines = lines.slice(1); // Skip header
-
-        const newProducts = [];
-        const duplicateSKUs = [];
-
-        for (const line of dataLines) {
-            const values = parseCSVLine(line);
-            // Basic validation: ensure enough columns (adjust '7' based on your CSV structure)
-            if (values.length < 7) { 
-                console.warn(`Skipping malformed line: ${line}`);
-                continue;
+        // The main import function that handles file selection
+        async function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                showNotification('No file selected!', 'error');
+                return;
             }
 
-            const newProduct = {
-                id: Date.now() + Math.floor(Math.random() * 1000), // Unique ID
-                brand: values[0] || '',
-                product: values[1] || '', // Assuming 'product' is your SKU for checking duplicates
-                status: values[2] || '',
-                expiry: values[3] || '',
-                shipment: values[4] || '',
-                remarks: values[5] || ''
-                // Add more fields if your CSV has more columns
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const csvText = e.target.result;
+                await parseCSVAndUpload(csvText); // Call the parsing and uploading function
             };
+            reader.readAsText(file);
 
-            // Check for duplicate SKUs based on the 'product' field
-            const existingProduct = inventoryData.find(item => item.product === newProduct.product);
-            if (existingProduct) {
-                duplicateSKUs.push(newProduct.product);
-            } else {
-                newProducts.push(newProduct);
-            }
+            event.target.value = ''; // Reset the input file element
         }
 
-        try {
-            if (newProducts.length > 0) {
-                const batch = firestore.batch();
-                newProducts.forEach(product => {
-                    const docRef = firestore.collection('products').doc(); // Auto-generate Firestore ID
-                    batch.set(docRef, product);
-                });
-                await batch.commit();
-                showNotification(`${newProducts.length} products imported successfully!`, 'success');
-                await updateLocalData(); // Refresh local data and table after import
-            }
-
-            if (duplicateSKUs.length > 0) {
-                showNotification(`Skipped ${duplicateSKUs.length} products due to duplicate SKUs: ${duplicateSKUs.join(', ')}`, 'error');
-            }
-
-            if (newProducts.length === 0 && duplicateSKUs.length === 0) {
-                showNotification('No new products to import or all were duplicates.', 'info');
-            }
-
-        } catch (error) {
-            console.error("Error importing CSV to Firestore:", error);
-            showNotification('Error importing CSV. Check console for details.', 'error');
-        }
-    }
-
-    // The main import function that handles file selection
-    async function importCSV(event) {
-        const file = event.target.files[0];
-        if (!file) {
-            showNotification('No file selected!', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const csvText = e.target.result;
-            await parseCSVAndUpload(csvText); // Call the parsing and uploading function
-        };
-        reader.readAsText(file);
-    }
 
         // Close modals when clicking outside
         window.onclick = function(event) {
