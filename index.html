@@ -18,6 +18,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333; /* Default text color for better contrast on white backgrounds */
         }
 
         /* Main Container */
@@ -86,7 +87,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             transform: translateY(-2px);
-            border-color: #667eea;
+            border-color: #667eea; /* Match gradient start */
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
@@ -120,25 +121,36 @@
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
         }
 
         .stat-card.urgent {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         }
+         .stat-card.urgent:hover {
+            box-shadow: 0 15px 35px rgba(231, 76, 60, 0.4);
+        }
 
         .stat-card.warning {
             background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+        .stat-card.warning:hover {
+            box-shadow: 0 15px 35px rgba(243, 156, 18, 0.4);
         }
 
         .stat-card.info {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
+         .stat-card.info:hover {
+            box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+        }
+
 
         .stat-number {
             font-size: 3rem;
@@ -156,10 +168,10 @@
 
         /* Controls (Buttons, Search) */
         .controls {
-            margin: 20px 0;
+            margin: 20px 0; /* Keep vertical margin */
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* Changed to flex-start for better alignment with multiple items */
+            align-items: flex-start; 
             flex-wrap: wrap;
             gap: 15px;
             background: #f8f9fa;
@@ -167,7 +179,7 @@
             border-radius: 10px;
             border: 1px solid #e1e8ed;
         }
-         .controls > * { /* Ensure items in controls don't shrink excessively */
+         .controls > * { 
             flex-shrink: 0;
         }
 
@@ -176,17 +188,18 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 25px; /* Increased margin for spacing */
             background: white;
             border-radius: 10px;
-            overflow: hidden;
+            overflow: hidden; /* Important for border-radius on table */
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
 
         th, td {
-            padding: 15px 12px;
+            padding: 14px; /* Increased padding for more space */
             text-align: left;
             border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle; /* Better vertical alignment */
         }
 
         th {
@@ -194,29 +207,51 @@
             color: white;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px; /* Slightly increased letter spacing */
             font-size: 12px;
-            cursor: pointer; /* For sortable headers */
+            cursor: pointer; 
         }
-        th .sort-arrow { /* For sort indicators */
+        th .sort-arrow { 
             font-size: 0.8em;
             margin-left: 5px;
         }
-
-        tr:hover {
-            background-color: #f8f9fa;
+        
+        /* Zebra striping for table body rows */
+        tbody tr:nth-child(even) {
+            background-color: #f9f9fc; /* Very light purple/grey */
         }
+
+        tbody tr:hover {
+            background-color: #f1f3f5; /* Slightly darker hover for better feedback */
+        }
+
+        /* Right-align specific numeric columns */
+        #inventory-table td:nth-child(4), /* Quantity */
+        #new-products-table td:nth-child(6), /* Quantity */
+        #to-clear-table td:nth-child(7), /* Initial Bal */
+        #to-clear-table td:nth-child(8), /* WH Qty */
+        #to-clear-table td:nth-child(9), /* Store Qty */
+        #to-clear-table td:nth-child(10), /* Total Qty */
+        #to-clear-table td:nth-child(11), /* Weekly Demand */
+        #to-clear-table td:nth-child(12), /* Weeks Supply */
+        #master-table td:nth-child(6) /* Price */
+        {
+            text-align: right;
+            font-variant-numeric: tabular-nums; /* Helps align numbers if using proportional fonts */
+        }
+
 
         /* Status Badges */
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px; /* Slightly smaller for compactness */
             font-weight: bold;
             color: white;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             display: inline-block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .oos {
@@ -239,7 +274,7 @@
             background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
 
-        /* Buttons */
+        /* General Buttons */
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -263,14 +298,37 @@
         .btn-success {
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
         }
+         .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
 
         .btn-danger {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        .btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
         }
 
         .btn-info {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
+         .btn-info:hover {
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Refined styles for buttons within table cells */
+        td button.btn-info,
+        td button.btn-danger,
+        td button.btn-success {
+            padding: 7px 10px;   /* Reduced padding for compactness */
+            font-size: 10px;    /* Smaller font for text like "Edit", "Delete" */
+            letter-spacing: 0.3px; /* Adjust letter spacing for smaller font */
+            border-radius: 18px; /* Keep pill shape, but ensure it's compact */
+            margin: 3px;         /* Spacing between buttons in a cell */
+            /* Inherits general hover effects, no need to redefine transform here unless different behavior is wanted */
+        }
+
 
         /* Search Box */
         .search-box {
@@ -280,14 +338,15 @@
             border-radius: 25px;
             font-size: 14px;
             transition: all 0.3s ease;
-            background: white;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237f8c8d' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center; /* Added search icon */
+            padding-left: 35px; /* Space for the icon */
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .search-box:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); /* Slightly more visible focus */
         }
 
         /* Modal Styling */
@@ -362,7 +421,7 @@
 
         /* Alert Notifications */
         .alert {
-            padding: 15px;
+            padding: 15px 20px; /* More padding */
             margin: 15px 0;
             border-radius: 8px;
             font-weight: 600;
@@ -370,20 +429,22 @@
             top: 20px;
             right: 20px;
             z-index: 9999;
-            max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 320px; /* Slightly wider */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Stronger shadow */
+            border-left-width: 5px; /* Accent border */
+            border-left-style: solid;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #e6f7ed; /* Lighter green */
+            color: #0f5132; /* Darker text for contrast */
+            border-color: #27ae60; /* Accent color */
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #fbe9e7; /* Lighter red */
+            color: #842029; /* Darker text */
+            border-color: #e74c3c; /* Accent color */
         }
 
         /* Confirmation Modal Specific Styles */
@@ -433,27 +494,27 @@
             }
 
             .tabs {
-                flex-wrap: wrap; /* Allow tabs to wrap to next line */
-                justify-content: center; /* Center tabs when wrapped */
-                border-bottom: none; /* Remove border when wrapped */
+                flex-wrap: wrap; 
+                justify-content: center; 
+                border-bottom: none; 
             }
 
             .tab {
-                min-width: unset; /* Remove fixed min-width */
-                flex: 1 1 auto; /* Allow tabs to grow/shrink */
+                min-width: unset; 
+                flex: 1 1 auto; 
                 padding: 10px 15px;
                 font-size: 10px;
-                border-bottom: 2px solid #ecf0f1; /* Add border to each tab */
+                border-bottom: 2px solid #ecf0f1; 
             }
 
             .tab.active {
-                transform: none; /* Remove transform on active tab */
-                box-shadow: none; /* Remove shadow on active tab */
+                transform: none; 
+                box-shadow: none; 
                 border-bottom: 2px solid #667eea;
             }
 
             .stats-cards {
-                grid-template-columns: 1fr; /* Stack cards vertically */
+                grid-template-columns: 1fr; 
             }
 
             .stat-card {
@@ -465,52 +526,74 @@
             }
 
             .controls {
-                flex-direction: column; /* Stack buttons and search vertically */
-                align-items: stretch; /* Stretch items to full width */
+                flex-direction: column; 
+                align-items: stretch; 
                 padding: 15px;
             }
-            .controls .search-box { /* Ensure search box in controls takes full width on mobile */
+            .controls .search-box { 
                  width: 100%;
             }
 
 
-            button {
+            button { /* General button stacking */
                 width: 100%;
-                margin-bottom: 10px; /* Add space between stacked buttons */
+                margin-bottom: 10px; 
                 font-size: 12px;
                 padding: 10px 15px;
             }
+             /* Ensure table action buttons don't go full width on mobile */
+            td button.btn-info,
+            td button.btn-danger,
+            td button.btn-success {
+                width: auto; /* Override full width for table buttons */
+                margin-bottom: 2px; /* Reduce margin if stacked vertically in a small cell */
+            }
 
-            .search-box { /* General search box styling for mobile */
+
+            .search-box { 
                 width: 100%; 
+                padding-left: 35px; /* Ensure icon space maintained */
             }
 
 
             /* Responsive Tables: force table to scroll horizontally */
             table {
-                display: block; /* Make table a block element */
+                display: block; 
                 width: 100%;
-                overflow-x: auto; /* Enable horizontal scrolling */
-                -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
-                white-space: nowrap; /* Prevent content from wrapping */
+                overflow-x: auto; 
+                -webkit-overflow-scrolling: touch; 
+                white-space: nowrap; 
             }
 
             th, td {
-                min-width: 120px; /* Ensure columns have a minimum width */
-                padding: 10px;
+                min-width: 120px; /* Ensure columns have a minimum width for readability */
+                padding: 10px;    /* Adjust padding for mobile if needed */
+            }
+            /* Adjust right-alignment for mobile if it causes issues, or keep it */
+            #inventory-table td:nth-child(4),
+            #new-products-table td:nth-child(6),
+            #to-clear-table td:nth-child(7),
+            #to-clear-table td:nth-child(8),
+            #to-clear-table td:nth-child(9),
+            #to-clear-table td:nth-child(10),
+            #to-clear-table td:nth-child(11),
+            #to-clear-table td:nth-child(12),
+            #master-table td:nth-child(6) {
+                text-align: right; /* Keep right alignment for consistency */
             }
 
+
             .modal-content {
-                margin: 20px auto; /* Adjust margin for smaller screens */
+                margin: 20px auto; 
                 padding: 20px;
-                width: 95%; /* Make modal content a bit wider */
+                width: 95%; 
             }
 
             .alert {
-                width: calc(100% - 40px); /* Full width minus padding */
+                width: calc(100% - 40px); 
                 left: 20px;
                 right: 20px;
-                top: 10px; /* Move notification higher */
+                top: 10px; 
                 text-align: center;
             }
         }
@@ -548,7 +631,7 @@
             </div>
             
             <h3>Recent Alerts</h3>
-            <div id="alerts" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <div id="alerts" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #e1e8ed;">
                 <p>Loading alerts...</p>
             </div>
         </div>
@@ -556,7 +639,7 @@
         <div id="oos-lowstock" class="tab-content">
             <div class="controls">
                 <button onclick="showAddProductModal()">➕ Add Product</button>
-                <input type="text" id="oosSearchInput" class="search-box" placeholder="🔍 Search products..." onkeyup="searchInventory(this.value)">
+                <input type="text" id="oosSearchInput" class="search-box" placeholder="Search products..." onkeyup="searchInventory(this.value)">
             </div>
             
             <table id="inventory-table-container">
@@ -581,7 +664,7 @@
             <div class="controls">
                 <button onclick="showAddNewProductModal()">➕ Add New Product</button>
                 <button onclick="mergeNewProductsToMaster()">Merge All to Inventory</button>
-                 <input type="text" id="newProductsSearchInput" class="search-box" placeholder="🔍 Search new products..." onkeyup="searchNewProducts(this.value)">
+                 <input type="text" id="newProductsSearchInput" class="search-box" placeholder="Search new products..." onkeyup="searchNewProducts(this.value)">
             </div>
             
             <table id="new-products-table-container">
@@ -605,7 +688,7 @@
         <div id="to-clear" class="tab-content">
             <div class="controls">
                 <button onclick="showAddToClearModal()">➕ Add Product to Clear</button>
-                <input type="text" id="toClearSearchInput" class="search-box" placeholder="🔍 Search products to clear..." onkeyup="searchToClear(this.value)">
+                <input type="text" id="toClearSearchInput" class="search-box" placeholder="Search products to clear..." onkeyup="searchToClear(this.value)">
             </div>
             
             <table id="to-clear-table-container">
@@ -636,7 +719,7 @@
         <div id="master-list" class="tab-content">
             <div class="controls">
                 <button onclick="showAddMasterProductModal()">➕ Add Product</button>
-                <input type="text" class="search-box" id="masterListSearchInput" placeholder="🔍 Search master products..." onkeyup="searchMasterList(this.value)">
+                <input type="text" class="search-box" id="masterListSearchInput" placeholder="Search master products..." onkeyup="searchMasterList(this.value)">
                 <button onclick="exportMasterList()">📥 Export List</button>
                 <button onclick="document.getElementById('csvFileInput').click()">📤 Import CSV</button>
                 <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="importCSV(event)">
@@ -662,7 +745,7 @@
         <div id="recycle-bin" class="tab-content">
             <div class="controls">
                 <h3>Recycle Bin</h3>
-                <input type="text" id="recycleBinSearchInput" class="search-box" placeholder="🔍 Search recycle bin..." onkeyup="searchRecycleBin(this.value)">
+                <input type="text" id="recycleBinSearchInput" class="search-box" placeholder="Search recycle bin..." onkeyup="searchRecycleBin(this.value)">
                 <button class="btn-danger" onclick="emptyRecycleBin()">🗑️ Empty Recycle Bin</button>
             </div>
             <table id="recycle-bin-table-container">
@@ -688,7 +771,7 @@
             
             <h3>System Information</h3>
             <p>Total Products (active): <span id="total-products">0</span></p>
-            <p>Total Products (including deleted): <span id="total-products-all">0</span></p>
+            <p>Total Products (all unique SKUs): <span id="total-products-all">0</span></p>
             <p>Last Synced: <span id="last-updated">Never</span></p>
         </div>
     </div>
@@ -1002,14 +1085,17 @@
         async function fetchDataFromFirestore(collectionRef, includeDeleted = false) {
             let data = [];
             let query = collectionRef;
-            if (!includeDeleted && collectionRef !== brandsColRef && collectionRef !== statusesColRef && collectionRef !== categoriesColRef) { // Assume brands/statuses/categories might not have isDeleted or we want all
+            // For main data collections, filter by isDeleted unless includeDeleted is true
+            if (!includeDeleted && 
+                (collectionRef.id === 'inventory' || 
+                 collectionRef.id === 'new_products' || 
+                 collectionRef.id === 'to_clear' || 
+                 collectionRef.id === 'master_products')) {
                 query = collectionRef.where("isDeleted", "==", false);
-            } else if (collectionRef === brandsColRef || collectionRef === statusesColRef || collectionRef === categoriesColRef) {
-                 // For these, if they have isDeleted, filter, otherwise fetch all. Assuming we generally want non-deleted ones.
-                // This might need adjustment based on whether these collections always have `isDeleted`.
-                // For now, let's assume we filter them if the field exists.
-                // A better approach is to always include isDeleted: false when adding them.
             }
+            // For auxiliary collections like brands, statuses, categories, assume they might not all have `isDeleted`
+            // or we fetch all and filter client-side if necessary, based on `isDeleted: false` being standard.
+            // The client-side filter in `updateLocalData` will handle ensuring only non-deleted are used.
 
 
             try {
@@ -1024,7 +1110,10 @@
                 } else if (error.code === 'failed-precondition') {
                      console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console.`);
                 }
-                showNotification(`Error loading data from ${collectionRef.id}. Check console.`, 'error');
+                // Avoid showing notification if it's just a missing index warning during initial setup for auxiliary collections
+                if (!( (collectionRef.id === 'brands' || collectionRef.id === 'statuses' || collectionRef.id === 'categories') && error.code === 'failed-precondition' ) ) {
+                   // showNotification(`Error loading data from ${collectionRef.id}. Check console.`, 'error');
+                }
             }
             return data;
         }
@@ -1073,14 +1162,18 @@
                 masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
                 deletedItemsData = await fetchAllDataForRecycleBin();
 
-                // Fetch brands, statuses, categories - assuming they might not have isDeleted or we want all non-deleted if they do
-                // For simplicity, ensure `isDeleted: false` when adding these, and filter here if necessary.
-                brandsData = (await fetchDataFromFirestore(brandsColRef, true)).filter(b => b.isDeleted === false || b.isDeleted === undefined); // fetch all then filter, or rely on isDeleted:false on add
-                statusesData = (await fetchDataFromFirestore(statusesColRef, true)).filter(s => s.isDeleted === false || s.isDeleted === undefined);
-                categoriesData = (await fetchDataFromFirestore(categoriesColRef, true)).filter(c => c.isDeleted === false || c.isDeleted === undefined);
+                // Fetch all brands, statuses, categories, then filter client-side for non-deleted.
+                // This assumes `isDeleted: false` is consistently set when these items are added.
+                const rawBrands = await fetchDataFromFirestore(brandsColRef, true);
+                brandsData = rawBrands.filter(b => b.isDeleted === false || typeof b.isDeleted === 'undefined');
+
+                const rawStatuses = await fetchDataFromFirestore(statusesColRef, true);
+                statusesData = rawStatuses.filter(s => s.isDeleted === false || typeof s.isDeleted === 'undefined');
+                
+                const rawCategories = await fetchDataFromFirestore(categoriesColRef, true);
+                categoriesData = rawCategories.filter(c => c.isDeleted === false || typeof c.isDeleted === 'undefined');
 
 
-                // Initialize current view data
                 currentInventoryViewData = inventoryData.filter(item =>
                     !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
                 );
@@ -1095,7 +1188,7 @@
                 updateAlerts();
                 updateManagementStats();
                 populateProductDatalists();
-                setupDynamicDropdowns(); // This needs to be after data is fetched
+                setupDynamicDropdowns();
             } catch (error) {
                 console.error("Error updating local data from Firestore:", error);
                 showNotification('Error loading data from server. Please check your internet connection or Firebase setup.', 'error');
@@ -1126,13 +1219,14 @@
             const selectElement = document.getElementById(selectId);
             if (!selectElement) return;
 
-            const currentValue = selectElement.value;
+            const currentValue = selectElement.value; // Store current value before clearing
             selectElement.innerHTML = '<option value="">Select Brand</option>';
 
-            // Combine brands from masterProductsData and brandsData, ensuring uniqueness and filtering out deleted
             const uniqueBrandsFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.brand).filter(Boolean))];
             let allUniqueBrands = [...uniqueBrandsFromMaster];
-            brandsData.forEach(brandDoc => { // Assuming brandsData is already filtered for !isDeleted
+            
+            // Use pre-filtered brandsData (non-deleted items)
+            brandsData.forEach(brandDoc => {
                 if (brandDoc.name && !allUniqueBrands.includes(brandDoc.name)) {
                     allUniqueBrands.push(brandDoc.name);
                 }
@@ -1150,13 +1244,16 @@
             addNewOption.value = 'add_new_brand';
             addNewOption.textContent = '+ Add New Brand...';
             selectElement.appendChild(addNewOption);
-
+            
+            // Try to restore previous valid selection
             if (currentValue && allUniqueBrands.includes(currentValue)) {
                 selectElement.value = currentValue;
-            } else if (!currentValue && selectElement.options.length > 0) {
-                 // Do nothing, placeholder is fine
+            } else if (currentValue === 'add_new_brand') {
+                selectElement.value = ''; // Reset if "Add New" was selected and modal closed
             }
-            selectElement.removeEventListener('change', handleDynamicDropdownChange); // Avoid multiple listeners
+
+
+            selectElement.removeEventListener('change', handleDynamicDropdownChange); 
             selectElement.addEventListener('change', handleDynamicDropdownChange);
         }
 
@@ -1169,7 +1266,7 @@
 
             const uniqueStatusesFromInventory = [...new Set(inventoryData.filter(item => !item.isDeleted).map(item => item.status).filter(Boolean))];
             let allUniqueStatuses = [...uniqueStatusesFromInventory];
-            statusesData.forEach(statusDoc => { // Assuming statusesData is already filtered for !isDeleted
+            statusesData.forEach(statusDoc => { 
                 if (statusDoc.name && !allUniqueStatuses.includes(statusDoc.name)) {
                     allUniqueStatuses.push(statusDoc.name);
                 }
@@ -1190,6 +1287,8 @@
 
             if (currentValue && allUniqueStatuses.includes(currentValue)) {
                 selectElement.value = currentValue;
+            }  else if (currentValue === 'add_new_status') {
+                selectElement.value = ''; 
             }
             selectElement.removeEventListener('change', handleDynamicDropdownChange);
             selectElement.addEventListener('change', handleDynamicDropdownChange);
@@ -1204,7 +1303,7 @@
 
             const uniqueCategoriesFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.category).filter(Boolean))];
             let allUniqueCategories = [...uniqueCategoriesFromMaster];
-            categoriesData.forEach(categoryDoc => { // Assuming categoriesData is already filtered for !isDeleted
+            categoriesData.forEach(categoryDoc => { 
                 if (categoryDoc.name && !allUniqueCategories.includes(categoryDoc.name)) {
                     allUniqueCategories.push(categoryDoc.name);
                 }
@@ -1225,6 +1324,8 @@
 
             if (currentValue && allUniqueCategories.includes(currentValue)) {
                 selectElement.value = currentValue;
+            } else if (currentValue === 'add_new_category') {
+                selectElement.value = ''; 
             }
             selectElement.removeEventListener('change', handleDynamicDropdownChange);
             selectElement.addEventListener('change', handleDynamicDropdownChange);
@@ -1234,22 +1335,28 @@
         function handleDynamicDropdownChange(event) {
             const selectElement = event.target;
             const selectedOptionValue = selectElement.value;
-
-            // Store the value of the select BEFORE opening the modal
-            // This helps to restore it if "Add New" is cancelled.
-            // However, `updateLocalData` will ultimately refresh and try to set the correct value.
-            const valueBeforeAdd = selectElement.querySelector('option[value=""]:not([value^="add_new_"])') ? '' : selectElement.options[0].value;
+            
+            // Store the previous valid value, not "add_new_..."
+            let previousValue = "";
+            for(let i=0; i < selectElement.options.length; i++){
+                if(selectElement.options[i].value !== 'add_new_brand' && 
+                   selectElement.options[i].value !== 'add_new_status' &&
+                   selectElement.options[i].value !== 'add_new_category' &&
+                   selectElement.options[i].selected && selectElement.options[i].value !== selectedOptionValue) { // This logic is a bit off
+                    // A simpler way: when "Add New" is chosen, just open modal. After modal, updateLocalData refreshes everything.
+                }
+            }
 
 
             if (selectedOptionValue === 'add_new_brand') {
                 showAddBrandModal();
-                selectElement.value = valueBeforeAdd; // Tentatively reset, updateLocalData will fix
+                // selectElement.value = previousValue; // Attempt to reset, but updateLocalData will handle better
             } else if (selectedOptionValue === 'add_new_status') {
                 showAddStatusModal();
-                selectElement.value = valueBeforeAdd;
+                // selectElement.value = previousValue;
             } else if (selectedOptionValue === 'add_new_category') {
                 showAddCategoryModal();
-                selectElement.value = valueBeforeAdd;
+                // selectElement.value = previousValue;
             }
         }
 
@@ -1311,27 +1418,26 @@
             document.getElementById(tabId).classList.add('active');
 
             if (tabId === 'oos-lowstock') {
-                 // Ensure currentInventoryViewData is up-to-date for this tab before rendering
                 currentInventoryViewData = inventoryData.filter(item =>
                     !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
                 );
-                document.getElementById('oosSearchInput').value = ''; // Clear search on tab switch
+                if(document.getElementById('oosSearchInput')) document.getElementById('oosSearchInput').value = '';
                 renderInventoryItems();
             } else if (tabId === 'new-products') {
                 currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
-                document.getElementById('newProductsSearchInput').value = '';
+                if(document.getElementById('newProductsSearchInput')) document.getElementById('newProductsSearchInput').value = '';
                 renderNewProductsItems();
             } else if (tabId === 'to-clear') {
                 currentToClearViewData = toClearData.filter(item => !item.isDeleted);
-                document.getElementById('toClearSearchInput').value = '';
+                if(document.getElementById('toClearSearchInput')) document.getElementById('toClearSearchInput').value = '';
                 renderToClearItems();
             } else if (tabId === 'master-list') {
                 currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
-                document.getElementById('masterListSearchInput').value = '';
+                if(document.getElementById('masterListSearchInput')) document.getElementById('masterListSearchInput').value = '';
                 renderMasterListItems();
             } else if (tabId === 'recycle-bin') {
                 currentRecycleBinViewData = [...deletedItemsData];
-                 document.getElementById('recycleBinSearchInput').value = '';
+                if(document.getElementById('recycleBinSearchInput')) document.getElementById('recycleBinSearchInput').value = '';
                 renderRecycleBinItems();
             }
         }
@@ -1348,8 +1454,12 @@
                 const form = modal.querySelector('form');
                 if (form) {
                     form.reset();
+                     // After form reset, if there are select elements that were dynamically populated,
+                    // ensure their datalists for product names are cleared if they depend on a brand.
+                    if (modalId === 'productModal') filterProductsForBrand('', 'productName', 'productsDatalist');
+                    if (modalId === 'newProductModal') filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
+                    if (modalId === 'toClearModal') filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
                 }
-                // Clear specific hidden IDs if they exist
                 if (modalId === 'productModal') document.getElementById('editProductId').value = '';
                 else if (modalId === 'newProductModal') document.getElementById('editNewProductId').value = '';
                 else if (modalId === 'masterProductModal') document.getElementById('editMasterProductId').value = '';
@@ -1374,8 +1484,6 @@
             const tableBody = document.getElementById('inventory-table');
             if (!tableBody) return;
             tableBody.innerHTML = '';
-
-            // currentInventoryViewData is assumed to be correctly pre-filtered for OOS/Low Stock non-deleted items.
             const sortedData = sortArray(currentInventoryViewData, sortState.inventory.column, sortState.inventory.direction);
 
             sortedData.forEach(item => {
@@ -1400,30 +1508,41 @@
 
         function showAddProductModal() {
             document.getElementById('productModalTitle').textContent = 'Add New Product';
-            // editProductId and form reset is handled by closeModal if it was open, or here if not.
             document.getElementById('editProductId').value = '';
             document.getElementById('productModal').querySelector('form').reset();
             populateBrandDropdowns('brand');
             populateStatusDropdowns('status');
-            filterProductsForBrand('', 'productName', 'productsDatalist'); // Clear product name based on no brand selected
+            filterProductsForBrand('', 'productName', 'productsDatalist'); 
             openModal('productModal');
         }
 
         async function saveProduct(event) {
             event.preventDefault();
             const id = document.getElementById('editProductId').value;
+            const brand = document.getElementById('brand').value;
+            const productName = document.getElementById('productName').value;
+            let sku = getSkuForProduct(brand, productName); // Attempt to get existing SKU
+
             const data = {
-                brand: document.getElementById('brand').value,
-                product: document.getElementById('productName').value,
+                brand: brand,
+                product: productName,
                 quantity: parseInt(document.getElementById('inventoryQuantity').value),
                 status: document.getElementById('status').value,
                 shipment: document.getElementById('shipment').value,
                 remarks: document.getElementById('remarks').value,
                 isDeleted: false 
             };
-             // Auto-assign SKU from master list if not already set (especially for new products from this modal)
-            if (!data.sku) {
-                data.sku = getSkuForProduct(data.brand, data.product) || `TEMP_SKU_${Date.now()}`; // Fallback SKU
+            // If SKU couldn't be found (e.g. product not in master), and this is a new item,
+            // it might be better to enforce adding to master first or handle SKU generation carefully.
+            // For now, if no ID (new item) and no SKU, it will be blank.
+            if (sku) data.sku = sku;
+            else if (!id) { // If new product and no SKU from master, create a placeholder or require SKU
+                // For now, let's assume an SKU should ideally come from selecting a master product.
+                // If it's a truly new product, it should perhaps go via "New Products" or "Master List" flow first.
+                // showNotification("Product not found in Master List. Please add to Master List first or ensure Brand/Product Name match.", "error");
+                // return; 
+                // Or assign a temporary SKU, though this isn't ideal for inventory tracking
+                 data.sku = `TEMP_SKU_${Date.now()}`; // This is generally not good practice for real inventory
             }
 
 
@@ -1442,12 +1561,12 @@
             if (item) {
                 document.getElementById('productModalTitle').textContent = 'Edit Product';
                 document.getElementById('editProductId').value = item.id;
-                populateBrandDropdowns('brand'); // Populate first
+                populateBrandDropdowns('brand'); 
                 document.getElementById('brand').value = item.brand;
-                filterProductsForBrand(item.brand, 'productName', 'productsDatalist'); // Then filter products for the brand
+                filterProductsForBrand(item.brand, 'productName', 'productsDatalist'); 
                 document.getElementById('productName').value = item.product;
                 document.getElementById('inventoryQuantity').value = item.quantity;
-                populateStatusDropdowns('status'); // Populate first
+                populateStatusDropdowns('status'); 
                 document.getElementById('status').value = item.status;
                 document.getElementById('shipment').value = item.shipment;
                 document.getElementById('remarks').value = item.remarks;
@@ -1456,7 +1575,6 @@
         }
 
         function showFilteredInventory(statusFilter) {
-             // Filters the main inventoryData based on the specific status from the card (OOS or Low stock)
             currentInventoryViewData = inventoryData.filter(item =>
                 !item.isDeleted && item.status && item.status.toLowerCase().includes(statusFilter.toLowerCase())
             );
@@ -1528,9 +1646,26 @@
         async function saveNewProduct(event) {
             event.preventDefault();
             const id = document.getElementById('editNewProductId').value;
+            const skuValue = document.getElementById('newProductSku').value.trim();
+
+            if (!skuValue) {
+                showNotification('Product Code (SKU) is required for new products.', 'error');
+                return;
+            }
+            // Check for SKU uniqueness in new_products and master_products if it's a new item
+            if (!id) { // Only for new items
+                const skuExistsInNew = newProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                const skuExistsInMaster = masterProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                if (skuExistsInNew || skuExistsInMaster) {
+                    showNotification('This SKU already exists. Please use a unique SKU.', 'error');
+                    return;
+                }
+            }
+
+
             const data = {
                 brand: document.getElementById('newBrand').value,
-                sku: document.getElementById('newProductSku').value,
+                sku: skuValue,
                 product: document.getElementById('newProductName').value,
                 arrivalDate: document.getElementById('arrivalDate').value,
                 quantity: parseInt(document.getElementById('newProductQuantity').value),
@@ -1572,25 +1707,30 @@
                     const item = newProductsData.find(p => p.id === id);
                     if (item) {
                         try {
+                            // Check if SKU already exists in Master List (non-deleted)
                             const masterProductExists = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
-                            const masterProductId = masterProductExists ? masterProductExists.id : null;
+                            if (masterProductExists) {
+                                showNotification(`SKU ${item.sku} already exists in Master List. Cannot move. Please edit SKU or manage in Master List.`, 'error');
+                                return;
+                            }
+
                             const masterProductData = {
                                 brand: item.brand,
                                 product: item.product,
                                 sku: item.sku,
-                                category: masterProductExists ? masterProductExists.category : 'Uncategorized',
-                                description: masterProductExists ? masterProductExists.description : (item.notes || ''),
-                                price: masterProductExists ? masterProductExists.price : 0.00,
+                                category: 'Uncategorized', // Default for new
+                                description: item.notes || '',
+                                price: 0.00, // Default
                                 isDeleted: false
                             };
-                            await saveDataToFirestore(masterProductsColRef, masterProductId, masterProductData);
+                            await saveDataToFirestore(masterProductsColRef, null, masterProductData); // Add as new to master
 
                             const inventoryProductData = {
                                 brand: item.brand,
                                 product: item.product,
                                 sku: item.sku,
                                 quantity: item.quantity,
-                                status: 'In stock',
+                                status: 'In stock', // Default status
                                 shipment: '',
                                 remarks: `Added from New Products (Approved: ${new Date().toISOString().split('T')[0]})`,
                                 isDeleted: false,
@@ -1598,9 +1738,9 @@
                             };
                             await saveDataToFirestore(inventoryColRef, null, inventoryProductData);
 
-                            await saveDataToFirestore(newProductsColRef, item.id, { isDeleted: true });
+                            await saveDataToFirestore(newProductsColRef, item.id, { isDeleted: true }); // Mark as deleted in New Products
 
-                            showNotification('Product approved and moved!', 'success');
+                            showNotification('Product approved and moved successfully!', 'success');
                             await updateLocalData();
                         } catch (e) {
                             console.error("Error moving new product to master:", e);
@@ -1612,10 +1752,11 @@
         }
         
         async function mergeNewProductsToMaster() {
-            showConfirmModal('Are you sure you want to merge ALL new products to Master List & Inventory? This will mark them as approved.', async (confirmed) => {
+            showConfirmModal('Are you sure you want to merge ALL new products to Master List & Inventory? This will mark them as approved. SKUs already in Master List will be skipped.', async (confirmed) => {
                 if (confirmed) {
                     const batch = db.batch();
                     let successCount = 0;
+                    let skippedCount = 0;
                     const activeNewProducts = newProductsData.filter(item => !item.isDeleted);
 
                     if (activeNewProducts.length === 0) {
@@ -1624,31 +1765,31 @@
                     }
 
                     for (const item of activeNewProducts) {
+                        // Check if SKU already exists in Master List (non-deleted)
+                        const masterProductExists = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
+                        if (masterProductExists) {
+                            skippedCount++;
+                            console.warn(`Skipping SKU ${item.sku} as it already exists in Master List.`);
+                            // Optionally, still mark as deleted from new_products if desired
+                            // const newProductRef = newProductsColRef.doc(item.id);
+                            // batch.update(newProductRef, { isDeleted: true });
+                            continue; // Skip this item for adding to master/inventory
+                        }
+                        
                         try {
-                            const masterProductExists = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
-                            const masterProductRef = masterProductExists ? masterProductsColRef.doc(masterProductExists.id) : masterProductsColRef.doc(); // Auto-ID if new
+                            const masterProductRef = masterProductsColRef.doc(); 
                             const masterProductData = {
-                                brand: item.brand,
-                                product: item.product,
-                                sku: item.sku,
-                                category: masterProductExists ? masterProductExists.category : 'Uncategorized',
-                                description: masterProductExists ? masterProductExists.description : (item.notes || ''),
-                                price: masterProductExists ? masterProductExists.price : 0.00,
-                                isDeleted: false
+                                brand: item.brand, product: item.product, sku: item.sku,
+                                category: 'Uncategorized', description: item.notes || '', price: 0.00, isDeleted: false
                             };
-                            batch.set(masterProductRef, masterProductData, { merge: true });
+                            batch.set(masterProductRef, masterProductData);
 
-                            const inventoryProductRef = inventoryColRef.doc(); // Always new entry for inventory log
+                            const inventoryProductRef = inventoryColRef.doc(); 
                             const inventoryProductData = {
-                                brand: item.brand,
-                                product: item.product,
-                                sku: item.sku,
-                                quantity: item.quantity,
-                                status: 'In stock',
-                                shipment: '',
+                                brand: item.brand, product: item.product, sku: item.sku,
+                                quantity: item.quantity, status: 'In stock', shipment: '',
                                 remarks: `Added from New Products (Batch Merge: ${new Date().toISOString().split('T')[0]})`,
-                                isDeleted: false,
-                                expiry: ''
+                                isDeleted: false, expiry: ''
                             };
                             batch.set(inventoryProductRef, inventoryProductData);
 
@@ -1660,17 +1801,22 @@
                         }
                     }
 
-                    if (successCount > 0) {
+                    if (successCount > 0 || skippedCount > 0) {
                         try {
                             await batch.commit();
-                            showNotification(`Successfully merged ${successCount} new products.`, 'success');
+                            let message = "";
+                            if (successCount > 0) message += `Successfully merged ${successCount} new products. `;
+                            if (skippedCount > 0) message += `${skippedCount} products were skipped as their SKUs already exist in Master List.`;
+                            showNotification(message.trim(), successCount > 0 ? 'success' : 'info');
                             await updateLocalData();
                         } catch (e) {
                             console.error("Batch commit failed:", e);
                             showNotification('Error committing batch merge.', 'error');
                         }
-                    } else if (activeNewProducts.length > 0) { // If there were items but all failed
+                    } else if (activeNewProducts.length > 0) { 
                          showNotification('Failed to merge new products. Check console.', 'error');
+                    } else {
+                        showNotification('No new products were eligible for merging.', 'info');
                     }
                 }
             });
@@ -1745,6 +1891,13 @@
             const id = document.getElementById('editToClearId').value;
             const brand = document.getElementById('toClearBrand').value;
             const productName = document.getElementById('toClearProductName').value;
+            const skuValue = getSkuForProduct(brand, productName);
+
+            if (!skuValue) {
+                showNotification("Product not found in Master List. Please select a product from an existing brand or add it to Master List first.", "error");
+                return;
+            }
+            
             const data = {
                 brand: brand,
                 product: productName,
@@ -1756,7 +1909,7 @@
                 storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
                 weeklyDemand: parseInt(document.getElementById('toClearWeeklyDemand').value || '0'),
                 actionPlan: document.getElementById('toClearActionPlan').value,
-                sku: getSkuForProduct(brand, productName) || `TEMP_SKU_TC_${Date.now()}`, // Get SKU or generate temp
+                sku: skuValue, 
                 isDeleted: false
             };
 
@@ -1815,7 +1968,7 @@
         }
 
         function getSupplyStatusClass(weeksSupply) {
-            if (weeksSupply === 'N/A' || isNaN(parseFloat(weeksSupply))) return 'info';
+            if (weeksSupply === 'N/A' || isNaN(parseFloat(weeksSupply))) return 'info'; // Use a neutral class for N/A
             const ws = parseFloat(weeksSupply);
             if (ws < 4) return 'danger-status';
             if (ws >= 4 && ws <= 8) return 'alert-status';
@@ -1869,18 +2022,38 @@
             event.preventDefault();
             const id = document.getElementById('editMasterProductId').value;
             const sku = document.getElementById('sku').value.trim();
+            const productName = document.getElementById('masterProductName').value.trim();
+            const brandName = document.getElementById('masterBrand').value;
 
-            // Check for SKU uniqueness if it's a new product or SKU has changed
-            if (!id || (id && masterProductsData.find(p=>p.id===id).sku !== sku)) {
-                if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
-                    showNotification('This SKU already exists for another product.', 'error');
-                    return;
-                }
+            if (!sku) {
+                showNotification('Product Code (SKU) is required.', 'error');
+                return;
             }
+            if (!productName) {
+                showNotification('Product Name is required.', 'error');
+                return;
+            }
+             if (!brandName) {
+                showNotification('Brand is required.', 'error');
+                return;
+            }
+
+
+            // Check for SKU uniqueness
+            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
+                showNotification('This SKU already exists for another product.', 'error');
+                return;
+            }
+            // Optional: Check for Brand + Product Name uniqueness
+            if (masterProductsData.some(p => p.brand === brandName && p.product === productName && p.id !== id && !p.isDeleted)) {
+                 showNotification('This Brand and Product Name combination already exists.', 'error');
+                return;
+            }
+
             
             const data = {
-                brand: document.getElementById('masterBrand').value,
-                product: document.getElementById('masterProductName').value,
+                brand: brandName,
+                product: productName,
                 category: document.getElementById('category').value,
                 description: document.getElementById('description').value,
                 sku: sku,
@@ -1996,6 +2169,33 @@
             showConfirmModal('Are you sure you want to restore this item?', async (confirmed) => {
                 if (confirmed) {
                     try {
+                        const itemToRestore = deletedItemsData.find(item => item.id === id && item.originalCollection === originalCollection);
+                        if (!itemToRestore) {
+                             showNotification('Item not found for restoration.', 'error');
+                             return;
+                        }
+
+                        // Check for SKU conflict if restoring to master_products or new_products
+                        if (originalCollection === 'master_products' || originalCollection === 'new_products') {
+                            const sku = itemToRestore.sku;
+                            if (sku) {
+                                const skuExistsInMaster = masterProductsData.some(p => p.sku === sku && !p.isDeleted);
+                                const skuExistsInNew = newProductsData.some(p => p.sku === sku && !p.isDeleted);
+                                if ((originalCollection === 'master_products' && skuExistsInNew) || // Restoring to master, but SKU active in new
+                                    (originalCollection === 'new_products' && skuExistsInMaster) || // Restoring to new, but SKU active in master
+                                    (skuExistsInMaster && originalCollection !== 'master_products' && itemToRestore.originalCollection === 'master_products') || // trying to restore an already active master SKU
+                                    (skuExistsInNew && originalCollection !== 'new_products' && itemToRestore.originalCollection === 'new_products') ) {
+                                   // This logic is a bit complex, simplified: if SKU is active in its target destination, block.
+                                }
+                                if ( (originalCollection === 'master_products' && masterProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
+                                     (originalCollection === 'new_products' && newProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) {
+                                     showNotification(`Cannot restore: SKU ${sku} already exists in an active item in ${originalCollection}. Please resolve conflict first.`, 'error');
+                                     return;
+                                }
+                            }
+                        }
+
+
                         const collectionRef = db.collection(originalCollection);
                         await saveDataToFirestore(collectionRef, id, { isDeleted: false });
                         showNotification('Item restored successfully!', 'success');
@@ -2076,14 +2276,17 @@
         
         // Functions to show Add Brand/Status/Category Modals
         function showAddBrandModal() {
+            document.getElementById('addBrandModal').querySelector('form').reset();
             openModal('addBrandModal');
         }
 
         function showAddStatusModal() {
+            document.getElementById('addStatusModal').querySelector('form').reset();
             openModal('addStatusModal');
         }
 
         function showAddCategoryModal() {
+            document.getElementById('addCategoryModal').querySelector('form').reset();
             openModal('addCategoryModal');
         }
 
@@ -2097,14 +2300,15 @@
                 showNotification('Brand name cannot be empty.', 'error');
                 return;
             }
-            if (brandsData.some(brand => brand.name.toLowerCase() === newBrandName.toLowerCase() && !brand.isDeleted)) {
+            // Check against current brandsData (which should be non-deleted)
+            if (brandsData.some(brand => brand.name.toLowerCase() === newBrandName.toLowerCase())) {
                 showNotification('This brand already exists.', 'error');
                 return;
             }
             try {
-                await saveDataToFirestore(brandsColRef, null, { name: newBrandName, isDeleted: false });
+                await saveDataToFirestore(brandsColRef, null, { name: newBrandName, isDeleted: false }); // Ensure isDeleted: false
                 showNotification('Brand added successfully!', 'success');
-                closeModal('addBrandModal');
+                closeModal('addBrandModal'); // This will also reset the form
                 await updateLocalData(); 
             } catch (e) {
                 showNotification('Error adding brand. Check console.', 'error');
@@ -2121,7 +2325,7 @@
                 showNotification('Status name cannot be empty.', 'error');
                 return;
             }
-            if (statusesData.some(status => status.name.toLowerCase() === newStatusName.toLowerCase() && !status.isDeleted)) {
+            if (statusesData.some(status => status.name.toLowerCase() === newStatusName.toLowerCase())) {
                 showNotification('This status already exists.', 'error');
                 return;
             }
@@ -2145,7 +2349,7 @@
                 showNotification('Category name cannot be empty.', 'error');
                 return;
             }
-            if (categoriesData.some(cat => cat.name.toLowerCase() === newCategoryName.toLowerCase() && !cat.isDeleted)) {
+            if (categoriesData.some(cat => cat.name.toLowerCase() === newCategoryName.toLowerCase())) {
                 showNotification('This category already exists.', 'error');
                 return;
             }
@@ -2163,15 +2367,9 @@
 
         // Management Tab Functions
         async function exportAllData() {
-            // Ensure JSZip is loaded
             if (typeof JSZip === 'undefined') {
-                showNotification('JSZip library not loaded. Cannot export.', 'error');
-                console.error('JSZip library not found. Please ensure it is included.');
-                // Attempt to load JSZip dynamically if not present (optional enhancement)
-                // const script = document.createElement('script');
-                // script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js";
-                // script.onload = () => exportAllData(); // Retry after loading
-                // document.head.appendChild(script);
+                showNotification('Data export library (JSZip) is not loaded. Please try again in a moment or check console.', 'error');
+                console.error('JSZip library not found for exportAllData.');
                 return;
             }
 
@@ -2180,9 +2378,9 @@
                 new_products: newProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
                 to_clear: toClearData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
                 master_products: masterProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                brands: brandsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }), // Assuming isDeleted flag
-                statuses: statusesData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                categories: categoriesData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                brands: brandsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }), // Assuming brandsData is already filtered for non-deleted
+                statuses: statusesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                categories: categoriesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
                 deleted_items: deletedItemsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }) 
             };
 
@@ -2212,7 +2410,7 @@
                 a.download = 'all_inventory_data.zip';
                 document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a); // Use the correct variable 'a'
+                document.body.removeChild(a); 
                 URL.revokeObjectURL(url);
                 showNotification('All data exported as ZIP!', 'success');
             } catch (e) {
@@ -2269,19 +2467,19 @@
             ];
 
             try {
-                // Clear existing data in all collections
                 for (const { ref } of collectionsAndData) {
                     const snapshot = await ref.get();
                     const deleteBatch = db.batch();
                     snapshot.docs.forEach(doc => deleteBatch.delete(doc.ref));
-                    await deleteBatch.commit();
+                    if(snapshot.docs.length > 0) await deleteBatch.commit();
                 }
 
-                // Load sample data
                 const loadBatch = db.batch();
                 for (const { ref, data } of collectionsAndData) {
                     data.forEach(item => {
-                        const docRef = ref.doc(); // Auto-generate ID
+                        // For collections where we expect a specific ID (like master_products based on SKU for linking)
+                        // this sample data uses auto-generated IDs. If specific IDs were needed, they'd be in the sample data.
+                        const docRef = ref.doc(); 
                         loadBatch.set(docRef, item);
                     });
                 }
@@ -2327,33 +2525,41 @@
                 let valA = a[column];
                 let valB = b[column];
 
-                // Handle specific cases like 'totalQty' or 'weeksSupply' for 'toClear'
                 if (sortState.toClear.column === 'totalQty' && column === 'totalQty') {
                     valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
                     valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
                 } else if (sortState.toClear.column === 'weeksSupply' && column === 'weeksSupply') {
                     const totalA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
-                    valA = (Number(a.weeklyDemand) || 0) > 0 ? (totalA / Number(a.weeklyDemand)) : -Infinity; // Treat N/A as very small for sorting
+                    valA = (Number(a.weeklyDemand) || 0) > 0 ? (totalA / Number(a.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
                     const totalB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
-                    valB = (Number(b.weeklyDemand) || 0) > 0 ? (totalB / Number(b.weeklyDemand)) : -Infinity;
+                    valB = (Number(b.weeklyDemand) || 0) > 0 ? (totalB / Number(b.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
                 }
 
+                const aUndefined = (valA === undefined || valA === null || valA === 'N/A' || (typeof valA === 'number' && isNaN(valA)) );
+                const bUndefined = (valB === undefined || valB === null || valB === 'N/A' || (typeof valB === 'number' && isNaN(valB)) );
 
-                if (valA === undefined || valA === null || valA === 'N/A') valA = direction === 'asc' ? Infinity : -Infinity; // Push undefined/null/N/A to the end/start
-                if (valB === undefined || valB === null || valB === 'N/A') valB = direction === 'asc' ? Infinity : -Infinity;
+                if (aUndefined && bUndefined) return 0;
+                if (aUndefined) return direction === 'asc' ? 1 : -1;
+                if (bUndefined) return direction === 'asc' ? -1 : 1;
 
 
                 if (typeof valA === 'string' && typeof valB === 'string') {
+                     // Check for date strings (YYYY-MM-DD)
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(valA) && /^\d{4}-\d{2}-\d{2}$/.test(valB)) {
+                        return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    // Check for numeric strings for locale-aware numeric sort if possible, otherwise standard string sort
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB) && String(numA) === valA && String(numB) === valB) { // Both are purely numeric strings
+                         return direction === 'asc' ? numA - numB : numB - numA;
+                    }
                     return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
                 }
                 if (typeof valA === 'number' && typeof valB === 'number') {
                     return direction === 'asc' ? valA - valB : valB - valA;
                 }
-                // Date string comparison (simple YYYY-MM-DD)
-                if (typeof valA === 'string' && typeof valB === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valA) && /^\d{4}-\d{2}-\d{2}$/.test(valB)) {
-                     return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                }
-
+                
                 // Fallback for mixed types or other cases
                 const strA = String(valA);
                 const strB = String(valB);
@@ -2363,37 +2569,22 @@
 
 
         function updateSortIndicators(tableKey) {
-            const tableContainer = document.getElementById(`${tableKey}-table-container`); // Ensure this targets the table or its container
-            if (!tableContainer) {
-                // Fallback for older structure or specific tables if needed
-                const specificTableId = tableKey === 'inventory' ? 'inventory-table' :
-                                     tableKey === 'newProducts' ? 'new-products-table' :
-                                     tableKey === 'master' ? 'master-table' :
-                                     tableKey === 'toClear' ? 'to-clear-table' :
-                                     tableKey === 'recycleBin' ? 'recycle-bin-table' : null;
-                const table = specificTableId ? document.getElementById(specificTableId)?.closest('table') : null;
-                if (!table) return;
-                 const headers = table.querySelectorAll('thead th[data-column-key]');
-                 headers.forEach(header => {
-                    const arrowSpan = header.querySelector('.sort-arrow');
-                    if (arrowSpan) arrowSpan.textContent = '';
-                    if (header.dataset.columnKey === sortState[tableKey].column) {
-                        if (arrowSpan) arrowSpan.textContent = sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼';
-                    }
-                });
-                return;
+            const tableContainer = document.getElementById(`${tableKey}-table-container`); 
+            let headers;
+            if (tableContainer) {
+                headers = tableContainer.querySelectorAll('thead th[data-column-key]');
+            } else { // Fallback for tables not wrapped in a specific *-table-container div
+                const table = document.getElementById(`${tableKey}-table`) || // e.g. master-table
+                              document.querySelector(`#${tableKey} table`);  // e.g. #dashboard table
+                if (table) headers = table.querySelectorAll('thead th[data-column-key]');
+                else return; // No table or headers found
             }
             
-            const headers = tableContainer.querySelectorAll('thead th[data-column-key]');
             headers.forEach(header => {
                 const arrowSpan = header.querySelector('.sort-arrow');
-                if (arrowSpan) {
-                    arrowSpan.textContent = ''; 
-                }
+                if (arrowSpan) arrowSpan.textContent = ''; 
                 if (header.dataset.columnKey === sortState[tableKey].column) {
-                    if (arrowSpan) {
-                        arrowSpan.textContent = sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼';
-                    }
+                    if (arrowSpan) arrowSpan.textContent = sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼';
                 }
             });
         }
@@ -2415,16 +2606,18 @@
             const recentLowStock = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).slice(0, 5);
             
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize today to start of day
+            today.setHours(0, 0, 0, 0); 
             const ninetyDaysFromToday = new Date(today);
             ninetyDaysFromToday.setDate(today.getDate() + 90);
 
             const expiringSoon = toClearData.filter(item => {
                 if (!item.isDeleted && item.expiryDate) {
                     try {
-                        const expiry = new Date(item.expiryDate + "T00:00:00"); // Assume local timezone if not specified
-                         return expiry >= today && expiry <= ninetyDaysFromToday;
-                    } catch (e) { return false; }
+                        const expiryParts = item.expiryDate.split('-');
+                        const expiry = new Date(expiryParts[0], expiryParts[1] - 1, expiryParts[2]);
+                        expiry.setHours(0,0,0,0);
+                        return expiry >= today && expiry <= ninetyDaysFromToday;
+                    } catch (e) { console.warn("Error parsing expiry date for alert:", item.expiryDate, e); return false; }
                 }
                 return false;
             }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate)).slice(0, 5);
@@ -2450,17 +2643,11 @@
         }
 
         function updateManagementStats() {
-            const activeMasterProducts = masterProductsData.filter(item => !item.isDeleted).length;
-            document.getElementById('total-products').textContent = activeMasterProducts;
+            const activeMasterProductsCount = masterProductsData.filter(item => !item.isDeleted).length;
+            document.getElementById('total-products').textContent = activeMasterProductsCount;
             
-            // More comprehensive count of all distinct products across relevant lists (based on SKU)
-            const allSkus = new Set();
-            masterProductsData.forEach(p => { if(!p.isDeleted && p.sku) allSkus.add(p.sku)});
-            // inventoryData.forEach(p => { if(!p.isDeleted && p.sku) allSkus.add(p.sku)}); // Inventory items should be in master
-            // newProductsData.forEach(p => { if(!p.isDeleted && p.sku) allSkus.add(p.sku)}); // New products might not be in master yet
-            // toClearData.forEach(p => { if(!p.isDeleted && p.sku) allSkus.add(p.sku)}); // ToClear items should be in master
-
-            document.getElementById('total-products-all').textContent = allSkus.size; // Count of unique SKUs in master list
+            const allUniqueSkus = new Set(masterProductsData.filter(item => !item.isDeleted && item.sku).map(item => item.sku));
+            document.getElementById('total-products-all').textContent = allUniqueSkus.size; 
             document.getElementById('last-updated').textContent = new Date().toLocaleString();
         }
 
@@ -2475,7 +2662,7 @@
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link); // Corrected from 'a' to 'link'
+                document.body.removeChild(link); 
                 URL.revokeObjectURL(url);
             } else {
                 showNotification('Your browser does not support downloading files directly.', 'error');
@@ -2489,87 +2676,117 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const text = e.target.result;
-                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== ''); // Handles different line endings
-                if (lines.length < 2) { // Must have header + at least one data row
+                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== ''); 
+                if (lines.length < 2) { 
                     showNotification('CSV file is empty, invalid, or has no data rows.', 'error');
-                    event.target.value = ''; // Reset file input
+                    event.target.value = ''; 
                     return;
                 }
 
-                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase()); // Normalize headers
-                const requiredHeaders = ['product code', 'brand', 'product name']; // Example required
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase()); 
+                const requiredHeaders = ['product code', 'brand', 'product name']; 
                 const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
                 if (missingHeaders.length > 0) {
-                    showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}`, 'error');
+                    showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}. Required: 'product code', 'brand', 'product name'.`, 'error');
                     event.target.value = '';
                     return;
                 }
                 
-                // Map CSV headers to master product fields (adjust as necessary)
                 const headerMap = {
                     'product code': 'sku', 'brand': 'brand', 'product name': 'product',
                     'category': 'category', 'description': 'description', 'price': 'price'
                 };
 
                 const importData = [];
+                const importedSkusThisBatch = new Set(); // To check for duplicate SKUs within the CSV itself
+
                 for (let i = 1; i < lines.length; i++) {
                     const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
                     if (values.length !== headers.length) {
                         console.warn(`Skipping CSV row ${i + 1} due to column mismatch.`);
                         continue;
                     }
-                    let item = { isDeleted: false }; // Default
+                    let item = { isDeleted: false }; 
                     let validRow = true;
+                    let currentSku = '';
+
                     headers.forEach((header, index) => {
-                        const fieldName = headerMap[header];
+                        const fieldName = headerMap[header.toLowerCase()]; // Ensure mapping with lowercase header
                         if (fieldName) {
                             let value = values[index];
                             if (fieldName === 'price') item[fieldName] = parseFloat(value) || 0;
-                            else if (fieldName === 'sku' && !value) {
-                                console.warn(`Skipping CSV row ${i+1} due to missing SKU.`);
-                                validRow = false; // SKU is crucial
+                            else if (fieldName === 'sku') {
+                                currentSku = value.trim();
+                                if (!currentSku) {
+                                    console.warn(`Skipping CSV row ${i+1} due to missing SKU.`);
+                                    validRow = false; 
+                                } else {
+                                    item[fieldName] = currentSku;
+                                }
                             }
                             else item[fieldName] = value;
                         }
                     });
-                    if (validRow && item.sku) importData.push(item); // Ensure SKU exists
+
+                    if (!item.brand || !item.product) { // Check for required brand and product name
+                         console.warn(`Skipping CSV row ${i+1} due to missing Brand or Product Name.`);
+                         validRow = false;
+                    }
+
+                    if (validRow && currentSku) {
+                        if (importedSkusThisBatch.has(currentSku)) {
+                            console.warn(`Skipping CSV row ${i+1}: Duplicate SKU '${currentSku}' within this CSV file.`);
+                            validRow = false;
+                        } else {
+                            importedSkusThisBatch.add(currentSku);
+                            importData.push(item);
+                        }
+                    }
                 }
 
                 if (importData.length === 0) {
-                    showNotification('No valid data found to import from CSV.', 'error');
+                    showNotification('No valid data found to import from CSV after checks.', 'error');
                     event.target.value = '';
                     return;
                 }
 
-                showConfirmModal(`Importing will add/update ${importData.length} items in Master List. Continue?`, async (confirmed) => {
+                showConfirmModal(`Found ${importData.length} valid items. Importing will add new items or update existing ones in Master List based on SKU. Continue?`, async (confirmed) => {
                     if (confirmed) {
                         const batch = db.batch();
-                        let importedCount = 0;
+                        let newItemsCount = 0;
+                        let updatedItemsCount = 0;
+
                         for (const item of importData) {
                             try {
                                 const existingProduct = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
-                                const docRef = existingProduct ? masterProductsColRef.doc(existingProduct.id) : masterProductsColRef.doc(); // Use existing ID or new one
-                                batch.set(docRef, item, { merge: true });
-                                importedCount++;
+                                if (existingProduct) { // Update existing
+                                    const docRef = masterProductsColRef.doc(existingProduct.id);
+                                    batch.set(docRef, item, { merge: true }); // Merge to update, keeps other fields if not in CSV
+                                    updatedItemsCount++;
+                                } else { // Add new
+                                    const docRef = masterProductsColRef.doc(); 
+                                    batch.set(docRef, item);
+                                    newItemsCount++;
+                                }
                             } catch (err) {
                                 console.error("Error adding item to batch for import:", item, err);
                             }
                         }
 
-                        if (importedCount > 0) {
+                        if (newItemsCount > 0 || updatedItemsCount > 0) {
                             try {
                                 await batch.commit();
-                                showNotification(`Successfully imported/updated ${importedCount} items!`, 'success');
+                                showNotification(`Successfully imported: ${newItemsCount} new, ${updatedItemsCount} updated.`, 'success');
                                 await updateLocalData();
                             } catch (err) {
                                 console.error("Batch commit failed for import:", err);
                                 showNotification('Error during CSV import batch commit.', 'error');
                             }
                         } else {
-                            showNotification('No items were imported.', 'info');
+                            showNotification('No items were imported (perhaps all were duplicates or invalid).', 'info');
                         }
                     }
-                    event.target.value = ''; // Reset file input in both cases
+                    event.target.value = ''; 
                 });
             };
             reader.onerror = () => {
@@ -2581,7 +2798,6 @@
 
 
         window.onload = async function() {
-            // Check if JSZip is loaded, if not, try to load it.
             if (typeof JSZip === 'undefined') {
                 console.log("JSZip not found, attempting to load...");
                 const script = document.createElement('script');
@@ -2592,7 +2808,7 @@
                 };
                 script.onerror = () => {
                     console.error("Failed to load JSZip. Export all data may not work.");
-                    initializeApp(); // Initialize anyway, but export might fail
+                    initializeApp(); 
                 };
                 document.head.appendChild(script);
             } else {
@@ -2602,15 +2818,24 @@
 
         async function initializeApp() {
             await updateLocalData();
-            const dashboardTab = document.querySelector('.tab[onclick*=\'dashboard\']');
-            if (dashboardTab && dashboardTab.classList.contains('active')) { // Check if already active by HTML
-                 document.getElementById('dashboard').classList.add('active');
-                 // No need to call switchTab if it's the default active tab defined in HTML
-            } else if (dashboardTab) { // If not active, switch to it
-                switchTab(dashboardTab, 'dashboard');
-            } else { // Fallback if tab query fails
-                document.getElementById('dashboard').classList.add('active');
+            // Set the Dashboard tab as active on initial load
+            const dashboardTabButton = document.querySelector('.tab[onclick*="dashboard"]');
+            const dashboardContent = document.getElementById('dashboard');
+
+            // Deactivate all tabs and content first
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (dashboardTabButton && dashboardContent) {
+                dashboardTabButton.classList.add('active');
+                dashboardContent.classList.add('active');
+            } else { // Fallback
+                const firstTab = document.querySelector('.tab');
+                const firstContent = document.querySelector('.tab-content');
+                if(firstTab) firstTab.classList.add('active');
+                if(firstContent) firstContent.classList.add('active');
             }
+            
             Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
     </script>
