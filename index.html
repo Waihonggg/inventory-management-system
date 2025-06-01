@@ -144,7 +144,7 @@
             box-shadow: 0 15px 35px rgba(243, 156, 18, 0.4);
         }
 
-        .stat-card.info {
+        .stat-card.info { /* This is for the dashboard stat card */
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
          .stat-card.info:hover {
@@ -263,19 +263,19 @@
         }
 
         /* Statuses for "To Clear" Tab based on new logic */
-        .normal { /* Normal: Can sell >= 9 months before expiry */
+        .status-badge.normal { /* Normal: Can sell >= 9 months before expiry */
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
         }
 
-        .alert-status { /* Alert: Can sell 6-9 months before expiry */
+        .status-badge.alert-status { /* Alert: Can sell 6-9 months before expiry */
             background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
         
-        .danger-status { /* Danger: Cannot sell < 6 months before expiry OR Expired OR No demand & will expire */
+        .status-badge.danger-status { /* Danger: Cannot sell < 6 months before expiry OR Expired OR No demand & will expire */
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         }
 
-        .info { /* N/A: No expiry date for new logic */
+        .status-badge.info { /* N/A: No expiry date for new logic OR old info badge */
              background: linear-gradient(135deg, #546e7a 0%, #78909c 100%); /* Grey for N/A */
         }
 
@@ -1158,34 +1158,34 @@
             const selectElement = event.target;
             const selectedOptionValue = selectElement.value;
             
-            // Store the previously selected valid value if any, to potentially restore after modal cancellation
-            // This is a simple approach; updateLocalData() will ultimately refresh dropdowns correctly after an add.
             let previousValue = "";
+            // Find the actual previous value if one was selected, not the placeholder
             for(let i=0; i < selectElement.options.length; i++){
-                if(selectElement.options[i].selected && 
-                   selectElement.options[i].value !== selectedOptionValue && // ensure it's not the "add_new" itself
+                if(selectElement.options[i].value === selectElement.dataset.previousValue && // dataset.previousValue would need to be set
                    !selectElement.options[i].value.startsWith('add_new_')) { 
                     previousValue = selectElement.options[i].value;
                     break;
                 }
             }
-            if (!previousValue && selectElement.options.length > 0 && !selectElement.options[0].value.startsWith('add_new_')) {
-                // Fallback if nothing was truly selected other than placeholder, keep placeholder if "add new" is cancelled
+            // Fallback if no specific previous value was stored or found
+            if (!previousValue && selectElement.options.length > 0 && selectElement.options[0].value !== "" && !selectElement.options[0].value.startsWith('add_new_')) {
                 previousValue = selectElement.options[0].value;
             }
 
 
             if (selectedOptionValue === 'add_new_brand') {
                 showAddBrandModal();
-                // After modal is closed (either by save or cancel), the dropdown might need to be reset
-                // updateLocalData() called from saveNewBrand will repopulate. If cancelled, try to restore.
-                selectElement.value = previousValue; // Attempt to restore previous value
+                selectElement.value = previousValue || ""; 
             } else if (selectedOptionValue === 'add_new_status') {
                 showAddStatusModal();
-                selectElement.value = previousValue;
+                selectElement.value = previousValue || "";
             } else if (selectedOptionValue === 'add_new_category') {
                 showAddCategoryModal();
-                selectElement.value = previousValue;
+                selectElement.value = previousValue || "";
+            }
+            // Store current value for next time, if it's not an "add_new" action
+            if (!selectedOptionValue.startsWith('add_new_')) {
+                selectElement.dataset.previousValue = selectedOptionValue;
             }
         }
 
@@ -1201,9 +1201,9 @@
             const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted && item.product).map(item => item.product))].sort();
 
             allProductNames.forEach(productName => {
-                if (productsDatalist) productsDatalist.add(new Option(productName));
-                if (newProductsDatalist) newProductsDatalist.add(new Option(productName));
-                if (toClearProductsDatalist) toClearProductsDatalist.add(new Option(productName));
+                if (productsDatalist) productsDatalist.appendChild(new Option(productName));
+                if (newProductsDatalist) newProductsDatalist.appendChild(new Option(productName));
+                if (toClearProductsDatalist) toClearProductsDatalist.appendChild(new Option(productName));
             });
         }
 
@@ -1212,14 +1212,13 @@
             const datalist = document.getElementById(datalistId);
             if (!productNameInput || !datalist) return;
 
-            datalist.innerHTML = ''; // Clear existing options
+            datalist.innerHTML = ''; 
             const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand && item.product);
             const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product))].sort();
 
             uniqueProductNames.forEach(productName => {
-                datalist.add(new Option(productName));
+                datalist.appendChild(new Option(productName));
             });
-            // If current input value is no longer in the filtered list, clear it
             if (productNameInput.value && !uniqueProductNames.includes(productNameInput.value)) {
                 productNameInput.value = '';
             }
@@ -1304,13 +1303,18 @@
             const id = document.getElementById('editProductId').value;
             const brand = document.getElementById('brand').value, name = document.getElementById('productName').value;
             let sku = getSkuForProduct(brand, name) || (id ? inventoryData.find(i=>i.id===id)?.sku : '');
-            if (!sku && !id) sku = `TEMP_SKU_${Date.now()}`; // Avoid if truly new and not in master
+            if (!sku && !id) { // Only assign temp SKU if it's a new item and SKU could not be found from master
+                // Consider if SKU should be manually input for items not in master or if this flow is correct
+                 sku = `TEMP_SKU_${Date.now()}`; 
+                 showNotification('Product not in Master List. Assigned temporary SKU. Consider adding to Master List for proper SKU.', 'info');
+            }
             const data = {
                 brand, product: name, sku, quantity: parseInt(document.getElementById('inventoryQuantity').value),
                 status: document.getElementById('status').value, shipment: document.getElementById('shipment').value,
                 remarks: document.getElementById('remarks').value, isDeleted: false
             };
-            try { await saveDataToFirestore(inventoryColRef, id, data); showNotification('Product saved!', 'success'); closeModal('productModal'); await updateLocalData(); } catch (e) {}
+            try { await saveDataToFirestore(inventoryColRef, id, data); showNotification('Product saved!', 'success'); closeModal('productModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error saving product. Check console.', 'error');}
         }
         async function editProduct(id) {
             const item = inventoryData.find(p => p.id === id); if (!item) return;
@@ -1330,9 +1334,16 @@
             const tab = document.querySelector('.tab[onclick*="oos-lowstock"]'); if (tab) switchTab(tab, 'oos-lowstock');
         }
         function searchInventory(term) {
-            const l टर्म = term.toLowerCase().trim();
+            const lTerm = term.toLowerCase().trim();
             let base = inventoryData.filter(i => !i.isDeleted && (i.status === 'OOS' || (i.status && i.status.toLowerCase().includes('low stock'))));
-            currentInventoryViewData = lTerm ? base.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lTerm))) : base;
+            currentInventoryViewData = lTerm ? base.filter(i => 
+                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
+                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
+                (i.product && i.product.toLowerCase().includes(lTerm)) ||
+                (i.status && i.status.toLowerCase().includes(lTerm)) ||
+                (i.shipment && i.shipment.toLowerCase().includes(lTerm)) ||
+                (i.remarks && i.remarks.toLowerCase().includes(lTerm))
+            ) : base;
             renderInventoryItems();
         }
 
@@ -1369,7 +1380,8 @@
                 notes: document.getElementById('notes').value, addedDate: id ? (newProductsData.find(i => i.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
                 isDeleted: false
             };
-            try { await saveDataToFirestore(newProductsColRef, id, data); showNotification('New product saved!', 'success'); closeModal('newProductModal'); await updateLocalData(); } catch (e) {}
+            try { await saveDataToFirestore(newProductsColRef, id, data); showNotification('New product saved!', 'success'); closeModal('newProductModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error saving new product.', 'error');}
         }
         async function editNewProduct(id) {
             const item = newProductsData.find(p => p.id === id); if (!item) return;
@@ -1386,37 +1398,49 @@
                 if (!confirmed) return;
                 const item = newProductsData.find(p => p.id === id); if (!item) return;
                 if (masterProductsData.some(mp => mp.sku === item.sku && !mp.isDeleted)) {
-                    showNotification(`SKU ${item.sku} already in Master List.`, 'error'); return;
+                    showNotification(`SKU ${item.sku} already in Master List. Cannot move. Edit SKU or manage in Master List.`, 'error'); return;
                 }
                 try {
-                    await saveDataToFirestore(masterProductsColRef, null, { ...item, category: 'Uncategorized', price: 0, description: item.notes || '', isDeleted: false });
-                    await saveDataToFirestore(inventoryColRef, null, { ...item, status: 'In stock', remarks: `From New Products ${new Date().toISOString().split('T')[0]}`, isDeleted: false });
+                    const masterData = {sku: item.sku, brand: item.brand, product: item.product, category: 'Uncategorized', description: item.notes || '', price: 0, isDeleted: false};
+                    await saveDataToFirestore(masterProductsColRef, null, masterData);
+                    const inventoryData = {sku: item.sku, brand: item.brand, product: item.product, quantity: item.quantity, status: 'In stock', remarks: `From New Products ${new Date().toISOString().split('T')[0]}`, isDeleted: false};
+                    await saveDataToFirestore(inventoryColRef, null, inventoryData);
                     await saveDataToFirestore(newProductsColRef, item.id, { isDeleted: true });
                     showNotification('Product approved and moved!', 'success'); await updateLocalData();
-                } catch (e) { showNotification('Error moving product.', 'error'); }
+                } catch (e) { showNotification('Error moving product.', 'error'); console.error("Move new product error:", e); }
             });
         }
         async function mergeNewProductsToMaster() {
             showConfirmModal('Merge ALL new products? SKUs in Master List will be skipped.', async (confirmed) => {
                 if (!confirmed) return;
-                const activeNew = newProductsData.filter(i => !i.isDeleted); if (activeNew.length === 0) { showNotification('No new products.', 'info'); return; }
-                let success = 0, skipped = 0; const batch = db.batch();
+                const activeNew = newProductsData.filter(i => !i.isDeleted); if (activeNew.length === 0) { showNotification('No new products to merge.', 'info'); return; }
+                let successCount = 0, skippedCount = 0; const batch = db.batch();
                 for (const item of activeNew) {
-                    if (masterProductsData.some(mp => mp.sku === item.sku && !mp.isDeleted)) { skipped++; continue; }
-                    batch.set(masterProductsColRef.doc(), { ...item, category: 'Uncategorized', price: 0, description: item.notes || '', isDeleted: false });
-                    batch.set(inventoryColRef.doc(), { ...item, status: 'In stock', remarks: `Batch Merge ${new Date().toISOString().split('T')[0]}`, isDeleted: false });
-                    batch.update(newProductsColRef.doc(item.id), { isDeleted: true }); success++;
+                    if (masterProductsData.some(mp => mp.sku === item.sku && !mp.isDeleted)) { skippedCount++; continue; }
+                    const masterRef = masterProductsColRef.doc(); // new doc for master
+                    batch.set(masterRef, {sku: item.sku, brand: item.brand, product: item.product, category: 'Uncategorized', description: item.notes || '', price: 0, isDeleted: false});
+                    const invRef = inventoryColRef.doc(); // new doc for inventory
+                    batch.set(invRef, {sku: item.sku, brand: item.brand, product: item.product, quantity: item.quantity, status: 'In stock', remarks: `Batch Merge ${new Date().toISOString().split('T')[0]}`, isDeleted: false});
+                    batch.update(newProductsColRef.doc(item.id), { isDeleted: true }); successCount++;
                 }
-                if (success > 0 || skipped > 0) {
-                    try { await batch.commit(); showNotification(`Merged: ${success}, Skipped: ${skipped}.`, 'success'); await updateLocalData(); }
-                    catch (e) { showNotification('Error batch merging.', 'error'); }
-                } else { showNotification('No products merged.', 'info'); }
+                if (successCount > 0 || skippedCount > 0) {
+                    try { await batch.commit(); 
+                          let msg = successCount > 0 ? `Merged: ${successCount} new products.` : "";
+                          if(skippedCount > 0) msg += (msg ? " " : "") + `Skipped: ${skippedCount} (SKU already in Master).`;
+                          showNotification(msg, 'success'); await updateLocalData(); }
+                    catch (e) { showNotification('Error batch merging.', 'error'); console.error("Batch merge error:", e);}
+                } else { showNotification('No products were eligible for merging.', 'info'); }
             });
         }
         function searchNewProducts(term) {
             const lTerm = term.toLowerCase().trim();
             const base = newProductsData.filter(i => !i.isDeleted);
-            currentNewProductsViewData = lTerm ? base.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lTerm))) : base;
+            currentNewProductsViewData = lTerm ? base.filter(i => 
+                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
+                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
+                (i.product && i.product.toLowerCase().includes(lTerm)) ||
+                (i.notes && i.notes.toLowerCase().includes(lTerm))
+            ) : base;
             renderNewProductsItems();
         }
 
@@ -1426,47 +1450,43 @@
             const weeklyDemand = Number(item.weeklyDemand) || 0;
 
             if (!item.expiryDate) {
-                return { text: "N/A", class: "info" }; // No expiry date
+                return { text: "N/A", class: "info" }; 
             }
 
             let expiryDateObj;
             try {
-                // Attempt to parse YYYY-MM-DD. Adding T00:00:00 ensures it's treated as start of day in local timezone.
-                expiryDateObj = new Date(item.expiryDate + "T00:00:00Z"); // Use UTC for consistency if dates are stored as such
-                if (isNaN(expiryDateObj.getTime())) { // Check if date is valid
-                     // Try parsing without 'Z' if first attempt fails for local dates.
-                    expiryDateObj = new Date(item.expiryDate + "T00:00:00");
-                     if (isNaN(expiryDateObj.getTime()))  throw new Error("Invalid date");
+                // Standardize date parsing: Assume YYYY-MM-DD and parse as UTC midnight
+                // to avoid timezone shifts making it the "previous day".
+                const parts = item.expiryDate.split('-');
+                expiryDateObj = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+                if (isNaN(expiryDateObj.getTime())) { 
+                    throw new Error("Invalid date parsed");
                 }
             } catch (e) {
-                console.warn("Invalid expiry date format for item:", item.sku , item.expiryDate, e);
-                return { text: "N/A", class: "info" }; // Invalid expiry date format
+                console.warn("Invalid expiry date format for item SKU:", item.sku, "Value:", item.expiryDate, e);
+                return { text: "N/A", class: "info" }; 
             }
 
             const currentDate = new Date();
-            currentDate.setUTCHours(0, 0, 0, 0); // Compare with UTC date midnight
+            currentDate.setUTCHours(0, 0, 0, 0); 
 
             if (expiryDateObj <= currentDate) {
                 return { text: "Expired", class: "danger-status" };
             }
 
             if (weeklyDemand <= 0) {
-                return { text: "Danger", class: "danger-status" }; // Will expire without selling if demand is zero
+                return { text: "Danger", class: "danger-status" }; 
             }
 
             const daysToSellOut = (totalQty / weeklyDemand) * 7;
             let projectedSellOutDate = new Date(currentDate);
-            projectedSellOutDate.setUTCDate(currentDate.getUTCDate() + Math.ceil(daysToSellOut)); // Use UTCDate
-            projectedSellOutDate.setUTCHours(0,0,0,0);
-
-
+            projectedSellOutDate.setUTCDate(currentDate.getUTCDate() + Math.ceil(daysToSellOut)); 
+            
             let nineMonthsBeforeExpiry = new Date(expiryDateObj);
             nineMonthsBeforeExpiry.setUTCMonth(expiryDateObj.getUTCMonth() - 9);
-            nineMonthsBeforeExpiry.setUTCHours(0,0,0,0);
 
             let sixMonthsBeforeExpiry = new Date(expiryDateObj);
             sixMonthsBeforeExpiry.setUTCMonth(expiryDateObj.getUTCMonth() - 6);
-            sixMonthsBeforeExpiry.setUTCHours(0,0,0,0);
 
             if (projectedSellOutDate <= nineMonthsBeforeExpiry) {
                 return { text: "Normal", class: "normal" };
@@ -1506,8 +1526,7 @@
                 const weeksSupplyText = weeklyDemandNum > 0 ? (totalQty / weeklyDemandNum).toFixed(2) : 'N/A';
                 row.insertCell().textContent = weeksSupplyText;
                 
-                // Use new supply status logic
-                const newStatus = getNewSupplyStatus(item);
+                const newStatus = getNewSupplyStatus(item); // Use new logic
                 row.insertCell().innerHTML = `<span class="status-badge ${newStatus.class}">${newStatus.text}</span>`;
                 
                 row.insertCell().textContent = item.actionPlan || '';
@@ -1523,7 +1542,7 @@
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
             document.getElementById('editToClearId').value = '';
             const form = document.getElementById('toClearModal').querySelector('form'); if (form) form.reset();
-            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date();
+            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date(); // Sets to current date
             populateBrandDropdowns('toClearBrand'); populateCategoryDropdowns('toClearCategory');
             filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
             openModal('toClearModal');
@@ -1533,7 +1552,7 @@
             const id = document.getElementById('editToClearId').value;
             const brand = document.getElementById('toClearBrand').value, name = document.getElementById('toClearProductName').value;
             const sku = getSkuForProduct(brand, name);
-            if (!sku) { showNotification('Product not found in Master List.', 'error'); return; }
+            if (!sku) { showNotification('Product not found in Master List. Please select valid Brand/Product or add to Master List first.', 'error'); return; }
             const data = {
                 brand, product: name, sku, category: document.getElementById('toClearCategory').value,
                 expiryDate: document.getElementById('toClearExpiryDate').value,
@@ -1544,7 +1563,9 @@
                 weeklyDemand: parseInt(document.getElementById('toClearWeeklyDemand').value || '0'),
                 actionPlan: document.getElementById('toClearActionPlan').value, isDeleted: false
             };
-            try { await saveDataToFirestore(toClearColRef, id, data); showNotification('Product to clear saved!', 'success'); closeModal('toClearModal'); await updateLocalData(); } catch (e) {}
+             if (!data.expiryDate) { showNotification('Expiry Date is required for "To Clear" items.', 'error'); return; }
+            try { await saveDataToFirestore(toClearColRef, id, data); showNotification('Product to clear saved!', 'success'); closeModal('toClearModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error saving product to clear.', 'error');}
         }
         async function editToClear(id) {
             const item = toClearData.find(p => p.id === id); if (!item) return;
@@ -1566,18 +1587,20 @@
         function searchToClear(term) {
             const lTerm = term.toLowerCase().trim();
             const base = toClearData.filter(i => !i.isDeleted);
-            currentToClearViewData = lTerm ? base.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lTerm))) : base;
+            currentToClearViewData = lTerm ? base.filter(i => 
+                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
+                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
+                (i.product && i.product.toLowerCase().includes(lTerm)) ||
+                (i.category && i.category.toLowerCase().includes(lTerm)) ||
+                (i.expiryDate && i.expiryDate.toLowerCase().includes(lTerm)) ||
+                (item.actionPlan && item.actionPlan.toLowerCase().includes(lTerm))
+            ) : base;
             renderToClearItems();
         }
-        function getSkuForProduct(brand, product) {
+        function getSkuForProduct(brand, product) { // Shared helper
             const item = masterProductsData.find(i => !i.isDeleted && i.brand === brand && i.product === product);
             return item ? item.sku : '';
         }
-        // Old getSupplyStatusClass and getSupplyStatusText are no longer used for 'To Clear' tab.
-        // They can be removed or kept if used elsewhere (not apparent from current code for this tab).
-        // function getSupplyStatusClass(weeksSupply) { ... }
-        // function getSupplyStatusText(weeksSupply) { ... }
-
 
         function renderMasterListItems() {
             const tbody = document.getElementById('master-table'); if(!tbody) return; tbody.innerHTML = '';
@@ -1601,15 +1624,16 @@
             event.preventDefault();
             const id = document.getElementById('editMasterProductId').value;
             const sku = document.getElementById('sku').value.trim(), name = document.getElementById('masterProductName').value.trim(), brand = document.getElementById('masterBrand').value;
-            if (!sku || !name || !brand) { showNotification('SKU, Name, and Brand are required.', 'error'); return; }
-            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) { showNotification('SKU already exists.', 'error'); return; }
-            if (masterProductsData.some(p => p.brand === brand && p.product === name && p.id !== id && !p.isDeleted)) { showNotification('Brand + Product Name combo exists.', 'error'); return; }
+            if (!sku || !name || !brand) { showNotification('SKU, Product Name, and Brand are required.', 'error'); return; }
+            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) { showNotification('This SKU already exists.', 'error'); return; }
+            if (masterProductsData.some(p => p.brand === brand && p.product === name && p.id !== id && !p.isDeleted)) { showNotification('This Brand and Product Name combination already exists.', 'error'); return; }
             const data = {
                 brand, product: name, sku, category: document.getElementById('category').value,
                 description: document.getElementById('description').value, price: parseFloat(document.getElementById('price').value || '0'),
                 isDeleted: false
             };
-            try { await saveDataToFirestore(masterProductsColRef, id, data); showNotification('Master product saved!', 'success'); closeModal('masterProductModal'); await updateLocalData(); } catch (e) {}
+            try { await saveDataToFirestore(masterProductsColRef, id, data); showNotification('Master product saved!', 'success'); closeModal('masterProductModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error saving master product.', 'error');}
         }
         async function editMasterProduct(id) {
             const item = masterProductsData.find(p => p.id === id); if (!item) return;
@@ -1624,7 +1648,13 @@
         function searchMasterList(term) {
             const lTerm = term.toLowerCase().trim();
             const base = masterProductsData.filter(i => !i.isDeleted);
-            currentMasterListViewData = lTerm ? base.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lTerm))) : base;
+            currentMasterListViewData = lTerm ? base.filter(i => 
+                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
+                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
+                (i.product && i.product.toLowerCase().includes(lTerm)) ||
+                (i.category && i.category.toLowerCase().includes(lTerm)) ||
+                (i.description && i.description.toLowerCase().includes(lTerm))
+            ) : base;
             renderMasterListItems();
         }
         function exportMasterList() {
@@ -1644,46 +1674,55 @@
             });
         }
         async function moveToRecycleBin(id, collName) {
-            showConfirmModal('Move to Recycle Bin?', async (confirmed) => {
+            showConfirmModal('Move this item to Recycle Bin?', async (confirmed) => {
                 if (!confirmed) return;
-                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: true }); showNotification('Moved to Recycle Bin!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error moving item.', 'error'); }
+                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: true }); showNotification('Item moved to Recycle Bin!', 'success'); await updateLocalData(); }
+                catch (e) { showNotification('Error moving item to Recycle Bin.', 'error'); }
             });
         }
         async function restoreItem(id, collName) {
             showConfirmModal('Restore this item?', async (confirmed) => {
                 if (!confirmed) return;
-                const itemToRestore = deletedItemsData.find(i => i.id === id && i.originalCollection === collName); if (!itemToRestore) { showNotification('Item not found.', 'error'); return; }
-                // SKU conflict check for master_products & new_products before restoring
-                if ((collName === 'master_products' && masterProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id)) ||
-                    (collName === 'new_products' && newProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id))) {
-                     showNotification(`Cannot restore: SKU ${itemToRestore.sku} already active in ${collName}.`, 'error'); return;
+                const itemToRestore = deletedItemsData.find(i => i.id === id && i.originalCollection === collName); 
+                if (!itemToRestore) { showNotification('Item not found for restoration.', 'error'); return; }
+                
+                if (itemToRestore.sku && (collName === 'master_products' || collName === 'new_products')) {
+                    const isActiveInMaster = masterProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id);
+                    const isActiveInNew = newProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id);
+                    if ((collName === 'master_products' && isActiveInMaster) || (collName === 'new_products' && isActiveInNew)) {
+                         showNotification(`Cannot restore: SKU ${itemToRestore.sku} already exists in an active item in ${collName}. Please resolve conflict first.`, 'error'); return;
+                    }
                 }
-                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: false }); showNotification('Item restored!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error restoring item.', 'error'); }
+                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: false }); showNotification('Item restored successfully!', 'success'); await updateLocalData(); }
+                catch (e) { showNotification('Error restoring item.', 'error'); console.error("Restore error:", e); }
             });
         }
         async function deleteItemPermanently(id, collName) {
-            showConfirmModal('PERMANENTLY DELETE this item?', async (confirmed) => {
+            showConfirmModal('WARNING: This will PERMANENTLY DELETE this item. Are you sure?', async (confirmed) => {
                 if (!confirmed) return;
                 try { await db.collection(collName).doc(id).delete(); showNotification('Item permanently deleted!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error deleting item.', 'error'); }
+                catch (e) { showNotification('Error permanently deleting item.', 'error'); }
             });
         }
         async function emptyRecycleBin() {
-            showConfirmModal('PERMANENTLY DELETE ALL items in Recycle Bin?', async (confirmed) => {
-                if (!confirmed) return; if (deletedItemsData.length === 0) { showNotification('Recycle Bin empty.', 'info'); return; }
-                const batch = db.batch(); let count = 0;
-                deletedItemsData.forEach(item => { batch.delete(db.collection(item.originalCollection).doc(item.id)); count++; });
-                if (count > 0) {
-                    try { await batch.commit(); showNotification(`Deleted ${count} items.`, 'success'); await updateLocalData(); }
-                    catch (e) { showNotification('Error emptying recycle bin.', 'error'); }
+            showConfirmModal('WARNING: This will PERMANENTLY DELETE ALL items in the Recycle Bin. Are you sure?', async (confirmed) => {
+                if (!confirmed) return; if (deletedItemsData.length === 0) { showNotification('Recycle Bin is already empty.', 'info'); return; }
+                const batch = db.batch(); let deleteCount = 0;
+                deletedItemsData.forEach(item => { batch.delete(db.collection(item.originalCollection).doc(item.id)); deleteCount++; });
+                if (deleteCount > 0) {
+                    try { await batch.commit(); showNotification(`Successfully deleted ${deleteCount} items permanently.`, 'success'); await updateLocalData(); }
+                    catch (e) { showNotification('Error emptying recycle bin.', 'error'); console.error("Empty recycle bin error:", e); }
                 }
             });
         }
         function searchRecycleBin(term) {
             const lTerm = term.toLowerCase().trim();
-            currentRecycleBinViewData = lTerm ? deletedItemsData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lTerm))) : [...deletedItemsData];
+            currentRecycleBinViewData = lTerm ? deletedItemsData.filter(i => 
+                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
+                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
+                (i.product && i.product.toLowerCase().includes(lTerm)) ||
+                (i.originalCollection && i.originalCollection.toLowerCase().includes(lTerm))
+            ) : [...deletedItemsData];
             renderRecycleBinItems();
         }
 
@@ -1693,25 +1732,28 @@
 
         async function saveNewBrand(event) {
             event.preventDefault(); const name = document.getElementById('newBrandName').value.trim();
-            if (!name) { showNotification('Brand name empty.', 'error'); return; }
-            if (brandsData.some(b => b.name.toLowerCase() === name.toLowerCase())) { showNotification('Brand exists.', 'error'); return; }
-            try { await saveDataToFirestore(brandsColRef, null, { name, isDeleted: false }); showNotification('Brand added!', 'success'); closeModal('addBrandModal'); await updateLocalData(); } catch (e) {}
+            if (!name) { showNotification('Brand name cannot be empty.', 'error'); return; }
+            if (brandsData.some(b => b.name.toLowerCase() === name.toLowerCase())) { showNotification('This brand already exists.', 'error'); return; }
+            try { await saveDataToFirestore(brandsColRef, null, { name, isDeleted: false }); showNotification('Brand added successfully!', 'success'); closeModal('addBrandModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error adding brand.', 'error');}
         }
         async function saveNewStatus(event) {
             event.preventDefault(); const name = document.getElementById('newStatusName').value.trim();
-            if (!name) { showNotification('Status name empty.', 'error'); return; }
-            if (statusesData.some(s => s.name.toLowerCase() === name.toLowerCase())) { showNotification('Status exists.', 'error'); return; }
-            try { await saveDataToFirestore(statusesColRef, null, { name, isDeleted: false }); showNotification('Status added!', 'success'); closeModal('addStatusModal'); await updateLocalData(); } catch (e) {}
+            if (!name) { showNotification('Status name cannot be empty.', 'error'); return; }
+            if (statusesData.some(s => s.name.toLowerCase() === name.toLowerCase())) { showNotification('This status already exists.', 'error'); return; }
+            try { await saveDataToFirestore(statusesColRef, null, { name, isDeleted: false }); showNotification('Status added successfully!', 'success'); closeModal('addStatusModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error adding status.', 'error');}
         }
         async function saveNewCategory(event) {
             event.preventDefault(); const name = document.getElementById('newCategoryName').value.trim();
-            if (!name) { showNotification('Category name empty.', 'error'); return; }
-            if (categoriesData.some(c => c.name.toLowerCase() === name.toLowerCase())) { showNotification('Category exists.', 'error'); return; }
-            try { await saveDataToFirestore(categoriesColRef, null, { name, isDeleted: false }); showNotification('Category added!', 'success'); closeModal('addCategoryModal'); await updateLocalData(); } catch (e) {}
+            if (!name) { showNotification('Category name cannot be empty.', 'error'); return; }
+            if (categoriesData.some(c => c.name.toLowerCase() === name.toLowerCase())) { showNotification('This category already exists.', 'error'); return; }
+            try { await saveDataToFirestore(categoriesColRef, null, { name, isDeleted: false }); showNotification('Category added successfully!', 'success'); closeModal('addCategoryModal'); await updateLocalData(); } 
+            catch (e) { showNotification('Error adding category.', 'error');}
         }
 
         async function exportAllData() {
-            if (typeof JSZip === 'undefined') { showNotification('JSZip not loaded.', 'error'); return; }
+            if (typeof JSZip === 'undefined') { showNotification('JSZip library not loaded. Cannot export.', 'error'); return; }
             const collections = {
                 inventory: inventoryData.filter(i => !i.isDeleted), new_products: newProductsData.filter(i => !i.isDeleted),
                 to_clear: toClearData.filter(i => !i.isDeleted), master_products: masterProductsData.filter(i => !i.isDeleted),
@@ -1719,32 +1761,45 @@
             };
             let zip = new JSZip();
             for (const name in collections) {
-                const data = collections[name].map(item => { const { id, isDeleted, ...rest } = item; return rest; });
+                const data = collections[name].map(item => { const { id, isDeleted, ...rest } = item; return rest; }); // Exclude id and isDeleted from export
                 if (data.length === 0) continue;
-                const headers = Object.keys(data[0]);
+                const headers = Object.keys(data[0] || {});
+                if (headers.length === 0) continue; // Skip if no headers (e.g. empty array of empty objects)
                 let csv = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
-                csv += data.map(row => headers.map(h => `"${String(row[h] !== undefined ? row[h] : '').replace(/"/g, '""')}"`).join(',')).join('\n');
+                csv += data.map(row => headers.map(h => `"${String(row[h] !== undefined && row[h] !== null ? row[h] : '').replace(/"/g, '""')}"`).join(',')).join('\n');
                 zip.file(`${name}.csv`, csv);
             }
-            try { const content = await zip.generateAsync({ type: "blob" }); downloadCSV(content, 'all_inventory_data.zip', true); showNotification('All data exported!', 'success'); }
-            catch (e) { showNotification('Error exporting data.', 'error'); }
+            try { const content = await zip.generateAsync({ type: "blob" }); downloadCSV(content, 'all_inventory_data.zip', true); showNotification('All data exported as ZIP!', 'success'); }
+            catch (e) { showNotification('Error exporting all data.', 'error'); console.error("Export all error:", e);}
         }
         async function loadSampleData() {
-            showNotification('Loading sample data...', 'info');
+            showNotification('Loading sample data... This may take a moment.', 'info');
             const sBrands = [{ name: 'BrandX',isD:0 },{ name: 'BrandY',isD:0 },{ name: 'BrandZ',isD:0 },{ name: 'BrandA',isD:0 },{ name: 'BrandB',isD:0 },{ name: 'BrandC',isD:0 }].map(b=>({...b,isDeleted:!!b.isD}));
             const sStatuses = [{ name: 'OOS',isD:0 },{ name: 'Low stock',isD:0 },{ name: 'In stock',isD:0 }].map(s=>({...s,isDeleted:!!s.isD}));
             const sCats = [{ name: 'Electronics',isD:0 },{ name: 'Accessories',isD:0 },{ name: 'Smart Home',isD:0 },{ name: 'Office Furniture',isD:0 }].map(c=>({...c,isDeleted:!!c.isD}));
             const sMaster = [
-                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', cat: 'Electronics', desc: 'High performance', price: 1200,isD:0 },
-                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', cat: 'Accessories', desc: 'Ergonomic', price: 25,isD:0 },
-                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', cat: 'Smart Home', desc: 'Voice activated', price: 99,isD:0 }
-            ].map(p=>({category:p.cat,description:p.desc,isDeleted:!!p.isD,...p}));
+                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', category: 'Electronics', description: 'High performance laptop', price: 1200,isD:0 },
+                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', category: 'Accessories', description: 'Ergonomic wireless mouse', price: 25,isD:0 },
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', category: 'Accessories', description: 'RGB Mechanical Keyboard', price: 80,isD:0 },
+                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', category: 'Smart Home', description: 'Voice activated smart speaker', price: 99,isD:0 },
+                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', category: 'Office Furniture', description: 'Adjustable ergonomic office chair', price: 350,isD:0 },
+                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category: 'Electronics', description: '1080p LED Monitor', price: 150,isD:0 },
+                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category: 'Electronics', description: 'Compact Android Tablet', price: 100,isD:0 }
+            ].map(p=>({...p,isDeleted:!!p.isD}));
             const sInv = [
-                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', qty: 5, status: 'Low stock',isD:0 },
-                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', qty: 0, status: 'OOS',isD:0 }
-            ].map(i=>({quantity:i.qty,isDeleted:!!i.isD,...i}));
-            const sNewP = [{ brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrival: '2025-07-15', qty: 50, notes: 'New model', added: '2025-06-01',isD:0 }].map(p=>({arrivalDate:p.arrival,quantity:p.qty,addedDate:p.added,isDeleted:!!p.isD,...p}));
-            const sClear = [{ brand: 'BrandB', product: 'Old Monitor', sku: 'OSM6006', cat:'Electronics', expiry: '2025-08-31', firstH: '2025-06-01', firstRB: 20, whQty:10, sQty:5, wkDmd:3, plan:'Promo',isD:0 }].map(p=>({category:p.cat,expiryDate:p.expiry,firstHighlightedDate:p.firstH,firstReportedBalance:p.firstRB,warehouseQty:p.whQty,storeQty:p.sQty,weeklyDemand:p.wkDmd,actionPlan:p.plan,isDeleted:!!p.isD,...p}));
+                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock',isD:0 },
+                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', quantity: 0, status: 'OOS',isD:0 },
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', quantity: 20, status: 'In stock',isD:0 }
+            ].map(i=>({...i,isDeleted:!!i.isD}));
+            const sNewP = [
+                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrivalDate: '2025-07-15', quantity: 50, notes: 'New model launch', addedDate: '2025-06-01',isD:0 },
+                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', arrivalDate: '2025-07-20', quantity: 15, notes: '', addedDate: '2025-06-05',isD:0 }
+            ].map(p=>({...p,isDeleted:!!p.isD}));
+            const sClear = [
+                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category:'Electronics', expiryDate: '2025-08-31', firstHighlightedDate: '2025-06-01', firstReportedBalance: 20, warehouseQty:10, storeQty:5, weeklyDemand:3, actionPlan:'Promo',isD:0 },
+                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category:'Electronics', expiryDate: '2025-09-30', firstHighlightedDate: '2025-06-10', firstReportedBalance: 5, warehouseQty:1, storeQty:2, weeklyDemand:1, actionPlan:'Clearance',isD:0 }
+            ].map(p=>({...p,isDeleted:!!p.isD}));
+            
             const colls = [
                 {r:brandsColRef,d:sBrands},{r:statusesColRef,d:sStatuses},{r:categoriesColRef,d:sCats},
                 {r:masterProductsColRef,d:sMaster},{r:inventoryColRef,d:sInv},
@@ -1753,10 +1808,10 @@
             try {
                 for (const {r} of colls) { const snap = await r.get(); const b = db.batch(); snap.docs.forEach(d=>b.delete(d.ref)); if(snap.docs.length>0) await b.commit(); }
                 const b = db.batch(); colls.forEach(({r,d}) => d.forEach(i => b.set(r.doc(), i))); await b.commit();
-                showNotification('Sample data loaded!', 'success'); await updateLocalData();
-            } catch (e) { console.error("Error loading sample data:", e); showNotification('Error loading samples.', 'error');}
+                showNotification('Sample data loaded successfully!', 'success'); await updateLocalData();
+            } catch (e) { console.error("Error loading sample data:", e); showNotification('Error loading sample data. Check console.', 'error');}
         }
-        function confirmLoadSampleData() { showConfirmModal('DELETE ALL data and load samples?', async c => { if(c) await loadSampleData(); }); }
+        function confirmLoadSampleData() { showConfirmModal('WARNING: This will DELETE ALL existing data and load sample data. Are you sure?', async c => { if(c) await loadSampleData(); }); }
 
         function sortTable(key, col) {
             const s = sortState[key];
@@ -1770,7 +1825,13 @@
             return [...arr].sort((a,b) => {
                 let vA = a[col], vB = b[col];
                 if (sortState.toClear.column === 'totalQty' && col === 'totalQty') { vA = (Number(a.warehouseQty)||0)+(Number(a.storeQty)||0); vB = (Number(b.warehouseQty)||0)+(Number(b.storeQty)||0); }
-                else if (sortState.toClear.column === 'weeksSupply' && col === 'weeksSupply') { const tA=(Number(a.warehouseQty)||0)+(Number(a.storeQty)||0), tB=(Number(b.warehouseQty)||0)+(Number(b.storeQty)||0); vA=(Number(a.weeklyDemand)||0)>0?tA/Number(a.weeklyDemand):(dir==='asc'?Infinity:-Infinity); vB=(Number(b.weeklyDemand)||0)>0?tB/Number(b.weeklyDemand):(dir==='asc'?Infinity:-Infinity); }
+                else if (sortState.toClear.column === 'weeksSupply' && col === 'weeksSupply') { const tA=(Number(a.warehouseQty)||0)+(Number(a.storeQty)||0), tB=(Number(b.warehouseQty)||0)+(Number(b.storeQty)||0); const wdA=Number(a.weeklyDemand)||0, wdB=Number(b.weeklyDemand)||0; vA=wdA>0?tA/wdA:(dir==='asc'?Infinity:-Infinity); vB=wdB>0?tB/wdB:(dir==='asc'?Infinity:-Infinity); }
+                else if (sortState.toClear.column === 'supplyStatus' && col === 'supplyStatus') { // For sorting by new supply status text
+                    vA = getNewSupplyStatus(a).text;
+                    vB = getNewSupplyStatus(b).text;
+                }
+
+
                 const aU=(vA===undefined||vA===null||vA==='N/A'||(typeof vA==='number'&&isNaN(vA))), bU=(vB===undefined||vB===null||vB==='N/A'||(typeof vB==='number'&&isNaN(vB)));
                 if(aU&&bU)return 0; if(aU)return dir==='asc'?1:-1; if(bU)return dir==='asc'?-1:1;
                 if(typeof vA==='string'&&typeof vB==='string'){ if(/^\d{4}-\d{2}-\d{2}$/.test(vA)&&/^\d{4}-\d{2}-\d{2}$/.test(vB)) return dir==='asc'?vA.localeCompare(vB):vB.localeCompare(vA); const nA=parseFloat(vA),nB=parseFloat(vB); if(!isNaN(nA)&&!isNaN(nB)&&String(nA)===vA&&String(nB)===vB) return dir==='asc'?nA-nB:nB-nA; return dir==='asc'?vA.localeCompare(vB):vB.localeCompare(vA); }
@@ -1796,7 +1857,7 @@
             const oos = inventoryData.filter(i=>!i.isDeleted&&i.status==='OOS').slice(0,5);
             const low = inventoryData.filter(i=>!i.isDeleted&&i.status&&i.status.toLowerCase().includes('low stock')).slice(0,5);
             const today=new Date(); today.setUTCHours(0,0,0,0); const ninety=new Date(today); ninety.setUTCDate(today.getUTCDate()+90);
-            const expiring = toClearData.filter(i=>{ if(!i.isDeleted&&i.expiryDate){ try{const ed=new Date(i.expiryDate+"T00:00:00Z"); if(isNaN(ed.getTime())) return false; return ed>=today&&ed<=ninety;}catch(e){return false;}} return false; }).sort((a,b)=>new Date(a.expiryDate+"T00:00:00Z")-new Date(b.expiryDate+"T00:00:00Z")).slice(0,5);
+            const expiring = toClearData.filter(i=>{ if(!i.isDeleted&&i.expiryDate){ try{const parts=i.expiryDate.split('-'); const ed=new Date(Date.UTC(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]))); if(isNaN(ed.getTime())) return false; return ed>=today&&ed<=ninety;}catch(e){return false;}} return false; }).sort((a,b)=>new Date(Date.UTC(...a.expiryDate.split('-').map((p,idx)=>idx===1?parseInt(p)-1:parseInt(p))))-new Date(Date.UTC(...b.expiryDate.split('-').map((p,idx)=>idx===1?parseInt(p)-1:parseInt(p))))).slice(0,5);
             if(oos.length>0) content+=`<h4>Out of Stock:</h4><ul>${oos.map(i=>`<li><span class="status-badge oos">OOS</span> ${i.product||'N/A'} (${i.brand||'N/A'})</li>`).join('')}</ul>`;
             if(low.length>0) content+=`<h4>Low Stock:</h4><ul>${low.map(i=>`<li><span class="status-badge low">Low</span> ${i.product||'N/A'} (${i.brand||'N/A'}) - Qty: ${i.quantity}</li>`).join('')}</ul>`;
             if(expiring.length>0) content+=`<h4>Expiring Soon (90d):</h4><ul>${expiring.map(i=>`<li><span class="status-badge alert-status">Expiring</span> ${i.product||'N/A'} (${i.brand||'N/A'}) - Exp: ${i.expiryDate}</li>`).join('')}</ul>`;
@@ -1825,25 +1886,32 @@
                 const text = e.target.result, lines = text.split(/\r\n|\n/).filter(l=>l.trim()!=='');
                 if (lines.length < 2) { showNotification('CSV empty/invalid.', 'error'); event.target.value=''; return; }
                 const headers = lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
-                const reqH = ['product code','brand','product name']; if (reqH.some(rh=>!headers.includes(rh))) { showNotification(`CSV missing: ${reqH.filter(rh=>!headers.includes(rh)).join(',')}.`, 'error'); event.target.value=''; return; }
+                const reqH = ['product code','brand','product name']; if (reqH.some(rh=>!headers.includes(rh))) { showNotification(`CSV missing: ${reqH.filter(rh=>!headers.includes(rh)).join(',')}. Required: 'product code', 'brand', 'product name'.`, 'error'); event.target.value=''; return; }
                 const hMap = {'product code':'sku','brand':'brand','product name':'product','category':'category','description':'description','price':'price'};
-                let data = [], skusInCSV = new Set();
+                let dataToImport = [], skusInCSV = new Set();
                 for (let i=1; i<lines.length; i++) {
                     const vals = lines[i].split(',').map(v=>v.trim().replace(/"/g,''));
-                    if(vals.length !== headers.length) { console.warn(`Row ${i+1} mismatch.`); continue; }
-                    let item = {isDeleted:false}, valid=true, sku='';
-                    headers.forEach((h,idx)=>{ const fN=hMap[h.toLowerCase()]; if(fN){ let v=vals[idx]; if(fN==='price')item[fN]=parseFloat(v)||0; else if(fN==='sku'){sku=v.trim(); if(!sku)valid=false; else item[fN]=sku;} else item[fN]=v;}});
-                    if(!item.brand||!item.product)valid=false;
-                    if(valid&&sku){ if(skusInCSV.has(sku)){console.warn(`CSV duplicate SKU ${sku}`);valid=false;} else {skusInCSV.add(sku);data.push(item);}}
+                    if(vals.length !== headers.length) { console.warn(`Row ${i+1} column mismatch. Skipping.`); continue; }
+                    let item = {isDeleted:false}, isValidRow=true, currentSkuInRow='';
+                    headers.forEach((h,idx)=>{ const fieldName=hMap[h.toLowerCase()]; if(fieldName){ let val=vals[idx]; if(fieldName==='price')item[fieldName]=parseFloat(val)||0; else if(fieldName==='sku'){currentSkuInRow=val.trim(); if(!currentSkuInRow){console.warn(`Row ${i+1} missing SKU. Skipping.`);isValidRow=false;} else item[fieldName]=currentSkuInRow;} else item[fieldName]=val;}});
+                    if(!item.brand||!item.product){ console.warn(`Row ${i+1} missing Brand or Product Name. Skipping.`); isValidRow=false;}
+                    if(isValidRow&&currentSkuInRow){ if(skusInCSV.has(currentSkuInRow)){console.warn(`Row ${i+1}: Duplicate SKU '${currentSkuInRow}' in CSV. Skipping.`);isValidRow=false;} else {skusInCSV.add(currentSkuInRow);dataToImport.push(item);}}
                 }
-                if(data.length===0){showNotification('No valid data in CSV.', 'error');event.target.value='';return;}
-                showConfirmModal(`Import ${data.length} items (add/update Master List)?`, async c => {
-                    if(c){let nC=0,uC=0;const b=db.batch();data.forEach(i=>{const ex=masterProductsData.find(mp=>mp.sku===i.sku&&!mp.isDeleted);if(ex){b.set(masterProductsColRef.doc(ex.id),i,{merge:true});uC++;}else{b.set(masterProductsColRef.doc(),i);nC++;}});
-                        if(nC>0||uC>0){try{await b.commit();showNotification(`Imported: ${nC} new, ${uC} updated.`, 'success');await updateLocalData();}catch(er){showNotification('CSV import commit error.', 'error');}}else showNotification('No items imported.', 'info');}
+                if(dataToImport.length===0){showNotification('No valid data found in CSV to import.', 'error');event.target.value='';return;}
+                showConfirmModal(`Found ${dataToImport.length} valid items. Import will add new or update existing in Master List by SKU. Continue?`, async confirmed => {
+                    if(confirmed){let newCount=0,updatedCount=0;const batch=db.batch();
+                        for(const item of dataToImport){
+                            const existing = masterProductsData.find(mp=>mp.sku===item.sku&&!mp.isDeleted);
+                            if(existing){batch.set(masterProductsColRef.doc(existing.id),item,{merge:true});updatedCount++;}
+                            else{batch.set(masterProductsColRef.doc(),item);newCount++;}
+                        }
+                        if(newCount>0||updatedCount>0){try{await batch.commit();showNotification(`Imported: ${newCount} new, ${updatedCount} updated.`, 'success');await updateLocalData();}catch(er){showNotification('CSV import commit error. Check console.', 'error'); console.error("CSV Import Batch Error:", er);}}
+                        else showNotification('No items were imported (all might be existing without changes or invalid).', 'info');
+                    }
                     event.target.value='';
                 });
             };
-            reader.onerror = () => { showNotification('Error reading CSV.', 'error'); event.target.value=''; };
+            reader.onerror = () => { showNotification('Error reading CSV file.', 'error'); event.target.value=''; };
             reader.readAsText(file);
         }
 
