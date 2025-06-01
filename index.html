@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
+    <title>Inventory Management System</title>
     <style>
         /* General Reset */
         * {
@@ -14,7 +14,7 @@
 
         /* Body Styling */
         body {
-            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -601,7 +601,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Inventory Management</h1>
+        <h1>Inventory Management System</h1>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
@@ -981,7 +981,7 @@
 
     <div id="addCategoryModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('addCategoryModal')">&times;</span>
+            <span class="close" onclick="closeModal('addCategory')">&times;</span>
             <h2>Add New Category</h2>
             <form onsubmit="saveNewCategory(event)">
                 <div class="form-group">
@@ -1729,7 +1729,7 @@
                                 product: item.product,
                                 sku: item.sku,
                                 quantity: item.quantity,
-                                status: '', // Default status
+                                status: 'In stock', // Default status
                                 shipment: '',
                                 remarks: `Added from New Products (Approved: ${new Date().toISOString().split('T')[0]})`,
                                 isDeleted: false,
@@ -1786,7 +1786,7 @@
                             const inventoryProductRef = inventoryColRef.doc(); 
                             const inventoryProductData = {
                                 brand: item.brand, product: item.product, sku: item.sku,
-                                quantity: item.quantity, status: '', shipment: '',
+                                quantity: item.quantity, status: 'In stock', shipment: '',
                                 remarks: `Added from New Products (Batch Merge: ${new Date().toISOString().split('T')[0]})`,
                                 isDeleted: false, expiry: ''
                             };
@@ -2392,6 +2392,7 @@
         }
 
         function showAddCategoryModal() {
+            // Corrected the ID to 'addCategoryModal'
             document.getElementById('addCategoryModal').querySelector('form').reset();
             openModal('addCategoryModal');
         }
@@ -2593,7 +2594,7 @@
                 { name: 'BrandA', isDeleted: false }, { name: 'BrandB', isDeleted: false }, { name: 'BrandC', isDeleted: false }
             ];
             const sampleStatuses = [
-                { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }
+                { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }, { name: 'In stock', isDeleted: false }
             ];
             const sampleCategories = [
                 { name: 'Electronics', isDeleted: false }, { name: 'Accessories', isDeleted: false },
@@ -2611,7 +2612,8 @@
             const sampleInventory = [
                 { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock', expiry: '', shipment: 'SHP001', remarks: '', isDeleted: false },
                 { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', quantity: 0, status: 'OOS', expiry: '', shipment: 'SHP002', remarks: 'Awaiting restock', isDeleted: false },
-                ;
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', quantity: 20, status: 'In stock', expiry: '', shipment: 'SHP003', remarks: '', isDeleted: false }
+            ];
             const sampleNewProducts = [
                 { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrivalDate: '2025-06-15', quantity: 50, notes: 'New model launch', addedDate: '2025-05-20', isDeleted: false },
                 { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', arrivalDate: '2025-06-20', quantity: 15, notes: '', addedDate: '2025-05-25', isDeleted: false }
