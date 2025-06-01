@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management System</title>
+    <title>Inventory Management</title>
     <style>
         /* General Reset */
         * {
@@ -14,7 +14,7 @@
 
         /* Body Styling */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -601,12 +601,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Inventory Management System</h1>
-        <p class="subtitle">Professional Inventory Tracking & Management Solution</p>
+        <h1>Inventory Management</h1>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="switchTab(this, 'oos-lowstock')">� OOS/LOW STOCK</div>
+            <div class="tab" onclick="switchTab(this, 'oos-lowstock')"> OOS/LOW STOCK</div>
             <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
             <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
             <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
@@ -1730,7 +1729,7 @@
                                 product: item.product,
                                 sku: item.sku,
                                 quantity: item.quantity,
-                                status: 'In stock', // Default status
+                                status: '', // Default status
                                 shipment: '',
                                 remarks: `Added from New Products (Approved: ${new Date().toISOString().split('T')[0]})`,
                                 isDeleted: false,
@@ -1787,7 +1786,7 @@
                             const inventoryProductRef = inventoryColRef.doc(); 
                             const inventoryProductData = {
                                 brand: item.brand, product: item.product, sku: item.sku,
-                                quantity: item.quantity, status: 'In stock', shipment: '',
+                                quantity: item.quantity, status: '', shipment: '',
                                 remarks: `Added from New Products (Batch Merge: ${new Date().toISOString().split('T')[0]})`,
                                 isDeleted: false, expiry: ''
                             };
@@ -2473,6 +2472,70 @@
 
 
         // Management Tab Functions
+        // Helper function to get data and headers for a specific table
+        function getTableDataForExport(tableKey, dataArray) {
+            let headers = [];
+            let rows = [];
+
+            if (tableKey === 'inventory') {
+                headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment", "Remarks"];
+                rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
+                    item.sku || '',
+                    item.brand || '',
+                    item.product || '',
+                    item.quantity !== undefined ? item.quantity : '',
+                    item.status || '',
+                    item.shipment || '',
+                    item.remarks || ''
+                ]);
+            } else if (tableKey === 'new_products') {
+                headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => [
+                    item.sku || '',
+                    item.brand || '',
+                    item.product || '',
+                    item.addedDate || '',
+                    item.arrivalDate || '',
+                    item.quantity !== undefined ? item.quantity : '',
+                    item.notes || ''
+                ]);
+            } else if (tableKey === 'to_clear') {
+                headers = ["Product Code", "Brand", "Product", "Category", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Action Plan"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
+                    const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                    const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+                    const supplyStatusText = getSupplyStatusText(item); // Re-use existing function for status text
+                    return [
+                        item.sku || '',
+                        item.brand || '',
+                        item.product || '',
+                        item.category || '',
+                        item.expiryDate || '',
+                        item.firstHighlightedDate || '',
+                        item.firstReportedBalance !== undefined ? item.firstReportedBalance : '',
+                        item.warehouseQty !== undefined ? item.warehouseQty : '',
+                        item.storeQty !== undefined ? item.storeQty : '',
+                        totalQty,
+                        item.weeklyDemand !== undefined ? item.weeklyDemand : '',
+                        weeksSupply,
+                        supplyStatusText,
+                        item.actionPlan || ''
+                    ];
+                });
+            } else if (tableKey === 'master_products') {
+                headers = ["Product Code", "Brand", "Product Name", "Category", "Description", "Price"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => [
+                    item.sku || '',
+                    item.brand || '',
+                    item.product || '',
+                    item.category || '',
+                    item.description || '',
+                    item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
+                ]);
+            }
+            return { headers, rows };
+        }
+
         async function exportAllData() {
             if (typeof JSZip === 'undefined') {
                 showNotification('Data export library (JSZip) is not loaded. Please try again in a moment or check console.', 'error');
@@ -2480,33 +2543,29 @@
                 return;
             }
 
-            const allCollections = {
-                inventory: inventoryData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                new_products: newProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                to_clear: toClearData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                master_products: masterProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                brands: brandsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }), // Assuming brandsData is already filtered for non-deleted
-                statuses: statusesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                categories: categoriesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
-                deleted_items: deletedItemsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }) 
-            };
-
             let zip = new JSZip();
 
-            for (const collectionName in allCollections) {
-                const data = allCollections[collectionName];
-                if (data.length === 0) continue;
+            // Define the collections to export and their corresponding data arrays
+            const collectionsToExport = [
+                { key: 'inventory', data: inventoryData, fileName: 'oos_low_stock_products.csv' },
+                { key: 'new_products', data: newProductsData, fileName: 'new_products.csv' },
+                { key: 'to_clear', data: toClearData, fileName: 'to_clear_products.csv' },
+                { key: 'master_products', data: masterProductsData, fileName: 'master_list.csv' }
+            ];
 
-                const headers = Object.keys(data[0]);
+            for (const collectionInfo of collectionsToExport) {
+                const { headers, rows } = getTableDataForExport(collectionInfo.key, collectionInfo.data);
+                
+                if (rows.length === 0) {
+                    console.log(`No data to export for ${collectionInfo.fileName}. Skipping.`);
+                    continue;
+                }
+
                 let csvContent = headers.map(header => `"${String(header).replace(/"/g, '""')}"`).join(',') + '\n';
-                data.forEach(item => {
-                    const row = headers.map(header => {
-                        const value = item[header];
-                        return `"${String(value !== undefined && value !== null ? value : '').replace(/"/g, '""')}"`;
-                    }).join(',');
-                    csvContent += row + '\n';
+                rows.forEach(row => {
+                    csvContent += row.map(field => `"${String(field !== undefined && field !== null ? field : '').replace(/"/g, '""')}"`).join(',') + '\n';
                 });
-                zip.file(`${collectionName}.csv`, csvContent);
+                zip.file(collectionInfo.fileName, csvContent);
             }
 
             try {
@@ -2514,12 +2573,12 @@
                 const url = URL.createObjectURL(content);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'all_inventory_data.zip';
+                a.download = 'inventory_reports.zip'; // Changed zip file name
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a); 
                 URL.revokeObjectURL(url);
-                showNotification('All data exported as ZIP!', 'success');
+                showNotification('Selected data exported as ZIP!', 'success');
             } catch (e) {
                 console.error("Error generating zip file:", e);
                 showNotification('Error exporting all data.', 'error');
@@ -2534,7 +2593,7 @@
                 { name: 'BrandA', isDeleted: false }, { name: 'BrandB', isDeleted: false }, { name: 'BrandC', isDeleted: false }
             ];
             const sampleStatuses = [
-                { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }, { name: 'In stock', isDeleted: false }
+                { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }
             ];
             const sampleCategories = [
                 { name: 'Electronics', isDeleted: false }, { name: 'Accessories', isDeleted: false },
@@ -2552,8 +2611,7 @@
             const sampleInventory = [
                 { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock', expiry: '', shipment: 'SHP001', remarks: '', isDeleted: false },
                 { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', quantity: 0, status: 'OOS', expiry: '', shipment: 'SHP002', remarks: 'Awaiting restock', isDeleted: false },
-                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', quantity: 20, status: 'In stock', expiry: '', shipment: 'SHP003', remarks: '', isDeleted: false }
-            ];
+                ;
             const sampleNewProducts = [
                 { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrivalDate: '2025-06-15', quantity: 50, notes: 'New model launch', addedDate: '2025-05-20', isDeleted: false },
                 { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', arrivalDate: '2025-06-20', quantity: 15, notes: '', addedDate: '2025-05-25', isDeleted: false }
