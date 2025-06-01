@@ -144,7 +144,7 @@
             box-shadow: 0 15px 35px rgba(243, 156, 18, 0.4);
         }
 
-        .stat-card.info { /* This is for the dashboard stat card */
+        .stat-card.info {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
          .stat-card.info:hover {
@@ -254,31 +254,25 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .oos { /* For OOS/Low Stock Tab */
+        .oos {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         }
 
-        .low { /* For OOS/Low Stock Tab */
+        .low {
             background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
 
-        /* Statuses for "To Clear" Tab based on new logic */
-        .status-badge.normal { /* Normal: Can sell >= 9 months before expiry */
+        .normal {
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
         }
 
-        .status-badge.alert-status { /* Alert: Can sell 6-9 months before expiry */
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-        
-        .status-badge.danger-status { /* Danger: Cannot sell < 6 months before expiry OR Expired OR No demand & will expire */
+        .danger-status {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         }
 
-        .status-badge.info { /* N/A: No expiry date for new logic OR old info badge */
-             background: linear-gradient(135deg, #546e7a 0%, #78909c 100%); /* Grey for N/A */
+        .alert-status {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
         }
-
 
         /* General Buttons */
         button {
@@ -332,6 +326,7 @@
             letter-spacing: 0.3px; /* Adjust letter spacing for smaller font */
             border-radius: 18px; /* Keep pill shape, but ensure it's compact */
             margin: 3px;         /* Spacing between buttons in a cell */
+            /* Inherits general hover effects, no need to redefine transform here unless different behavior is wanted */
         }
 
 
@@ -611,7 +606,7 @@
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
-            <div class="tab" onclick="switchTab(this, 'oos-lowstock')">📦 OOS/LOW STOCK</div>
+            <div class="tab" onclick="switchTab(this, 'oos-lowstock')">� OOS/LOW STOCK</div>
             <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
             <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
             <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
@@ -1007,7 +1002,7 @@
             apiKey: "AIzaSyDo1-y0Vj4XTQeeEUQK_6Y2wqDs94TOAX0", // Replace with your actual API key
             authDomain: "inventory-c3bac.firebaseapp.com",
             projectId: "inventory-c3bac",
-            storageBucket: "inventory-c3bac.appspot.com", 
+            storageBucket: "inventory-c3bac.appspot.com", // Corrected storage bucket
             messagingSenderId: "261015083855",
             appId: "1:261015083855:web:e167f359928eb8ed8cc33a",
             measurementId: "G-V744486L78"
@@ -1017,178 +1012,355 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Global data arrays
-        let inventoryData = [], newProductsData = [], toClearData = [], masterProductsData = [];
-        let deletedItemsData = [], brandsData = [], statusesData = [], categoriesData = [];
-        let currentInventoryViewData = [], currentNewProductsViewData = [], currentToClearViewData = [];
-        let currentMasterListViewData = [], currentRecycleBinViewData = [];
+        // Global data arrays to hold fetched data
+        let inventoryData = [];
+        let newProductsData = [];
+        let toClearData = [];
+        let masterProductsData = [];
+        let deletedItemsData = []; // For Recycle Bin
+        let brandsData = []; 
+        let statusesData = []; 
+        let categoriesData = []; 
 
-        const inventoryColRef = db.collection('inventory'), newProductsColRef = db.collection('new_products');
-        const toClearColRef = db.collection('to_clear'), masterProductsColRef = db.collection('master_products');
-        const brandsColRef = db.collection('brands'), statusesColRef = db.collection('statuses');
+        // Data for current views (used for filtering and sorting)
+        let currentInventoryViewData = [];
+        let currentNewProductsViewData = [];
+        let currentToClearViewData = [];
+        let currentMasterListViewData = [];
+        let currentRecycleBinViewData = [];
+
+        // Firestore collection references
+        const inventoryColRef = db.collection('inventory');
+        const newProductsColRef = db.collection('new_products');
+        const toClearColRef = db.collection('to_clear');
+        const masterProductsColRef = db.collection('master_products');
+        const brandsColRef = db.collection('brands');
+        const statusesColRef = db.collection('statuses');
         const categoriesColRef = db.collection('categories');
 
+        // Sort state for tables
         let sortState = {
-            inventory: { column: null, direction: 'asc' }, newProducts: { column: null, direction: 'asc' },
-            master: { column: null, direction: 'asc' }, toClear: { column: null, direction: 'asc' },
+            inventory: { column: null, direction: 'asc' },
+            newProducts: { column: null, direction: 'asc' },
+            master: { column: null, direction: 'asc' },
+            toClear: { column: null, direction: 'asc' },
             recycleBin: { column: null, direction: 'asc' }
         };
 
+        // --- Notification System ---
         function showNotification(message, type) {
-            const el = document.createElement('div');
-            el.classList.add('alert', `alert-${type}`);
-            el.textContent = message;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
+            const notification = document.createElement('div');
+            notification.classList.add('alert', `alert-${type}`);
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
 
+        // --- Confirmation Modal ---
         let confirmCallback = null;
         function showConfirmModal(message, callback) {
             document.getElementById('confirmMessage').textContent = message;
             document.getElementById('confirmModal').style.display = 'block';
             confirmCallback = callback;
         }
+
         document.getElementById('confirmYes').onclick = () => {
-            if (confirmCallback) confirmCallback(true);
-            document.getElementById('confirmModal').style.display = 'none';
-        };
-        document.getElementById('confirmNo').onclick = () => {
-            if (confirmCallback) confirmCallback(false);
+            if (confirmCallback) {
+                confirmCallback(true);
+            }
             document.getElementById('confirmModal').style.display = 'none';
         };
 
+        document.getElementById('confirmNo').onclick = () => {
+            if (confirmCallback) {
+                confirmCallback(false);
+            }
+            document.getElementById('confirmModal').style.display = 'none';
+        };
+
+
+        // --- Firestore Data Operations ---
         async function fetchDataFromFirestore(collectionRef, includeDeleted = false) {
-            let data = [], query = collectionRef;
-            if (!includeDeleted && ['inventory', 'new_products', 'to_clear', 'master_products'].includes(collectionRef.id)) {
+            let data = [];
+            let query = collectionRef;
+            // For main data collections, filter by isDeleted unless includeDeleted is true
+            if (!includeDeleted && 
+                (collectionRef.id === 'inventory' || 
+                 collectionRef.id === 'new_products' || 
+                 collectionRef.id === 'to_clear' || 
+                 collectionRef.id === 'master_products')) {
                 query = collectionRef.where("isDeleted", "==", false);
             }
+            // For auxiliary collections like brands, statuses, categories, assume they might not all have `isDeleted`
+            // or we fetch all and filter client-side if necessary, based on `isDeleted: false` being standard.
+            // The client-side filter in `updateLocalData` will handle ensuring only non-deleted are used.
+
+
             try {
-                const snapshot = await query.get();
-                snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
-            } catch (e) { console.error(`Error fetching ${collectionRef.id}:`, e); }
+                const querySnapshot = await query.get();
+                querySnapshot.forEach((doc) => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
+            } catch (error) {
+                console.error(`Error fetching data from ${collectionRef.id}:`, error);
+                if (error.code === 'failed-precondition' && !includeDeleted) {
+                    console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console. Query details: where("isDeleted", "==", false)`);
+                } else if (error.code === 'failed-precondition') {
+                     console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console.`);
+                }
+                // Avoid showing notification if it's just a missing index warning during initial setup for auxiliary collections
+                if (!( (collectionRef.id === 'brands' || collectionRef.id === 'statuses' || collectionRef.id === 'categories') && error.code === 'failed-precondition' ) ) {
+                   // showNotification(`Error loading data from ${collectionRef.id}. Check console.`, 'error');
+                }
+            }
             return data;
         }
 
         async function fetchAllDataForRecycleBin() {
-            let items = [];
-            for (const ref of [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef]) {
+            const collectionsToFetchFrom = [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef];
+            let allDeletedItems = [];
+            for (const colRef of collectionsToFetchFrom) {
                 try {
-                    const snapshot = await ref.where("isDeleted", "==", true).get();
-                    snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data(), originalCollection: ref.id }));
-                } catch (e) { console.error(`Error fetching deleted from ${ref.id}:`, e); }
+                    const querySnapshot = await colRef.where("isDeleted", "==", true).get();
+                    querySnapshot.forEach((doc) => {
+                        allDeletedItems.push({ id: doc.id, ...doc.data(), originalCollection: colRef.id });
+                    });
+                } catch (error) {
+                    console.error(`Error fetching deleted items from ${colRef.id}:`, error);
+                    if (error.code === 'failed-precondition') {
+                        console.warn(`Firestore query for deleted items in ${colRef.id} might require an index for 'isDeleted'. Check Firestore console.`);
+                    }
+                }
             }
-            return items;
+            return allDeletedItems;
         }
 
         async function saveDataToFirestore(collectionRef, docId, data) {
             try {
-                if (docId) await collectionRef.doc(docId).update(data);
-                else { const docRef = await collectionRef.add(data); return docRef.id; }
+                if (docId) {
+                    await collectionRef.doc(docId).update(data);
+                } else {
+                    const docRef = await collectionRef.add(data);
+                    return docRef.id;
+                }
                 return docId;
-            } catch (e) { console.error(`Error saving to ${collectionRef.id}:`, e); throw e; }
+            } catch (error) {
+                console.error(`Error saving data to ${collectionRef.id}:`, error);
+                showNotification(`Error saving data to server for ${collectionRef.id}.`, 'error');
+                throw error;
+            }
         }
 
+        // --- Update Local Data & UI ---
         async function updateLocalData() {
-            [inventoryData, newProductsData, toClearData, masterProductsData, deletedItemsData] = await Promise.all([
-                fetchDataFromFirestore(inventoryColRef), fetchDataFromFirestore(newProductsColRef),
-                fetchDataFromFirestore(toClearColRef), fetchDataFromFirestore(masterProductsColRef),
-                fetchAllDataForRecycleBin()
-            ]);
-            const [rawBrands, rawStatuses, rawCategories] = await Promise.all([
-                fetchDataFromFirestore(brandsColRef, true), fetchDataFromFirestore(statusesColRef, true),
-                fetchDataFromFirestore(categoriesColRef, true)
-            ]);
-            brandsData = rawBrands.filter(b => !b.isDeleted);
-            statusesData = rawStatuses.filter(s => !s.isDeleted);
-            categoriesData = rawCategories.filter(c => !c.isDeleted);
+            try {
+                inventoryData = await fetchDataFromFirestore(inventoryColRef);
+                newProductsData = await fetchDataFromFirestore(newProductsColRef);
+                toClearData = await fetchDataFromFirestore(toClearColRef);
+                masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
+                deletedItemsData = await fetchAllDataForRecycleBin();
 
-            currentInventoryViewData = inventoryData.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock'))));
-            currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
-            currentToClearViewData = toClearData.filter(item => !item.isDeleted);
-            currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
-            currentRecycleBinViewData = [...deletedItemsData];
+                // Fetch all brands, statuses, categories, then filter client-side for non-deleted.
+                // This assumes `isDeleted: false` is consistently set when these items are added.
+                const rawBrands = await fetchDataFromFirestore(brandsColRef, true);
+                brandsData = rawBrands.filter(b => b.isDeleted === false || typeof b.isDeleted === 'undefined');
 
-            updateAllTablesAndViews(); updateDashboardStats(); updateAlerts();
-            updateManagementStats(); populateProductDatalists(); setupDynamicDropdowns();
+                const rawStatuses = await fetchDataFromFirestore(statusesColRef, true);
+                statusesData = rawStatuses.filter(s => s.isDeleted === false || typeof s.isDeleted === 'undefined');
+                
+                const rawCategories = await fetchDataFromFirestore(categoriesColRef, true);
+                categoriesData = rawCategories.filter(c => c.isDeleted === false || typeof c.isDeleted === 'undefined');
+
+
+                currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+                currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
+                currentToClearViewData = toClearData.filter(item => !item.isDeleted);
+                currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
+                currentRecycleBinViewData = [...deletedItemsData];
+
+
+                updateAllTablesAndViews();
+                updateDashboardStats();
+                updateAlerts();
+                updateManagementStats();
+                populateProductDatalists();
+                setupDynamicDropdowns();
+            } catch (error) {
+                console.error("Error updating local data from Firestore:", error);
+                showNotification('Error loading data from server. Please check your internet connection or Firebase setup.', 'error');
+            }
         }
+
 
         function updateAllTablesAndViews() {
-            renderInventoryItems(); renderNewProductsItems(); renderMasterListItems();
-            renderToClearItems(); renderRecycleBinItems();
+            renderInventoryItems();
+            renderNewProductsItems();
+            renderMasterListItems();
+            renderToClearItems();
+            renderRecycleBinItems();
         }
 
+        // --- Dynamic Dropdowns ---
         function setupDynamicDropdowns() {
-            ['brand', 'newBrand', 'masterBrand', 'toClearBrand'].forEach(id => populateBrandDropdowns(id));
+            populateBrandDropdowns('brand');
+            populateBrandDropdowns('newBrand');
+            populateBrandDropdowns('masterBrand');
+            populateBrandDropdowns('toClearBrand');
             populateStatusDropdowns('status');
-            ['category', 'toClearCategory'].forEach(id => populateCategoryDropdowns(id));
+            populateCategoryDropdowns('category');
+            populateCategoryDropdowns('toClearCategory');
         }
 
         function populateBrandDropdowns(selectId) {
-            const select = document.getElementById(selectId); if (!select) return;
-            const val = select.value; select.innerHTML = '<option value="">Select Brand</option>';
-            const unique = [...new Set(masterProductsData.filter(i => !i.isDeleted && i.brand).map(i => i.brand))];
-            brandsData.forEach(b => { if (b.name && !unique.includes(b.name)) unique.push(b.name); });
-            unique.sort().forEach(b => select.add(new Option(b, b)));
-            select.add(new Option('+ Add New Brand...', 'add_new_brand'));
-            if (val && unique.includes(val)) select.value = val; else if (val === 'add_new_brand') select.value = '';
-            select.onchange = handleDynamicDropdownChange;
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+
+            const currentValue = selectElement.value; // Store current value before clearing
+            selectElement.innerHTML = '<option value="">Select Brand</option>';
+
+            const uniqueBrandsFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.brand).filter(Boolean))];
+            let allUniqueBrands = [...uniqueBrandsFromMaster];
+            
+            // Use pre-filtered brandsData (non-deleted items)
+            brandsData.forEach(brandDoc => {
+                if (brandDoc.name && !allUniqueBrands.includes(brandDoc.name)) {
+                    allUniqueBrands.push(brandDoc.name);
+                }
+            });
+            allUniqueBrands.sort((a, b) => a.localeCompare(b));
+
+            allUniqueBrands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                selectElement.appendChild(option);
+            });
+
+            const addNewOption = document.createElement('option');
+            addNewOption.value = 'add_new_brand';
+            addNewOption.textContent = '+ Add New Brand...';
+            selectElement.appendChild(addNewOption);
+            
+            // Try to restore previous valid selection
+            if (currentValue && allUniqueBrands.includes(currentValue)) {
+                selectElement.value = currentValue;
+            } else if (currentValue === 'add_new_brand') {
+                selectElement.value = ''; // Reset if "Add New" was selected and modal closed
+            }
+
+
+            selectElement.removeEventListener('change', handleDynamicDropdownChange); 
+            selectElement.addEventListener('change', handleDynamicDropdownChange);
         }
+
         function populateStatusDropdowns(selectId) {
-            const select = document.getElementById(selectId); if (!select) return;
-            const val = select.value; select.innerHTML = '<option value="">Select Status</option>';
-            const unique = [...new Set(inventoryData.filter(i => !i.isDeleted && i.status).map(i => i.status))];
-            statusesData.forEach(s => { if (s.name && !unique.includes(s.name)) unique.push(s.name); });
-            unique.sort().forEach(s => select.add(new Option(s, s)));
-            select.add(new Option('+ Add New Status...', 'add_new_status'));
-            if (val && unique.includes(val)) select.value = val; else if (val === 'add_new_status') select.value = '';
-            select.onchange = handleDynamicDropdownChange;
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+
+            const currentValue = selectElement.value;
+            selectElement.innerHTML = '<option value="">Select Status</option>';
+
+            const uniqueStatusesFromInventory = [...new Set(inventoryData.filter(item => !item.isDeleted).map(item => item.status).filter(Boolean))];
+            let allUniqueStatuses = [...uniqueStatusesFromInventory];
+            statusesData.forEach(statusDoc => { 
+                if (statusDoc.name && !allUniqueStatuses.includes(statusDoc.name)) {
+                    allUniqueStatuses.push(statusDoc.name);
+                }
+            });
+            allUniqueStatuses.sort((a, b) => a.localeCompare(b));
+
+            allUniqueStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                selectElement.appendChild(option);
+            });
+
+            const addNewOption = document.createElement('option');
+            addNewOption.value = 'add_new_status';
+            addNewOption.textContent = '+ Add New Status...';
+            selectElement.appendChild(addNewOption);
+
+            if (currentValue && allUniqueStatuses.includes(currentValue)) {
+                selectElement.value = currentValue;
+            }  else if (currentValue === 'add_new_status') {
+                selectElement.value = ''; 
+            }
+            selectElement.removeEventListener('change', handleDynamicDropdownChange);
+            selectElement.addEventListener('change', handleDynamicDropdownChange);
         }
+
         function populateCategoryDropdowns(selectId) {
-            const select = document.getElementById(selectId); if (!select) return;
-            const val = select.value; select.innerHTML = '<option value="">Select Category</option>';
-            const unique = [...new Set(masterProductsData.filter(i => !i.isDeleted && i.category).map(i => i.category))];
-            categoriesData.forEach(c => { if (c.name && !unique.includes(c.name)) unique.push(c.name); });
-            unique.sort().forEach(c => select.add(new Option(c, c)));
-            select.add(new Option('+ Add New Category...', 'add_new_category'));
-            if (val && unique.includes(val)) select.value = val; else if (val === 'add_new_category') select.value = '';
-            select.onchange = handleDynamicDropdownChange;
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+
+            const currentValue = selectElement.value;
+            selectElement.innerHTML = '<option value="">Select Category</option>';
+
+            const uniqueCategoriesFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.category).filter(Boolean))];
+            let allUniqueCategories = [...uniqueCategoriesFromMaster];
+            categoriesData.forEach(categoryDoc => { 
+                if (categoryDoc.name && !allUniqueCategories.includes(categoryDoc.name)) {
+                    allUniqueCategories.push(categoryDoc.name);
+                }
+            });
+            allUniqueCategories.sort((a, b) => a.localeCompare(b));
+
+            allUniqueCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                selectElement.appendChild(option);
+            });
+
+            const addNewOption = document.createElement('option');
+            addNewOption.value = 'add_new_category';
+            addNewOption.textContent = '+ Add New Category...';
+            selectElement.appendChild(addNewOption);
+
+            if (currentValue && allUniqueCategories.includes(currentValue)) {
+                selectElement.value = currentValue;
+            } else if (currentValue === 'add_new_category') {
+                selectElement.value = ''; 
+            }
+            selectElement.removeEventListener('change', handleDynamicDropdownChange);
+            selectElement.addEventListener('change', handleDynamicDropdownChange);
         }
-        
+
+
         function handleDynamicDropdownChange(event) {
             const selectElement = event.target;
             const selectedOptionValue = selectElement.value;
             
+            // Store the previous valid value, not "add_new_..."
             let previousValue = "";
-            // Find the actual previous value if one was selected, not the placeholder
             for(let i=0; i < selectElement.options.length; i++){
-                if(selectElement.options[i].value === selectElement.dataset.previousValue && // dataset.previousValue would need to be set
-                   !selectElement.options[i].value.startsWith('add_new_')) { 
-                    previousValue = selectElement.options[i].value;
-                    break;
+                if(selectElement.options[i].value !== 'add_new_brand' && 
+                   selectElement.options[i].value !== 'add_new_status' &&
+                   selectElement.options[i].value !== 'add_new_category' &&
+                   selectElement.options[i].selected && selectElement.options[i].value !== selectedOptionValue) { // This logic is a bit off
+                    // A simpler way: when "Add New" is chosen, just open modal. After modal, updateLocalData refreshes everything.
                 }
-            }
-            // Fallback if no specific previous value was stored or found
-            if (!previousValue && selectElement.options.length > 0 && selectElement.options[0].value !== "" && !selectElement.options[0].value.startsWith('add_new_')) {
-                previousValue = selectElement.options[0].value;
             }
 
 
             if (selectedOptionValue === 'add_new_brand') {
                 showAddBrandModal();
-                selectElement.value = previousValue || ""; 
+                // selectElement.value = previousValue; // Attempt to reset, but updateLocalData will handle better
             } else if (selectedOptionValue === 'add_new_status') {
                 showAddStatusModal();
-                selectElement.value = previousValue || "";
+                // selectElement.value = previousValue;
             } else if (selectedOptionValue === 'add_new_category') {
                 showAddCategoryModal();
-                selectElement.value = previousValue || "";
-            }
-            // Store current value for next time, if it's not an "add_new" action
-            if (!selectedOptionValue.startsWith('add_new_')) {
-                selectElement.dataset.previousValue = selectedOptionValue;
+                // selectElement.value = previousValue;
             }
         }
 
+        // --- Product Datalists (for autocomplete) ---
         function populateProductDatalists() {
             const productsDatalist = document.getElementById('productsDatalist');
             const newProductsDatalist = document.getElementById('newProductsDatalist');
@@ -1198,12 +1370,20 @@
             if (newProductsDatalist) newProductsDatalist.innerHTML = '';
             if (toClearProductsDatalist) toClearProductsDatalist.innerHTML = '';
 
-            const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted && item.product).map(item => item.product))].sort();
+            const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.product).filter(Boolean))].sort();
 
             allProductNames.forEach(productName => {
-                if (productsDatalist) productsDatalist.appendChild(new Option(productName));
-                if (newProductsDatalist) newProductsDatalist.appendChild(new Option(productName));
-                if (toClearProductsDatalist) toClearProductsDatalist.appendChild(new Option(productName));
+                const option1 = document.createElement('option');
+                option1.value = productName;
+                if (productsDatalist) productsDatalist.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = productName;
+                if (newProductsDatalist) newProductsDatalist.appendChild(option2);
+
+                const option3 = document.createElement('option');
+                option3.value = productName;
+                if (toClearProductsDatalist) toClearProductsDatalist.appendChild(option3);
             });
         }
 
@@ -1212,38 +1392,47 @@
             const datalist = document.getElementById(datalistId);
             if (!productNameInput || !datalist) return;
 
-            datalist.innerHTML = ''; 
-            const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand && item.product);
-            const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product))].sort();
+            datalist.innerHTML = '';
+            const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand);
+            const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product).filter(Boolean))].sort();
 
             uniqueProductNames.forEach(productName => {
-                datalist.appendChild(new Option(productName));
+                const option = document.createElement('option');
+                option.value = productName;
+                datalist.appendChild(option);
             });
+
             if (productNameInput.value && !uniqueProductNames.includes(productNameInput.value)) {
                 productNameInput.value = '';
             }
         }
 
+        // --- Tab Switching ---
         function switchTab(clickedTab, tabId) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
             clickedTab.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
 
             if (tabId === 'oos-lowstock') {
-                currentInventoryViewData = inventoryData.filter(i => !i.isDeleted && (i.status === 'OOS' || (i.status && i.status.toLowerCase().includes('low stock'))));
+                currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
                 if(document.getElementById('oosSearchInput')) document.getElementById('oosSearchInput').value = '';
                 renderInventoryItems();
             } else if (tabId === 'new-products') {
-                currentNewProductsViewData = newProductsData.filter(i => !i.isDeleted);
+                currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
                 if(document.getElementById('newProductsSearchInput')) document.getElementById('newProductsSearchInput').value = '';
                 renderNewProductsItems();
             } else if (tabId === 'to-clear') {
-                currentToClearViewData = toClearData.filter(i => !i.isDeleted);
-                 if(document.getElementById('toClearSearchInput')) document.getElementById('toClearSearchInput').value = '';
+                currentToClearViewData = toClearData.filter(item => !item.isDeleted);
+                if(document.getElementById('toClearSearchInput')) document.getElementById('toClearSearchInput').value = '';
                 renderToClearItems();
             } else if (tabId === 'master-list') {
-                currentMasterListViewData = masterProductsData.filter(i => !i.isDeleted);
+                currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
                 if(document.getElementById('masterListSearchInput')) document.getElementById('masterListSearchInput').value = '';
                 renderMasterListItems();
             } else if (tabId === 'recycle-bin') {
@@ -1253,251 +1442,403 @@
             }
         }
 
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'block'; }
+        // --- Modals ---
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
-                modal.style.display = 'none';
+                 modal.style.display = 'none';
                 const form = modal.querySelector('form');
-                if (form) form.reset();
-                if (modalId === 'productModal') {
-                    document.getElementById('editProductId').value = '';
-                    filterProductsForBrand('', 'productName', 'productsDatalist');
-                } else if (modalId === 'newProductModal') {
-                    document.getElementById('editNewProductId').value = '';
-                    filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
-                } else if (modalId === 'masterProductModal') document.getElementById('editMasterProductId').value = '';
-                else if (modalId === 'toClearModal') {
-                    document.getElementById('editToClearId').value = '';
-                    filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
+                if (form) {
+                    form.reset();
+                     // After form reset, if there are select elements that were dynamically populated,
+                    // ensure their datalists for product names are cleared if they depend on a brand.
+                    if (modalId === 'productModal') filterProductsForBrand('', 'productName', 'productsDatalist');
+                    if (modalId === 'newProductModal') filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
+                    if (modalId === 'toClearModal') filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
                 }
+                if (modalId === 'productModal') document.getElementById('editProductId').value = '';
+                else if (modalId === 'newProductModal') document.getElementById('editNewProductId').value = '';
+                else if (modalId === 'masterProductModal') document.getElementById('editMasterProductId').value = '';
+                else if (modalId === 'toClearModal') document.getElementById('editToClearId').value = '';
             }
         }
+        
         window.onclick = function(event) {
-            document.querySelectorAll('.modal').forEach(modal => {
-                if (event.target == modal) closeModal(modal.id);
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    closeModal(modal.id);
+                }
             });
         }
 
+
+        // --- CRUD Operations & Rendering ---
+
+        // Inventory (OOS/Low Stock)
         function renderInventoryItems() {
-            const tbody = document.getElementById('inventory-table'); if(!tbody) return; tbody.innerHTML = '';
-            sortArray(currentInventoryViewData, sortState.inventory.column, sortState.inventory.direction).forEach(item => {
-                const r = tbody.insertRow();
-                r.insertCell().textContent = item.sku || ''; r.insertCell().textContent = item.brand || '';
-                r.insertCell().textContent = item.product || ''; r.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
-                const sCell = r.insertCell(); sCell.innerHTML = `<span class="status-badge ${item.status === 'OOS' ? 'oos' : 'low'}">${item.status || ''}</span>`;
-                r.insertCell().textContent = item.shipment || ''; r.insertCell().textContent = item.remarks || '';
-                r.insertCell().innerHTML = `<button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button><button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>`;
+            const tableBody = document.getElementById('inventory-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            const sortedData = sortArray(currentInventoryViewData, sortState.inventory.column, sortState.inventory.direction);
+
+            sortedData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.sku || '';
+                row.insertCell().textContent = item.brand || '';
+                row.insertCell().textContent = item.product || '';
+                row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+                const statusCell = row.insertCell();
+                const badgeClass = item.status === 'OOS' ? 'oos' : 'low';
+                statusCell.innerHTML = `<span class="status-badge ${badgeClass}">${item.status || ''}</span>`;
+                row.insertCell().textContent = item.shipment || '';
+                row.insertCell().textContent = item.remarks || '';
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
+                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
+                `;
             });
         }
+
         function showAddProductModal() {
             document.getElementById('productModalTitle').textContent = 'Add New Product';
             document.getElementById('editProductId').value = '';
             document.getElementById('productModal').querySelector('form').reset();
-            populateBrandDropdowns('brand'); populateStatusDropdowns('status');
-            filterProductsForBrand('', 'productName', 'productsDatalist');
+            populateBrandDropdowns('brand');
+            populateStatusDropdowns('status');
+            filterProductsForBrand('', 'productName', 'productsDatalist'); 
             openModal('productModal');
         }
+
         async function saveProduct(event) {
             event.preventDefault();
             const id = document.getElementById('editProductId').value;
-            const brand = document.getElementById('brand').value, name = document.getElementById('productName').value;
-            let sku = getSkuForProduct(brand, name) || (id ? inventoryData.find(i=>i.id===id)?.sku : '');
-            if (!sku && !id) { // Only assign temp SKU if it's a new item and SKU could not be found from master
-                // Consider if SKU should be manually input for items not in master or if this flow is correct
-                 sku = `TEMP_SKU_${Date.now()}`; 
-                 showNotification('Product not in Master List. Assigned temporary SKU. Consider adding to Master List for proper SKU.', 'info');
-            }
+            const brand = document.getElementById('brand').value;
+            const productName = document.getElementById('productName').value;
+            let sku = getSkuForProduct(brand, productName); // Attempt to get existing SKU
+
             const data = {
-                brand, product: name, sku, quantity: parseInt(document.getElementById('inventoryQuantity').value),
-                status: document.getElementById('status').value, shipment: document.getElementById('shipment').value,
-                remarks: document.getElementById('remarks').value, isDeleted: false
+                brand: brand,
+                product: productName,
+                quantity: parseInt(document.getElementById('inventoryQuantity').value),
+                status: document.getElementById('status').value,
+                shipment: document.getElementById('shipment').value,
+                remarks: document.getElementById('remarks').value,
+                isDeleted: false 
             };
-            try { await saveDataToFirestore(inventoryColRef, id, data); showNotification('Product saved!', 'success'); closeModal('productModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error saving product. Check console.', 'error');}
+            // If SKU couldn't be found (e.g. product not in master), and this is a new item,
+            // it might be better to enforce adding to master first or handle SKU generation carefully.
+            // For now, if no ID (new item) and no SKU, it will be blank.
+            if (sku) data.sku = sku;
+            else if (!id) { // If new product and no SKU from master, create a placeholder or require SKU
+                // For now, let's assume an SKU should ideally come from selecting a master product.
+                // If it's a truly new product, it should perhaps go via "New Products" or "Master List" flow first.
+                // showNotification("Product not found in Master List. Please add to Master List first or ensure Brand/Product Name match.", "error");
+                // return; 
+                // Or assign a temporary SKU, though this isn't ideal for real inventory
+                 data.sku = `TEMP_SKU_${Date.now()}`; // This is generally not good practice for real inventory
+            }
+
+
+            try {
+                await saveDataToFirestore(inventoryColRef, id, data);
+                showNotification('Product saved successfully!', 'success');
+                closeModal('productModal');
+                await updateLocalData(); 
+            } catch (e) {
+                // Error handled
+            }
         }
+
         async function editProduct(id) {
-            const item = inventoryData.find(p => p.id === id); if (!item) return;
-            document.getElementById('productModalTitle').textContent = 'Edit Product';
-            document.getElementById('editProductId').value = item.id;
-            populateBrandDropdowns('brand'); document.getElementById('brand').value = item.brand;
-            filterProductsForBrand(item.brand, 'productName', 'productsDatalist');
-            document.getElementById('productName').value = item.product;
-            document.getElementById('inventoryQuantity').value = item.quantity;
-            populateStatusDropdowns('status'); document.getElementById('status').value = item.status;
-            document.getElementById('shipment').value = item.shipment; document.getElementById('remarks').value = item.remarks;
-            openModal('productModal');
+            const item = inventoryData.find(p => p.id === id);
+            if (item) {
+                document.getElementById('productModalTitle').textContent = 'Edit Product';
+                document.getElementById('editProductId').value = item.id;
+                populateBrandDropdowns('brand'); 
+                document.getElementById('brand').value = item.brand;
+                filterProductsForBrand(item.brand, 'productName', 'productsDatalist'); 
+                document.getElementById('productName').value = item.product;
+                document.getElementById('inventoryQuantity').value = item.quantity;
+                populateStatusDropdowns('status'); 
+                document.getElementById('status').value = item.status;
+                document.getElementById('shipment').value = item.shipment;
+                document.getElementById('remarks').value = item.remarks;
+                openModal('productModal');
+            }
         }
+
         function showFilteredInventory(statusFilter) {
-            currentInventoryViewData = inventoryData.filter(i => !i.isDeleted && i.status && i.status.toLowerCase().includes(statusFilter.toLowerCase()));
+            currentInventoryViewData = inventoryData.filter(item =>
+                !item.isDeleted && item.status && item.status.toLowerCase().includes(statusFilter.toLowerCase())
+            );
             renderInventoryItems();
-            const tab = document.querySelector('.tab[onclick*="oos-lowstock"]'); if (tab) switchTab(tab, 'oos-lowstock');
+            const oosLowStockTab = document.querySelector('.tab[onclick*=\'oos-lowstock\']');
+            if (oosLowStockTab) {
+                switchTab(oosLowStockTab, 'oos-lowstock');
+            }
         }
-        function searchInventory(term) {
-            const lTerm = term.toLowerCase().trim();
-            let base = inventoryData.filter(i => !i.isDeleted && (i.status === 'OOS' || (i.status && i.status.toLowerCase().includes('low stock'))));
-            currentInventoryViewData = lTerm ? base.filter(i => 
-                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
-                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
-                (i.product && i.product.toLowerCase().includes(lTerm)) ||
-                (i.status && i.status.toLowerCase().includes(lTerm)) ||
-                (i.shipment && i.shipment.toLowerCase().includes(lTerm)) ||
-                (i.remarks && i.remarks.toLowerCase().includes(lTerm))
-            ) : base;
+
+        function searchInventory(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            
+            let baseFilteredData = inventoryData.filter(item =>
+                !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+            );
+
+            if (lowerCaseSearchTerm) {
+                currentInventoryViewData = baseFilteredData.filter(item =>
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.status && item.status.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentInventoryViewData = baseFilteredData;
+            }
             renderInventoryItems();
         }
 
+
+        // New Products
         function renderNewProductsItems() {
-            const tbody = document.getElementById('new-products-table'); if(!tbody) return; tbody.innerHTML = '';
-            sortArray(currentNewProductsViewData, sortState.newProducts.column, sortState.newProducts.direction).forEach(item => {
-                const r = tbody.insertRow();
-                r.insertCell().textContent = item.sku || ''; r.insertCell().textContent = item.brand || '';
-                r.insertCell().textContent = item.product || ''; r.insertCell().textContent = item.addedDate || '';
-                r.insertCell().textContent = item.arrivalDate || ''; r.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
-                r.insertCell().textContent = item.notes || '';
-                r.insertCell().innerHTML = `<button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button><button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button><button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>`;
+            const tableBody = document.getElementById('new-products-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+
+            const sortedData = sortArray(currentNewProductsViewData, sortState.newProducts.column, sortState.newProducts.direction);
+
+            sortedData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.sku || '';
+                row.insertCell().textContent = item.brand || '';
+                row.insertCell().textContent = item.product || '';
+                row.insertCell().textContent = item.addedDate || '';
+                row.insertCell().textContent = item.arrivalDate || '';
+                row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+                row.insertCell().textContent = item.notes || '';
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
+                    <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
+                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
+                `;
             });
         }
+
         function showAddNewProductModal() {
             document.getElementById('newProductModalTitle').textContent = 'Add New Product Entry';
             document.getElementById('editNewProductId').value = '';
             document.getElementById('newProductModal').querySelector('form').reset();
             document.getElementById('arrivalDate').valueAsDate = new Date();
-            populateBrandDropdowns('newBrand'); filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
+            populateBrandDropdowns('newBrand');
+            filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
             openModal('newProductModal');
         }
+
         async function saveNewProduct(event) {
             event.preventDefault();
             const id = document.getElementById('editNewProductId').value;
-            const sku = document.getElementById('newProductSku').value.trim();
-            if (!sku) { showNotification('SKU is required.', 'error'); return; }
-            if (!id && (newProductsData.some(p => p.sku === sku && !p.isDeleted) || masterProductsData.some(p => p.sku === sku && !p.isDeleted))) {
-                showNotification('SKU already exists.', 'error'); return;
+            const skuValue = document.getElementById('newProductSku').value.trim();
+
+            if (!skuValue) {
+                showNotification('Product Code (SKU) is required for new products.', 'error');
+                return;
             }
+            // Check for SKU uniqueness in new_products and master_products if it's a new item
+            if (!id) { // Only for new items
+                const skuExistsInNew = newProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                const skuExistsInMaster = masterProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                if (skuExistsInNew || skuExistsInMaster) {
+                    showNotification('This SKU already exists. Please use a unique SKU.', 'error');
+                    return;
+                }
+            }
+
+
             const data = {
-                brand: document.getElementById('newBrand').value, sku, product: document.getElementById('newProductName').value,
-                arrivalDate: document.getElementById('arrivalDate').value, quantity: parseInt(document.getElementById('newProductQuantity').value),
-                notes: document.getElementById('notes').value, addedDate: id ? (newProductsData.find(i => i.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+                brand: document.getElementById('newBrand').value,
+                sku: skuValue,
+                product: document.getElementById('newProductName').value,
+                arrivalDate: document.getElementById('arrivalDate').value,
+                quantity: parseInt(document.getElementById('newProductQuantity').value),
+                notes: document.getElementById('notes').value,
+                addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
                 isDeleted: false
             };
-            try { await saveDataToFirestore(newProductsColRef, id, data); showNotification('New product saved!', 'success'); closeModal('newProductModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error saving new product.', 'error');}
+
+            try {
+                await saveDataToFirestore(newProductsColRef, id, data);
+                showNotification('New product entry saved successfully!', 'success');
+                closeModal('newProductModal');
+                await updateLocalData();
+            } catch (e) {
+                //error handled
+            }
         }
+
         async function editNewProduct(id) {
-            const item = newProductsData.find(p => p.id === id); if (!item) return;
-            document.getElementById('newProductModalTitle').textContent = 'Edit New Product Entry';
-            document.getElementById('editNewProductId').value = item.id;
-            populateBrandDropdowns('newBrand'); document.getElementById('newBrand').value = item.brand;
-            filterProductsForBrand(item.brand, 'newProductName', 'newProductsDatalist');
-            document.getElementById('newProductSku').value = item.sku || ''; document.getElementById('newProductName').value = item.product;
-            document.getElementById('arrivalDate').value = item.arrivalDate; document.getElementById('newProductQuantity').value = item.quantity;
-            document.getElementById('notes').value = item.notes; openModal('newProductModal');
+            const item = newProductsData.find(p => p.id === id);
+            if (item) {
+                document.getElementById('newProductModalTitle').textContent = 'Edit New Product Entry';
+                document.getElementById('editNewProductId').value = item.id;
+                populateBrandDropdowns('newBrand');
+                document.getElementById('newBrand').value = item.brand;
+                filterProductsForBrand(item.brand, 'newProductName', 'newProductsDatalist');
+                document.getElementById('newProductSku').value = item.sku || '';
+                document.getElementById('newProductName').value = item.product;
+                document.getElementById('arrivalDate').value = item.arrivalDate;
+                document.getElementById('newProductQuantity').value = item.quantity;
+                document.getElementById('notes').value = item.notes;
+                openModal('newProductModal');
+            }
         }
+
         async function moveNewProductToMaster(id) {
-            showConfirmModal('Approve and move to Master List & Inventory?', async (confirmed) => {
-                if (!confirmed) return;
-                const item = newProductsData.find(p => p.id === id); if (!item) return;
-                if (masterProductsData.some(mp => mp.sku === item.sku && !mp.isDeleted)) {
-                    showNotification(`SKU ${item.sku} already in Master List. Cannot move. Edit SKU or manage in Master List.`, 'error'); return;
+            showConfirmModal('Are you sure you want to approve this new product and move it to Master List & Inventory?', async (confirmed) => {
+                if (confirmed) {
+                    const item = newProductsData.find(p => p.id === id);
+                    if (item) {
+                        try {
+                            // Check if SKU already exists in Master List (non-deleted)
+                            const masterProductExists = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
+                            if (masterProductExists) {
+                                showNotification(`SKU ${item.sku} already exists in Master List. Cannot move. Please edit SKU or manage in Master List.`, 'error');
+                                return;
+                            }
+
+                            const masterProductData = {
+                                brand: item.brand,
+                                product: item.product,
+                                sku: item.sku,
+                                category: 'Uncategorized', // Default for new
+                                description: item.notes || '',
+                                price: 0.00, // Default
+                                isDeleted: false
+                            };
+                            await saveDataToFirestore(masterProductsColRef, null, masterProductData); // Add as new to master
+
+                            const inventoryProductData = {
+                                brand: item.brand,
+                                product: item.product,
+                                sku: item.sku,
+                                quantity: item.quantity,
+                                status: 'In stock', // Default status
+                                shipment: '',
+                                remarks: `Added from New Products (Approved: ${new Date().toISOString().split('T')[0]})`,
+                                isDeleted: false,
+                                expiry: '' 
+                            };
+                            await saveDataToFirestore(inventoryColRef, null, inventoryProductData);
+
+                            await saveDataToFirestore(newProductsColRef, item.id, { isDeleted: true }); // Mark as deleted in New Products
+
+                            showNotification('Product approved and moved successfully!', 'success');
+                            await updateLocalData();
+                        } catch (e) {
+                            console.error("Error moving new product to master:", e);
+                            showNotification('Error moving product.', 'error');
+                        }
+                    }
                 }
-                try {
-                    const masterData = {sku: item.sku, brand: item.brand, product: item.product, category: 'Uncategorized', description: item.notes || '', price: 0, isDeleted: false};
-                    await saveDataToFirestore(masterProductsColRef, null, masterData);
-                    const inventoryData = {sku: item.sku, brand: item.brand, product: item.product, quantity: item.quantity, status: 'In stock', remarks: `From New Products ${new Date().toISOString().split('T')[0]}`, isDeleted: false};
-                    await saveDataToFirestore(inventoryColRef, null, inventoryData);
-                    await saveDataToFirestore(newProductsColRef, item.id, { isDeleted: true });
-                    showNotification('Product approved and moved!', 'success'); await updateLocalData();
-                } catch (e) { showNotification('Error moving product.', 'error'); console.error("Move new product error:", e); }
             });
         }
+        
         async function mergeNewProductsToMaster() {
-            showConfirmModal('Merge ALL new products? SKUs in Master List will be skipped.', async (confirmed) => {
-                if (!confirmed) return;
-                const activeNew = newProductsData.filter(i => !i.isDeleted); if (activeNew.length === 0) { showNotification('No new products to merge.', 'info'); return; }
-                let successCount = 0, skippedCount = 0; const batch = db.batch();
-                for (const item of activeNew) {
-                    if (masterProductsData.some(mp => mp.sku === item.sku && !mp.isDeleted)) { skippedCount++; continue; }
-                    const masterRef = masterProductsColRef.doc(); // new doc for master
-                    batch.set(masterRef, {sku: item.sku, brand: item.brand, product: item.product, category: 'Uncategorized', description: item.notes || '', price: 0, isDeleted: false});
-                    const invRef = inventoryColRef.doc(); // new doc for inventory
-                    batch.set(invRef, {sku: item.sku, brand: item.brand, product: item.product, quantity: item.quantity, status: 'In stock', remarks: `Batch Merge ${new Date().toISOString().split('T')[0]}`, isDeleted: false});
-                    batch.update(newProductsColRef.doc(item.id), { isDeleted: true }); successCount++;
+            showConfirmModal('Are you sure you want to merge ALL new products to Master List & Inventory? This will mark them as approved. SKUs already in Master List will be skipped.', async (confirmed) => {
+                if (confirmed) {
+                    const batch = db.batch();
+                    let successCount = 0;
+                    let skippedCount = 0;
+                    const activeNewProducts = newProductsData.filter(item => !item.isDeleted);
+
+                    if (activeNewProducts.length === 0) {
+                        showNotification('No new products to merge.', 'info');
+                        return;
+                    }
+
+                    for (const item of activeNewProducts) {
+                        // Check if SKU already exists in Master List (non-deleted)
+                        const masterProductExists = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
+                        if (masterProductExists) {
+                            skippedCount++;
+                            console.warn(`Skipping SKU ${item.sku} as it already exists in Master List.`);
+                            // Optionally, still mark as deleted from new_products if desired
+                            // const newProductRef = newProductsColRef.doc(item.id);
+                            // batch.update(newProductRef, { isDeleted: true });
+                            continue; // Skip this item for adding to master/inventory
+                        }
+                        
+                        try {
+                            const masterProductRef = masterProductsColRef.doc(); 
+                            const masterProductData = {
+                                brand: item.brand, product: item.product, sku: item.sku,
+                                category: 'Uncategorized', description: item.notes || '', price: 0.00, isDeleted: false
+                            };
+                            batch.set(masterProductRef, masterProductData);
+
+                            const inventoryProductRef = inventoryColRef.doc(); 
+                            const inventoryProductData = {
+                                brand: item.brand, product: item.product, sku: item.sku,
+                                quantity: item.quantity, status: 'In stock', shipment: '',
+                                remarks: `Added from New Products (Batch Merge: ${new Date().toISOString().split('T')[0]})`,
+                                isDeleted: false, expiry: ''
+                            };
+                            batch.set(inventoryProductRef, inventoryProductData);
+
+                            const newProductRef = newProductsColRef.doc(item.id);
+                            batch.update(newProductRef, { isDeleted: true });
+                            successCount++;
+                        } catch (e) {
+                            console.error(`Error processing new product ${item.id || item.sku} for merge:`, e);
+                        }
+                    }
+
+                    if (successCount > 0 || skippedCount > 0) {
+                        try {
+                            await batch.commit();
+                            let message = "";
+                            if (successCount > 0) message += `Successfully merged ${successCount} new products. `;
+                            if (skippedCount > 0) message += `${skippedCount} products were skipped as their SKUs already exist in Master List.`;
+                            showNotification(message.trim(), successCount > 0 ? 'success' : 'info');
+                            await updateLocalData();
+                        } catch (e) {
+                            console.error("Batch commit failed:", e);
+                            showNotification('Error committing batch merge.', 'error');
+                        }
+                    } else if (activeNewProducts.length > 0) { 
+                         showNotification('Failed to merge new products. Check console.', 'error');
+                    } else {
+                        showNotification('No new products were eligible for merging.', 'info');
+                    }
                 }
-                if (successCount > 0 || skippedCount > 0) {
-                    try { await batch.commit(); 
-                          let msg = successCount > 0 ? `Merged: ${successCount} new products.` : "";
-                          if(skippedCount > 0) msg += (msg ? " " : "") + `Skipped: ${skippedCount} (SKU already in Master).`;
-                          showNotification(msg, 'success'); await updateLocalData(); }
-                    catch (e) { showNotification('Error batch merging.', 'error'); console.error("Batch merge error:", e);}
-                } else { showNotification('No products were eligible for merging.', 'info'); }
             });
         }
-        function searchNewProducts(term) {
-            const lTerm = term.toLowerCase().trim();
-            const base = newProductsData.filter(i => !i.isDeleted);
-            currentNewProductsViewData = lTerm ? base.filter(i => 
-                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
-                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
-                (i.product && i.product.toLowerCase().includes(lTerm)) ||
-                (i.notes && i.notes.toLowerCase().includes(lTerm))
-            ) : base;
+
+
+        function searchNewProducts(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = newProductsData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentNewProductsViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentNewProductsViewData = baseData;
+            }
             renderNewProductsItems();
         }
 
-        // ----- NEW Supply Status Logic for "To Clear" Tab -----
-        function getNewSupplyStatus(item) {
-            const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-            const weeklyDemand = Number(item.weeklyDemand) || 0;
-
-            if (!item.expiryDate) {
-                return { text: "N/A", class: "info" }; 
-            }
-
-            let expiryDateObj;
-            try {
-                // Standardize date parsing: Assume YYYY-MM-DD and parse as UTC midnight
-                // to avoid timezone shifts making it the "previous day".
-                const parts = item.expiryDate.split('-');
-                expiryDateObj = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
-                if (isNaN(expiryDateObj.getTime())) { 
-                    throw new Error("Invalid date parsed");
-                }
-            } catch (e) {
-                console.warn("Invalid expiry date format for item SKU:", item.sku, "Value:", item.expiryDate, e);
-                return { text: "N/A", class: "info" }; 
-            }
-
-            const currentDate = new Date();
-            currentDate.setUTCHours(0, 0, 0, 0); 
-
-            if (expiryDateObj <= currentDate) {
-                return { text: "Expired", class: "danger-status" };
-            }
-
-            if (weeklyDemand <= 0) {
-                return { text: "Danger", class: "danger-status" }; 
-            }
-
-            const daysToSellOut = (totalQty / weeklyDemand) * 7;
-            let projectedSellOutDate = new Date(currentDate);
-            projectedSellOutDate.setUTCDate(currentDate.getUTCDate() + Math.ceil(daysToSellOut)); 
-            
-            let nineMonthsBeforeExpiry = new Date(expiryDateObj);
-            nineMonthsBeforeExpiry.setUTCMonth(expiryDateObj.getUTCMonth() - 9);
-
-            let sixMonthsBeforeExpiry = new Date(expiryDateObj);
-            sixMonthsBeforeExpiry.setUTCMonth(expiryDateObj.getUTCMonth() - 6);
-
-            if (projectedSellOutDate <= nineMonthsBeforeExpiry) {
-                return { text: "Normal", class: "normal" };
-            } else if (projectedSellOutDate <= sixMonthsBeforeExpiry) {
-                return { text: "Alert", class: "alert-status" };
-            } else {
-                return { text: "Danger", class: "danger-status" };
-            }
-        }
-
-
+        // To Clear
         function renderToClearItems() {
             const tableBody = document.getElementById('to-clear-table');
             if (!tableBody) return;
@@ -1516,19 +1857,14 @@
                 row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
                 row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
                 row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
-                
                 const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
                 row.insertCell().textContent = totalQty;
-                
-                const weeklyDemandNum = Number(item.weeklyDemand) || 0;
                 row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
-                
-                const weeksSupplyText = weeklyDemandNum > 0 ? (totalQty / weeklyDemandNum).toFixed(2) : 'N/A';
-                row.insertCell().textContent = weeksSupplyText;
-                
-                const newStatus = getNewSupplyStatus(item); // Use new logic
-                row.insertCell().innerHTML = `<span class="status-badge ${newStatus.class}">${newStatus.text}</span>`;
-                
+                const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+                row.insertCell().textContent = weeksSupply;
+                // Updated to pass the full item object for new supply status logic
+                const supplyStatusClass = getSupplyStatusClass(item);
+                row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
                 row.insertCell().textContent = item.actionPlan || '';
 
                 const actionsCell = row.insertCell();
@@ -1538,402 +1874,1077 @@
                 `;
             });
         }
+
         function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
             document.getElementById('editToClearId').value = '';
-            const form = document.getElementById('toClearModal').querySelector('form'); if (form) form.reset();
-            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date(); // Sets to current date
-            populateBrandDropdowns('toClearBrand'); populateCategoryDropdowns('toClearCategory');
+            const form = document.getElementById('toClearModal').querySelector('form');
+            if (form) form.reset();
+            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date();
+            populateBrandDropdowns('toClearBrand');
+            populateCategoryDropdowns('toClearCategory');
             filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
             openModal('toClearModal');
         }
+
         async function saveToClear(event) {
             event.preventDefault();
             const id = document.getElementById('editToClearId').value;
-            const brand = document.getElementById('toClearBrand').value, name = document.getElementById('toClearProductName').value;
-            const sku = getSkuForProduct(brand, name);
-            if (!sku) { showNotification('Product not found in Master List. Please select valid Brand/Product or add to Master List first.', 'error'); return; }
+            const brand = document.getElementById('toClearBrand').value;
+            const productName = document.getElementById('toClearProductName').value;
+            const skuValue = getSkuForProduct(brand, productName);
+
+            if (!skuValue) {
+                showNotification("Product not found in Master List. Please select a product from an existing brand or add it to Master List first.", "error");
+                return;
+            }
+            
             const data = {
-                brand, product: name, sku, category: document.getElementById('toClearCategory').value,
+                brand: brand,
+                product: productName,
+                category: document.getElementById('toClearCategory').value,
                 expiryDate: document.getElementById('toClearExpiryDate').value,
                 firstHighlightedDate: document.getElementById('toClearFirstHighlightedDate').value,
                 firstReportedBalance: parseInt(document.getElementById('toClearFirstReportedBalance').value || '0'),
                 warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
                 storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
                 weeklyDemand: parseInt(document.getElementById('toClearWeeklyDemand').value || '0'),
-                actionPlan: document.getElementById('toClearActionPlan').value, isDeleted: false
+                actionPlan: document.getElementById('toClearActionPlan').value,
+                sku: skuValue, 
+                isDeleted: false
             };
-             if (!data.expiryDate) { showNotification('Expiry Date is required for "To Clear" items.', 'error'); return; }
-            try { await saveDataToFirestore(toClearColRef, id, data); showNotification('Product to clear saved!', 'success'); closeModal('toClearModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error saving product to clear.', 'error');}
-        }
-        async function editToClear(id) {
-            const item = toClearData.find(p => p.id === id); if (!item) return;
-            document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
-            document.getElementById('editToClearId').value = item.id;
-            populateBrandDropdowns('toClearBrand'); document.getElementById('toClearBrand').value = item.brand;
-            filterProductsForBrand(item.brand, 'toClearProductName', 'toClearProductsDatalist');
-            document.getElementById('toClearProductName').value = item.product;
-            populateCategoryDropdowns('toClearCategory'); document.getElementById('toClearCategory').value = item.category;
-            document.getElementById('toClearExpiryDate').value = item.expiryDate;
-            document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate;
-            document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance;
-            document.getElementById('toClearWarehouseQty').value = item.warehouseQty;
-            document.getElementById('toClearStoreQty').value = item.storeQty;
-            document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand;
-            document.getElementById('toClearActionPlan').value = item.actionPlan;
-            openModal('toClearModal');
-        }
-        function searchToClear(term) {
-            const lTerm = term.toLowerCase().trim();
-            const base = toClearData.filter(i => !i.isDeleted);
-            currentToClearViewData = lTerm ? base.filter(i => 
-                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
-                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
-                (i.product && i.product.toLowerCase().includes(lTerm)) ||
-                (i.category && i.category.toLowerCase().includes(lTerm)) ||
-                (i.expiryDate && i.expiryDate.toLowerCase().includes(lTerm)) ||
-                (item.actionPlan && item.actionPlan.toLowerCase().includes(lTerm))
-            ) : base;
-            renderToClearItems();
-        }
-        function getSkuForProduct(brand, product) { // Shared helper
-            const item = masterProductsData.find(i => !i.isDeleted && i.brand === brand && i.product === product);
-            return item ? item.sku : '';
+
+            try {
+                await saveDataToFirestore(toClearColRef, id, data);
+                showNotification('Product to clear saved successfully!', 'success');
+                closeModal('toClearModal');
+                await updateLocalData();
+            } catch (e) {
+                //error handled
+            }
         }
 
+        async function editToClear(id) {
+            const item = toClearData.find(p => p.id === id);
+            if (item) {
+                document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
+                document.getElementById('editToClearId').value = item.id;
+                populateBrandDropdowns('toClearBrand');
+                document.getElementById('toClearBrand').value = item.brand;
+                filterProductsForBrand(item.brand, 'toClearProductName', 'toClearProductsDatalist');
+                document.getElementById('toClearProductName').value = item.product;
+                populateCategoryDropdowns('toClearCategory');
+                document.getElementById('toClearCategory').value = item.category;
+                document.getElementById('toClearExpiryDate').value = item.expiryDate;
+                document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate;
+                document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance;
+                document.getElementById('toClearWarehouseQty').value = item.warehouseQty;
+                document.getElementById('toClearStoreQty').value = item.storeQty;
+                document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand;
+                document.getElementById('toClearActionPlan').value = item.actionPlan;
+                openModal('toClearModal');
+            }
+        }
+
+        function searchToClear(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = toClearData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentToClearViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.category && item.category.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.actionPlan && item.actionPlan.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentToClearViewData = baseData;
+            }
+            renderToClearItems();
+        }
+
+        function getSkuForProduct(brand, product) {
+            const masterProduct = masterProductsData.find(item => !item.isDeleted && item.brand === brand && item.product === product);
+            return masterProduct ? masterProduct.sku : '';
+        }
+
+        /**
+         * Determines the CSS class for the supply status badge based on expiry and demand.
+         * @param {object} item - The product item from toClearData.
+         * @param {string} item.expiryDate - The expiry date in 'YYYY-MM-DD' format.
+         * @param {number} item.warehouseQty - Quantity in warehouse.
+         * @param {number} item.storeQty - Quantity in store.
+         * @param {number} item.weeklyDemand - Weekly demand for the product.
+         * @returns {string} The CSS class ('normal', 'alert-status', 'danger-status', 'info').
+         */
+        function getSupplyStatusClass(item) {
+            const expiryDateStr = item.expiryDate;
+            const warehouseQty = Number(item.warehouseQty) || 0;
+            const storeQty = Number(item.storeQty) || 0;
+            const weeklyDemand = Number(item.weeklyDemand) || 0;
+            const totalQuantity = warehouseQty + storeQty;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Case 1: No Expiry Date
+            if (!expiryDateStr) {
+                return 'info'; // N/A
+            }
+
+            const expiryDate = new Date(expiryDateStr);
+            expiryDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Case 2: Already Expired or Expires Today
+            if (expiryDate <= today) {
+                return 'danger-status'; // Expired
+            }
+
+            // Case 3: Zero Weekly Demand (but has expiry date and not expired)
+            if (weeklyDemand <= 0) {
+                return 'danger-status'; // Danger (won't sell out)
+            }
+
+            // Calculate Days to Sell Out
+            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
+            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
+            projectedSellOutDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Calculate thresholds for expiry
+            const expiryDateMinus9Months = new Date(expiryDate);
+            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
+            expiryDateMinus9Months.setHours(0, 0, 0, 0);
+
+            const expiryDateMinus6Months = new Date(expiryDate);
+            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
+            expiryDateMinus6Months.setHours(0, 0, 0, 0);
+
+            // Determine status based on projected sell-out date vs expiry thresholds
+            if (projectedSellOutDate <= expiryDateMinus9Months) {
+                return 'normal'; // Normal: sells out 9 months or more before expiry
+            } else if (projectedSellOutDate > expiryDateMinus9Months && projectedSellOutDate <= expiryDateMinus6Months) {
+                return 'alert-status'; // Alert: sells out between 6 and 9 months before expiry
+            } else {
+                return 'danger-status'; // Danger: sells out less than 6 months before expiry, or after expiry
+            }
+        }
+
+        /**
+         * Determines the text for the supply status badge based on expiry and demand.
+         * @param {object} item - The product item from toClearData.
+         * @param {string} item.expiryDate - The expiry date in 'YYYY-MM-DD' format.
+         * @param {number} item.warehouseQty - Quantity in warehouse.
+         * @param {number} item.storeQty - Quantity in store.
+         * @param {number} item.weeklyDemand - Weekly demand for the product.
+         * @returns {string} The status text ('N/A', 'Expired', 'Danger', 'Alert', 'Normal').
+         */
+        function getSupplyStatusText(item) {
+            const expiryDateStr = item.expiryDate;
+            const warehouseQty = Number(item.warehouseQty) || 0;
+            const storeQty = Number(item.storeQty) || 0;
+            const weeklyDemand = Number(item.weeklyDemand) || 0;
+            const totalQuantity = warehouseQty + storeQty;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Case 1: No Expiry Date
+            if (!expiryDateStr) {
+                return 'N/A';
+            }
+
+            const expiryDate = new Date(expiryDateStr);
+            expiryDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Case 2: Already Expired or Expires Today
+            if (expiryDate <= today) {
+                return 'Expired';
+            }
+
+            // Case 3: Zero Weekly Demand (but has expiry date and not expired)
+            if (weeklyDemand <= 0) {
+                return 'Danger'; // Won't sell out before expiry
+            }
+
+            // Calculate Days to Sell Out
+            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
+            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
+            projectedSellOutDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+            // Calculate thresholds for expiry
+            const expiryDateMinus9Months = new Date(expiryDate);
+            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
+            expiryDateMinus9Months.setHours(0, 0, 0, 0);
+
+            const expiryDateMinus6Months = new Date(expiryDate);
+            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
+            expiryDateMinus6Months.setHours(0, 0, 0, 0);
+
+            // Determine status based on projected sell-out date vs expiry thresholds
+            if (projectedSellOutDate <= expiryDateMinus9Months) {
+                return 'Normal'; // Sells out 9 months or more before expiry
+            } else if (projectedSellOutDate > expiryDateMinus9Months && projectedSellOutDate <= expiryDateMinus6Months) {
+                return 'Alert'; // Sells out between 6 and 9 months before expiry
+            } else {
+                return 'Danger'; // Sells out less than 6 months before expiry, or after expiry
+            }
+        }
+
+
+        // Master List
         function renderMasterListItems() {
-            const tbody = document.getElementById('master-table'); if(!tbody) return; tbody.innerHTML = '';
-            sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction).forEach(item => {
-                const r = tbody.insertRow();
-                r.insertCell().textContent = item.sku || ''; r.insertCell().textContent = item.brand || '';
-                r.insertCell().textContent = item.product || ''; r.insertCell().textContent = item.category || '';
-                r.insertCell().textContent = item.description || '';
-                r.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
-                r.insertCell().innerHTML = `<button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button><button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>`;
+            const tableBody = document.getElementById('master-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+
+            const sortedData = sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction);
+
+            sortedData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.sku || '';
+                row.insertCell().textContent = item.brand || '';
+                row.insertCell().textContent = item.product || '';
+                row.insertCell().textContent = item.category || '';
+                row.insertCell().textContent = item.description || '';
+                row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button>
+                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>
+                `;
             });
         }
+
         function showAddMasterProductModal() {
             document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
             document.getElementById('editMasterProductId').value = '';
             document.getElementById('masterProductModal').querySelector('form').reset();
-            populateBrandDropdowns('masterBrand'); populateCategoryDropdowns('category');
+            populateBrandDropdowns('masterBrand');
+            populateCategoryDropdowns('category');
             openModal('masterProductModal');
         }
+
         async function saveMasterProduct(event) {
             event.preventDefault();
             const id = document.getElementById('editMasterProductId').value;
-            const sku = document.getElementById('sku').value.trim(), name = document.getElementById('masterProductName').value.trim(), brand = document.getElementById('masterBrand').value;
-            if (!sku || !name || !brand) { showNotification('SKU, Product Name, and Brand are required.', 'error'); return; }
-            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) { showNotification('This SKU already exists.', 'error'); return; }
-            if (masterProductsData.some(p => p.brand === brand && p.product === name && p.id !== id && !p.isDeleted)) { showNotification('This Brand and Product Name combination already exists.', 'error'); return; }
+            const sku = document.getElementById('sku').value.trim();
+            const productName = document.getElementById('masterProductName').value.trim();
+            const brandName = document.getElementById('masterBrand').value;
+
+            if (!sku) {
+                showNotification('Product Code (SKU) is required.', 'error');
+                return;
+            }
+            if (!productName) {
+                showNotification('Product Name is required.', 'error');
+                return;
+            }
+             if (!brandName) {
+                showNotification('Brand is required.', 'error');
+                return;
+            }
+
+
+            // Check for SKU uniqueness
+            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
+                showNotification('This SKU already exists for another product.', 'error');
+                return;
+            }
+            // Optional: Check for Brand + Product Name uniqueness
+            if (masterProductsData.some(p => p.brand === brandName && p.product === productName && p.id !== id && !p.isDeleted)) {
+                 showNotification('This Brand and Product Name combination already exists.', 'error');
+                return;
+            }
+
+            
             const data = {
-                brand, product: name, sku, category: document.getElementById('category').value,
-                description: document.getElementById('description').value, price: parseFloat(document.getElementById('price').value || '0'),
+                brand: brandName,
+                product: productName,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                sku: sku,
+                price: parseFloat(document.getElementById('price').value || '0'),
                 isDeleted: false
             };
-            try { await saveDataToFirestore(masterProductsColRef, id, data); showNotification('Master product saved!', 'success'); closeModal('masterProductModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error saving master product.', 'error');}
+
+            try {
+                await saveDataToFirestore(masterProductsColRef, id, data);
+                showNotification('Master product saved successfully!', 'success');
+                closeModal('masterProductModal');
+                await updateLocalData();
+            } catch (e) {
+                //error handled
+            }
         }
+
         async function editMasterProduct(id) {
-            const item = masterProductsData.find(p => p.id === id); if (!item) return;
-            document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
-            document.getElementById('editMasterProductId').value = item.id;
-            populateBrandDropdowns('masterBrand'); document.getElementById('masterBrand').value = item.brand;
-            document.getElementById('masterProductName').value = item.product;
-            populateCategoryDropdowns('category'); document.getElementById('category').value = item.category;
-            document.getElementById('description').value = item.description; document.getElementById('sku').value = item.sku;
-            document.getElementById('price').value = item.price; openModal('masterProductModal');
+            const item = masterProductsData.find(p => p.id === id);
+            if (item) {
+                document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
+                document.getElementById('editMasterProductId').value = item.id;
+                populateBrandDropdowns('masterBrand');
+                document.getElementById('masterBrand').value = item.brand;
+                document.getElementById('masterProductName').value = item.product;
+                populateCategoryDropdowns('category');
+                document.getElementById('category').value = item.category;
+                document.getElementById('description').value = item.description;
+                document.getElementById('sku').value = item.sku;
+                document.getElementById('price').value = item.price;
+                openModal('masterProductModal');
+            }
         }
-        function searchMasterList(term) {
-            const lTerm = term.toLowerCase().trim();
-            const base = masterProductsData.filter(i => !i.isDeleted);
-            currentMasterListViewData = lTerm ? base.filter(i => 
-                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
-                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
-                (i.product && i.product.toLowerCase().includes(lTerm)) ||
-                (i.category && i.category.toLowerCase().includes(lTerm)) ||
-                (i.description && i.description.toLowerCase().includes(lTerm))
-            ) : base;
+
+        function searchMasterList(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = masterProductsData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentMasterListViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.category && item.category.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.description && item.description.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentMasterListViewData = baseData;
+            }
             renderMasterListItems();
         }
+
         function exportMasterList() {
             const headers = ["Product Code", "Brand", "Product Name", "Category", "Description", "Price"];
-            const rows = masterProductsData.filter(i => !i.isDeleted).map(i => [i.sku||'',i.brand||'',i.product||'',i.category||'',i.description||'',i.price !== undefined ? parseFloat(i.price).toFixed(2) : '']);
-            let csv = headers.join(',') + '\n' + rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\n');
-            downloadCSV(csv, 'master_list.csv'); showNotification('Master list exported!', 'success');
+            const activeMasterList = masterProductsData.filter(item => !item.isDeleted);
+            const rows = activeMasterList.map(item => [
+                item.sku || '',
+                item.brand || '',
+                item.product || '',
+                item.category || '',
+                item.description || '',
+                item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
+            ]);
+
+            let csvContent = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            downloadCSV(csvContent, 'master_list.csv');
+            showNotification('Master list exported!', 'success');
         }
 
+        // Recycle Bin
         function renderRecycleBinItems() {
-            const tbody = document.getElementById('recycle-bin-table'); if(!tbody) return; tbody.innerHTML = '';
-            sortArray(currentRecycleBinViewData, sortState.recycleBin.column, sortState.recycleBin.direction).forEach(item => {
-                const r = tbody.insertRow();
-                r.insertCell().textContent = item.sku || ''; r.insertCell().textContent = item.originalCollection || '';
-                r.insertCell().textContent = item.brand || ''; r.insertCell().textContent = item.product || '';
-                r.insertCell().innerHTML = `<button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button><button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>`;
+            const tableBody = document.getElementById('recycle-bin-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+
+            const sortedData = sortArray(currentRecycleBinViewData, sortState.recycleBin.column, sortState.recycleBin.direction);
+
+            sortedData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.sku || '';
+                row.insertCell().textContent = item.originalCollection || '';
+                row.insertCell().textContent = item.brand || '';
+                row.insertCell().textContent = item.product || '';
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button>
+                    <button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>
+                `;
             });
         }
-        async function moveToRecycleBin(id, collName) {
-            showConfirmModal('Move this item to Recycle Bin?', async (confirmed) => {
-                if (!confirmed) return;
-                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: true }); showNotification('Item moved to Recycle Bin!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error moving item to Recycle Bin.', 'error'); }
-            });
-        }
-        async function restoreItem(id, collName) {
-            showConfirmModal('Restore this item?', async (confirmed) => {
-                if (!confirmed) return;
-                const itemToRestore = deletedItemsData.find(i => i.id === id && i.originalCollection === collName); 
-                if (!itemToRestore) { showNotification('Item not found for restoration.', 'error'); return; }
-                
-                if (itemToRestore.sku && (collName === 'master_products' || collName === 'new_products')) {
-                    const isActiveInMaster = masterProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id);
-                    const isActiveInNew = newProductsData.some(p => p.sku === itemToRestore.sku && !p.isDeleted && p.id !== id);
-                    if ((collName === 'master_products' && isActiveInMaster) || (collName === 'new_products' && isActiveInNew)) {
-                         showNotification(`Cannot restore: SKU ${itemToRestore.sku} already exists in an active item in ${collName}. Please resolve conflict first.`, 'error'); return;
+
+        async function moveToRecycleBin(id, collectionName) {
+            showConfirmModal('Are you sure you want to move this item to Recycle Bin?', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const collectionRef = db.collection(collectionName);
+                        await saveDataToFirestore(collectionRef, id, { isDeleted: true });
+                        showNotification('Item moved to Recycle Bin!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error(`Error moving item to recycle bin from ${collectionName}:`, e);
+                        showNotification('Error moving item to Recycle Bin.', 'error');
                     }
                 }
-                try { await saveDataToFirestore(db.collection(collName), id, { isDeleted: false }); showNotification('Item restored successfully!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error restoring item.', 'error'); console.error("Restore error:", e); }
             });
         }
-        async function deleteItemPermanently(id, collName) {
-            showConfirmModal('WARNING: This will PERMANENTLY DELETE this item. Are you sure?', async (confirmed) => {
-                if (!confirmed) return;
-                try { await db.collection(collName).doc(id).delete(); showNotification('Item permanently deleted!', 'success'); await updateLocalData(); }
-                catch (e) { showNotification('Error permanently deleting item.', 'error'); }
-            });
-        }
-        async function emptyRecycleBin() {
-            showConfirmModal('WARNING: This will PERMANENTLY DELETE ALL items in the Recycle Bin. Are you sure?', async (confirmed) => {
-                if (!confirmed) return; if (deletedItemsData.length === 0) { showNotification('Recycle Bin is already empty.', 'info'); return; }
-                const batch = db.batch(); let deleteCount = 0;
-                deletedItemsData.forEach(item => { batch.delete(db.collection(item.originalCollection).doc(item.id)); deleteCount++; });
-                if (deleteCount > 0) {
-                    try { await batch.commit(); showNotification(`Successfully deleted ${deleteCount} items permanently.`, 'success'); await updateLocalData(); }
-                    catch (e) { showNotification('Error emptying recycle bin.', 'error'); console.error("Empty recycle bin error:", e); }
+
+        async function restoreItem(id, originalCollection) {
+            showConfirmModal('Are you sure you want to restore this item?', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const itemToRestore = deletedItemsData.find(item => item.id === id && item.originalCollection === originalCollection);
+                        if (!itemToRestore) {
+                             showNotification('Item not found for restoration.', 'error');
+                             return;
+                        }
+
+                        // Check for SKU conflict if restoring to master_products or new_products
+                        if (originalCollection === 'master_products' || originalCollection === 'new_products') {
+                            const sku = itemToRestore.sku;
+                            if (sku) {
+                                const skuExistsInMaster = masterProductsData.some(p => p.sku === sku && !p.isDeleted);
+                                const skuExistsInNew = newProductsData.some(p => p.sku === sku && !p.isDeleted);
+                                if ((originalCollection === 'master_products' && skuExistsInNew) || // Restoring to master, but SKU active in new
+                                    (originalCollection === 'new_products' && skuExistsInMaster) || // Restoring to new, but SKU active in master
+                                    (skuExistsInMaster && originalCollection !== 'master_products' && itemToRestore.originalCollection === 'master_products') || // trying to restore an already active master SKU
+                                    (skuExistsInNew && originalCollection !== 'new_products' && itemToRestore.originalCollection === 'new_products') ) {
+                                   // This logic is a bit complex, simplified: if SKU is active in its target destination, block.
+                                }
+                                if ( (originalCollection === 'master_products' && masterProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
+                                     (originalCollection === 'new_products' && newProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) {
+                                     showNotification(`Cannot restore: SKU ${sku} already exists in an active item in ${originalCollection}. Please resolve conflict first.`, 'error');
+                                     return;
+                                }
+                            }
+                        }
+
+
+                        const collectionRef = db.collection(originalCollection);
+                        await saveDataToFirestore(collectionRef, id, { isDeleted: false });
+                        showNotification('Item restored successfully!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error(`Error restoring item to ${originalCollection}:`, e);
+                        showNotification('Error restoring item.', 'error');
+                    }
                 }
             });
         }
-        function searchRecycleBin(term) {
-            const lTerm = term.toLowerCase().trim();
-            currentRecycleBinViewData = lTerm ? deletedItemsData.filter(i => 
-                (i.sku && i.sku.toLowerCase().includes(lTerm)) ||
-                (i.brand && i.brand.toLowerCase().includes(lTerm)) ||
-                (i.product && i.product.toLowerCase().includes(lTerm)) ||
-                (i.originalCollection && i.originalCollection.toLowerCase().includes(lTerm))
-            ) : [...deletedItemsData];
+
+        async function deleteItemPermanently(id, originalCollection) {
+            showConfirmModal('WARNING: This will permanently delete this item. Are you sure?', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const collectionRef = db.collection(originalCollection);
+                        await collectionRef.doc(id).delete();
+                        showNotification('Item permanently deleted!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error(`Error permanently deleting item from ${originalCollection}:`, e);
+                        showNotification('Error permanently deleting item.', 'error');
+                    }
+                }
+            });
+        }
+
+        async function emptyRecycleBin() {
+            showConfirmModal('WARNING: This will permanently delete ALL items in the Recycle Bin. Are you sure?', async (confirmed) => {
+                if (confirmed) {
+                    if (deletedItemsData.length === 0) {
+                        showNotification('Recycle Bin is already empty.', 'info');
+                        return;
+                    }
+                    const batch = db.batch();
+                    let deleteCount = 0;
+                    for (const item of deletedItemsData) {
+                        try {
+                            const collectionRef = db.collection(item.originalCollection);
+                            batch.delete(collectionRef.doc(item.id));
+                            deleteCount++;
+                        } catch (e) {
+                            console.error(`Error adding item ${item.id} to batch for permanent deletion:`, e);
+                        }
+                    }
+
+                    if (deleteCount > 0) {
+                        try {
+                            await batch.commit();
+                            showNotification(`Successfully deleted ${deleteCount} items permanently.`, 'success');
+                            await updateLocalData();
+                        } catch (e) {
+                            console.error("Batch commit for empty recycle bin failed:", e);
+                            showNotification('Error emptying recycle bin.', 'error');
+                        }
+                    } else {
+                         showNotification('No items were eligible for deletion, or an error occurred preparing deletions.', 'info');
+                    }
+                }
+            });
+        }
+
+        function searchRecycleBin(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+             if (lowerCaseSearchTerm) {
+                currentRecycleBinViewData = deletedItemsData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.originalCollection && item.originalCollection.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentRecycleBinViewData = [...deletedItemsData];
+            }
             renderRecycleBinItems();
         }
+        
+        // Functions to show Add Brand/Status/Category Modals
+        function showAddBrandModal() {
+            document.getElementById('addBrandModal').querySelector('form').reset();
+            openModal('addBrandModal');
+        }
 
-        function showAddBrandModal() { document.getElementById('addBrandModal').querySelector('form').reset(); openModal('addBrandModal'); }
-        function showAddStatusModal() { document.getElementById('addStatusModal').querySelector('form').reset(); openModal('addStatusModal'); }
-        function showAddCategoryModal() { document.getElementById('addCategoryModal').querySelector('form').reset(); openModal('addCategoryModal'); }
+        function showAddStatusModal() {
+            document.getElementById('addStatusModal').querySelector('form').reset();
+            openModal('addStatusModal');
+        }
 
+        function showAddCategoryModal() {
+            document.getElementById('addCategoryModal').querySelector('form').reset();
+            openModal('addCategoryModal');
+        }
+
+        // Functions to save New Brand/Status/Category
         async function saveNewBrand(event) {
-            event.preventDefault(); const name = document.getElementById('newBrandName').value.trim();
-            if (!name) { showNotification('Brand name cannot be empty.', 'error'); return; }
-            if (brandsData.some(b => b.name.toLowerCase() === name.toLowerCase())) { showNotification('This brand already exists.', 'error'); return; }
-            try { await saveDataToFirestore(brandsColRef, null, { name, isDeleted: false }); showNotification('Brand added successfully!', 'success'); closeModal('addBrandModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error adding brand.', 'error');}
-        }
-        async function saveNewStatus(event) {
-            event.preventDefault(); const name = document.getElementById('newStatusName').value.trim();
-            if (!name) { showNotification('Status name cannot be empty.', 'error'); return; }
-            if (statusesData.some(s => s.name.toLowerCase() === name.toLowerCase())) { showNotification('This status already exists.', 'error'); return; }
-            try { await saveDataToFirestore(statusesColRef, null, { name, isDeleted: false }); showNotification('Status added successfully!', 'success'); closeModal('addStatusModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error adding status.', 'error');}
-        }
-        async function saveNewCategory(event) {
-            event.preventDefault(); const name = document.getElementById('newCategoryName').value.trim();
-            if (!name) { showNotification('Category name cannot be empty.', 'error'); return; }
-            if (categoriesData.some(c => c.name.toLowerCase() === name.toLowerCase())) { showNotification('This category already exists.', 'error'); return; }
-            try { await saveDataToFirestore(categoriesColRef, null, { name, isDeleted: false }); showNotification('Category added successfully!', 'success'); closeModal('addCategoryModal'); await updateLocalData(); } 
-            catch (e) { showNotification('Error adding category.', 'error');}
+            event.preventDefault();
+            const newBrandNameInput = document.getElementById('newBrandName');
+            const newBrandName = newBrandNameInput.value.trim();
+
+            if (!newBrandName) {
+                showNotification('Brand name cannot be empty.', 'error');
+                return;
+            }
+            // Check against current brandsData (which should be non-deleted)
+            if (brandsData.some(brand => brand.name.toLowerCase() === newBrandName.toLowerCase())) {
+                showNotification('This brand already exists.', 'error');
+                return;
+            }
+            try {
+                await saveDataToFirestore(brandsColRef, null, { name: newBrandName, isDeleted: false }); // Ensure isDeleted: false
+                showNotification('Brand added successfully!', 'success');
+                closeModal('addBrandModal'); // This will also reset the form
+                await updateLocalData(); 
+            } catch (e) {
+                showNotification('Error adding brand. Check console.', 'error');
+                console.error("Error adding new brand:", e);
+            }
         }
 
-        async function exportAllData() {
-            if (typeof JSZip === 'undefined') { showNotification('JSZip library not loaded. Cannot export.', 'error'); return; }
-            const collections = {
-                inventory: inventoryData.filter(i => !i.isDeleted), new_products: newProductsData.filter(i => !i.isDeleted),
-                to_clear: toClearData.filter(i => !i.isDeleted), master_products: masterProductsData.filter(i => !i.isDeleted),
-                brands: brandsData, statuses: statusesData, categories: categoriesData, deleted_items: deletedItemsData
-            };
-            let zip = new JSZip();
-            for (const name in collections) {
-                const data = collections[name].map(item => { const { id, isDeleted, ...rest } = item; return rest; }); // Exclude id and isDeleted from export
-                if (data.length === 0) continue;
-                const headers = Object.keys(data[0] || {});
-                if (headers.length === 0) continue; // Skip if no headers (e.g. empty array of empty objects)
-                let csv = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
-                csv += data.map(row => headers.map(h => `"${String(row[h] !== undefined && row[h] !== null ? row[h] : '').replace(/"/g, '""')}"`).join(',')).join('\n');
-                zip.file(`${name}.csv`, csv);
+        async function saveNewStatus(event) {
+            event.preventDefault();
+            const newStatusNameInput = document.getElementById('newStatusName');
+            const newStatusName = newStatusNameInput.value.trim();
+
+            if (!newStatusName) {
+                showNotification('Status name cannot be empty.', 'error');
+                return;
             }
-            try { const content = await zip.generateAsync({ type: "blob" }); downloadCSV(content, 'all_inventory_data.zip', true); showNotification('All data exported as ZIP!', 'success'); }
-            catch (e) { showNotification('Error exporting all data.', 'error'); console.error("Export all error:", e);}
+            if (statusesData.some(status => status.name.toLowerCase() === newStatusName.toLowerCase())) {
+                showNotification('This status already exists.', 'error');
+                return;
+            }
+            try {
+                await saveDataToFirestore(statusesColRef, null, { name: newStatusName, isDeleted: false });
+                showNotification('Status added successfully!', 'success');
+                closeModal('addStatusModal');
+                await updateLocalData();
+            } catch (e) {
+                showNotification('Error adding status. Check console.', 'error');
+                console.error("Error adding new status:", e);
+            }
         }
+
+        async function saveNewCategory(event) {
+            event.preventDefault();
+            const newCategoryNameInput = document.getElementById('newCategoryName');
+            const newCategoryName = newCategoryNameInput.value.trim();
+
+            if (!newCategoryName) {
+                showNotification('Category name cannot be empty.', 'error');
+                return;
+            }
+            if (categoriesData.some(cat => cat.name.toLowerCase() === newCategoryName.toLowerCase())) {
+                showNotification('This category already exists.', 'error');
+                return;
+            }
+            try {
+                await saveDataToFirestore(categoriesColRef, null, { name: newCategoryName, isDeleted: false });
+                showNotification('Category added successfully!', 'success');
+                closeModal('addCategoryModal');
+                await updateLocalData();
+            } catch (e) {
+                showNotification('Error adding category. Check console.', 'error');
+                console.error("Error adding new category:", e);
+            }
+        }
+
+
+        // Management Tab Functions
+        async function exportAllData() {
+            if (typeof JSZip === 'undefined') {
+                showNotification('Data export library (JSZip) is not loaded. Please try again in a moment or check console.', 'error');
+                console.error('JSZip library not found for exportAllData.');
+                return;
+            }
+
+            const allCollections = {
+                inventory: inventoryData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                new_products: newProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                to_clear: toClearData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                master_products: masterProductsData.filter(item => !item.isDeleted).map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                brands: brandsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }), // Assuming brandsData is already filtered for non-deleted
+                statuses: statusesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                categories: categoriesData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }),
+                deleted_items: deletedItemsData.map(item => { const { id, isDeleted, ...rest } = item; return rest; }) 
+            };
+
+            let zip = new JSZip();
+
+            for (const collectionName in allCollections) {
+                const data = allCollections[collectionName];
+                if (data.length === 0) continue;
+
+                const headers = Object.keys(data[0]);
+                let csvContent = headers.map(header => `"${String(header).replace(/"/g, '""')}"`).join(',') + '\n';
+                data.forEach(item => {
+                    const row = headers.map(header => {
+                        const value = item[header];
+                        return `"${String(value !== undefined && value !== null ? value : '').replace(/"/g, '""')}"`;
+                    }).join(',');
+                    csvContent += row + '\n';
+                });
+                zip.file(`${collectionName}.csv`, csvContent);
+            }
+
+            try {
+                const content = await zip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'all_inventory_data.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a); 
+                URL.revokeObjectURL(url);
+                showNotification('All data exported as ZIP!', 'success');
+            } catch (e) {
+                console.error("Error generating zip file:", e);
+                showNotification('Error exporting all data.', 'error');
+            }
+        }
+
+
         async function loadSampleData() {
             showNotification('Loading sample data... This may take a moment.', 'info');
-            const sBrands = [{ name: 'BrandX',isD:0 },{ name: 'BrandY',isD:0 },{ name: 'BrandZ',isD:0 },{ name: 'BrandA',isD:0 },{ name: 'BrandB',isD:0 },{ name: 'BrandC',isD:0 }].map(b=>({...b,isDeleted:!!b.isD}));
-            const sStatuses = [{ name: 'OOS',isD:0 },{ name: 'Low stock',isD:0 },{ name: 'In stock',isD:0 }].map(s=>({...s,isDeleted:!!s.isD}));
-            const sCats = [{ name: 'Electronics',isD:0 },{ name: 'Accessories',isD:0 },{ name: 'Smart Home',isD:0 },{ name: 'Office Furniture',isD:0 }].map(c=>({...c,isDeleted:!!c.isD}));
-            const sMaster = [
-                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', category: 'Electronics', description: 'High performance laptop', price: 1200,isD:0 },
-                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', category: 'Accessories', description: 'Ergonomic wireless mouse', price: 25,isD:0 },
-                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', category: 'Accessories', description: 'RGB Mechanical Keyboard', price: 80,isD:0 },
-                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', category: 'Smart Home', description: 'Voice activated smart speaker', price: 99,isD:0 },
-                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', category: 'Office Furniture', description: 'Adjustable ergonomic office chair', price: 350,isD:0 },
-                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category: 'Electronics', description: '1080p LED Monitor', price: 150,isD:0 },
-                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category: 'Electronics', description: 'Compact Android Tablet', price: 100,isD:0 }
-            ].map(p=>({...p,isDeleted:!!p.isD}));
-            const sInv = [
-                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock',isD:0 },
-                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', quantity: 0, status: 'OOS',isD:0 },
-                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', quantity: 20, status: 'In stock',isD:0 }
-            ].map(i=>({...i,isDeleted:!!i.isD}));
-            const sNewP = [
-                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrivalDate: '2025-07-15', quantity: 50, notes: 'New model launch', addedDate: '2025-06-01',isD:0 },
-                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', arrivalDate: '2025-07-20', quantity: 15, notes: '', addedDate: '2025-06-05',isD:0 }
-            ].map(p=>({...p,isDeleted:!!p.isD}));
-            const sClear = [
-                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category:'Electronics', expiryDate: '2025-08-31', firstHighlightedDate: '2025-06-01', firstReportedBalance: 20, warehouseQty:10, storeQty:5, weeklyDemand:3, actionPlan:'Promo',isD:0 },
-                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category:'Electronics', expiryDate: '2025-09-30', firstHighlightedDate: '2025-06-10', firstReportedBalance: 5, warehouseQty:1, storeQty:2, weeklyDemand:1, actionPlan:'Clearance',isD:0 }
-            ].map(p=>({...p,isDeleted:!!p.isD}));
-            
-            const colls = [
-                {r:brandsColRef,d:sBrands},{r:statusesColRef,d:sStatuses},{r:categoriesColRef,d:sCats},
-                {r:masterProductsColRef,d:sMaster},{r:inventoryColRef,d:sInv},
-                {r:newProductsColRef,d:sNewP},{r:toClearColRef,d:sClear}
+            const sampleBrands = [
+                { name: 'BrandX', isDeleted: false }, { name: 'BrandY', isDeleted: false }, { name: 'BrandZ', isDeleted: false },
+                { name: 'BrandA', isDeleted: false }, { name: 'BrandB', isDeleted: false }, { name: 'BrandC', isDeleted: false }
             ];
-            try {
-                for (const {r} of colls) { const snap = await r.get(); const b = db.batch(); snap.docs.forEach(d=>b.delete(d.ref)); if(snap.docs.length>0) await b.commit(); }
-                const b = db.batch(); colls.forEach(({r,d}) => d.forEach(i => b.set(r.doc(), i))); await b.commit();
-                showNotification('Sample data loaded successfully!', 'success'); await updateLocalData();
-            } catch (e) { console.error("Error loading sample data:", e); showNotification('Error loading sample data. Check console.', 'error');}
-        }
-        function confirmLoadSampleData() { showConfirmModal('WARNING: This will DELETE ALL existing data and load sample data. Are you sure?', async c => { if(c) await loadSampleData(); }); }
+            const sampleStatuses = [
+                { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }, { name: 'In stock', isDeleted: false }
+            ];
+            const sampleCategories = [
+                { name: 'Electronics', isDeleted: false }, { name: 'Accessories', isDeleted: false },
+                { name: 'Smart Home', isDeleted: false }, { name: 'Office Furniture', isDeleted: false }
+            ];
+            const sampleMasterProducts = [
+                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', category: 'Electronics', description: 'High performance laptop', price: 1200.00, isDeleted: false },
+                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', category: 'Accessories', description: 'Ergonomic wireless mouse', price: 25.00, isDeleted: false },
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', category: 'Accessories', description: 'RGB Mechanical Keyboard', price: 80.00, isDeleted: false },
+                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', category: 'Smart Home', description: 'Voice activated smart speaker', price: 99.00, isDeleted: false },
+                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', category: 'Office Furniture', description: 'Adjustable ergonomic office chair', price: 350.00, isDeleted: false },
+                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category: 'Electronics', description: '1080p LED Monitor', price: 150.00, isDeleted: false },
+                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category: 'Electronics', description: 'Compact Android Tablet', price: 100.00, isDeleted: false }
+            ];
+            const sampleInventory = [
+                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock', expiry: '', shipment: 'SHP001', remarks: '', isDeleted: false },
+                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', quantity: 0, status: 'OOS', expiry: '', shipment: 'SHP002', remarks: 'Awaiting restock', isDeleted: false },
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', quantity: 20, status: 'In stock', expiry: '', shipment: 'SHP003', remarks: '', isDeleted: false }
+            ];
+            const sampleNewProducts = [
+                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', arrivalDate: '2025-06-15', quantity: 50, notes: 'New model launch', addedDate: '2025-05-20', isDeleted: false },
+                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', arrivalDate: '2025-06-20', quantity: 15, notes: '', addedDate: '2025-05-25', isDeleted: false }
+            ];
+            const sampleToClear = [
+                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', category: 'Electronics', expiryDate: '2025-07-31', firstHighlightedDate: '2025-05-01', firstReportedBalance: 20, warehouseQty: 10, storeQty: 5, weeklyDemand: 3, actionPlan: 'Promotional discount', isDeleted: false },
+                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', category: 'Electronics', expiryDate: '2025-08-30', firstHighlightedDate: '2025-05-10', firstReportedBalance: 5, warehouseQty: 1, storeQty: 2, weeklyDemand: 1, actionPlan: 'Clearance sale', isDeleted: false }
+            ];
+            
+            const collectionsAndData = [
+                { ref: brandsColRef, data: sampleBrands },
+                { ref: statusesColRef, data: sampleStatuses },
+                { ref: categoriesColRef, data: sampleCategories },
+                { ref: masterProductsColRef, data: sampleMasterProducts },
+                { ref: inventoryColRef, data: sampleInventory },
+                { ref: newProductsColRef, data: sampleNewProducts },
+                { ref: toClearColRef, data: sampleToClear }
+            ];
 
-        function sortTable(key, col) {
-            const s = sortState[key];
-            s.direction = (s.column === col && s.direction === 'asc') ? 'desc' : 'asc';
-            s.column = col; updateSortIndicators(key);
-            const renderMap = { inventory: renderInventoryItems, newProducts: renderNewProductsItems, master: renderMasterListItems, toClear: renderToClearItems, recycleBin: renderRecycleBinItems };
-            if (renderMap[key]) renderMap[key]();
-        }
-        function sortArray(arr, col, dir) {
-            if (!col || !arr) return arr || [];
-            return [...arr].sort((a,b) => {
-                let vA = a[col], vB = b[col];
-                if (sortState.toClear.column === 'totalQty' && col === 'totalQty') { vA = (Number(a.warehouseQty)||0)+(Number(a.storeQty)||0); vB = (Number(b.warehouseQty)||0)+(Number(b.storeQty)||0); }
-                else if (sortState.toClear.column === 'weeksSupply' && col === 'weeksSupply') { const tA=(Number(a.warehouseQty)||0)+(Number(a.storeQty)||0), tB=(Number(b.warehouseQty)||0)+(Number(b.storeQty)||0); const wdA=Number(a.weeklyDemand)||0, wdB=Number(b.weeklyDemand)||0; vA=wdA>0?tA/wdA:(dir==='asc'?Infinity:-Infinity); vB=wdB>0?tB/wdB:(dir==='asc'?Infinity:-Infinity); }
-                else if (sortState.toClear.column === 'supplyStatus' && col === 'supplyStatus') { // For sorting by new supply status text
-                    vA = getNewSupplyStatus(a).text;
-                    vB = getNewSupplyStatus(b).text;
+            try {
+                for (const { ref } of collectionsAndData) {
+                    const snapshot = await ref.get();
+                    const deleteBatch = db.batch();
+                    snapshot.docs.forEach(doc => deleteBatch.delete(doc.ref));
+                    if(snapshot.docs.length > 0) await deleteBatch.commit();
                 }
 
+                const loadBatch = db.batch();
+                for (const { ref, data } of collectionsAndData) {
+                    data.forEach(item => {
+                        // For collections where we expect a specific ID (like master_products based on SKU for linking)
+                        // this sample data uses auto-generated IDs. If specific IDs were needed, they'd be in the sample data.
+                        const docRef = ref.doc(); 
+                        loadBatch.set(docRef, item);
+                    });
+                }
+                await loadBatch.commit();
+                showNotification('Sample data loaded successfully!', 'success');
+                await updateLocalData();
+            } catch (e) {
+                console.error("Error loading sample data:", e);
+                showNotification('Error loading sample data. Check console.', 'error');
+            }
+        }
 
-                const aU=(vA===undefined||vA===null||vA==='N/A'||(typeof vA==='number'&&isNaN(vA))), bU=(vB===undefined||vB===null||vB==='N/A'||(typeof vB==='number'&&isNaN(vB)));
-                if(aU&&bU)return 0; if(aU)return dir==='asc'?1:-1; if(bU)return dir==='asc'?-1:1;
-                if(typeof vA==='string'&&typeof vB==='string'){ if(/^\d{4}-\d{2}-\d{2}$/.test(vA)&&/^\d{4}-\d{2}-\d{2}$/.test(vB)) return dir==='asc'?vA.localeCompare(vB):vB.localeCompare(vA); const nA=parseFloat(vA),nB=parseFloat(vB); if(!isNaN(nA)&&!isNaN(nB)&&String(nA)===vA&&String(nB)===vB) return dir==='asc'?nA-nB:nB-nA; return dir==='asc'?vA.localeCompare(vB):vB.localeCompare(vA); }
-                if(typeof vA==='number'&&typeof vB==='number') return dir==='asc'?vA-vB:vB-vA;
-                return dir==='asc'?String(vA).localeCompare(String(vB)):String(vB).localeCompare(String(vA));
+
+        function confirmLoadSampleData() {
+            showConfirmModal('WARNING: This will delete ALL existing data and load sample data. Are you sure?', async (confirmed) => {
+                if (confirmed) {
+                    await loadSampleData();
+                }
             });
         }
-        function updateSortIndicators(key) {
-            const cont = document.getElementById(`${key}-table-container`);
-            let headers;
-            if (cont) headers = cont.querySelectorAll('thead th[data-column-key]');
-            else { const t = document.getElementById(`${key}-table`) || document.querySelector(`#${key} table`); if(t) headers = t.querySelectorAll('thead th[data-column-key]'); else return; }
-            headers.forEach(h => { const s=h.querySelector('.sort-arrow'); if(s)s.textContent=''; if(h.dataset.columnKey===sortState[key].column&&s)s.textContent=sortState[key].direction==='asc'?' ▲':' ▼'; });
+
+        // Sorting
+        function sortTable(tableKey, column) {
+            const tableSortState = sortState[tableKey];
+            if (tableSortState.column === column) {
+                tableSortState.direction = tableSortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                tableSortState.column = column;
+                tableSortState.direction = 'asc';
+            }
+            updateSortIndicators(tableKey);
+            if (tableKey === 'inventory') renderInventoryItems();
+            else if (tableKey === 'newProducts') renderNewProductsItems();
+            else if (tableKey === 'master') renderMasterListItems();
+            else if (tableKey === 'toClear') renderToClearItems();
+            else if (tableKey === 'recycleBin') renderRecycleBinItems();
         }
 
+        function sortArray(arr, column, direction) {
+            if (!column || !arr) return arr || []; 
+
+            return [...arr].sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+
+                if (sortState.toClear.column === 'totalQty' && column === 'totalQty') {
+                    valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                } else if (sortState.toClear.column === 'weeksSupply' && column === 'weeksSupply') {
+                    const totalA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valA = (Number(a.weeklyDemand) || 0) > 0 ? (totalA / Number(a.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
+                    const totalB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                    valB = (Number(b.weeklyDemand) || 0) > 0 ? (totalB / Number(b.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
+                }
+
+                const aUndefined = (valA === undefined || valA === null || valA === 'N/A' || (typeof valA === 'number' && isNaN(valA)) );
+                const bUndefined = (valB === undefined || valB === null || valB === 'N/A' || (typeof valB === 'number' && isNaN(valB)) );
+
+                if (aUndefined && bUndefined) return 0;
+                if (aUndefined) return direction === 'asc' ? 1 : -1;
+                if (bUndefined) return direction === 'asc' ? -1 : 1;
+
+
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                     // Check for date strings (YYYY-MM-DD)
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(valA) && /^\d{4}-\d{2}-\d{2}$/.test(valB)) {
+                        return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    // Check for numeric strings for locale-aware numeric sort if possible, otherwise standard string sort
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB) && String(numA) === valA && String(numB) === valB) { // Both are purely numeric strings
+                         return direction === 'asc' ? numA - numB : numB - numA;
+                    }
+                    return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                }
+                
+                // Fallback for mixed types or other cases
+                const strA = String(valA);
+                const strB = String(valB);
+                return direction === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+            });
+        }
+
+
+        function updateSortIndicators(tableKey) {
+            const tableContainer = document.getElementById(`${tableKey}-table-container`); 
+            let headers;
+            if (tableContainer) {
+                headers = tableContainer.querySelectorAll('thead th[data-column-key]');
+            } else { // Fallback for tables not wrapped in a specific *-table-container div
+                const table = document.getElementById(`${tableKey}-table`) || // e.g. master-table
+                              document.querySelector(`#${tableKey} table`);  // e.g. #dashboard table
+                if (table) headers = table.querySelectorAll('thead th[data-column-key]');
+                else return; // No table or headers found
+            }
+            
+            headers.forEach(header => {
+                const arrowSpan = header.querySelector('.sort-arrow');
+                if (arrowSpan) arrowSpan.textContent = ''; 
+                if (header.dataset.columnKey === sortState[tableKey].column) {
+                    if (arrowSpan) arrowSpan.textContent = sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼';
+                }
+            });
+        }
+
+
+        // Dashboard Stats
         function updateDashboardStats() {
-            document.getElementById('oos-count').textContent = inventoryData.filter(i=>!i.isDeleted&&i.status==='OOS').length;
-            document.getElementById('low-count').textContent = inventoryData.filter(i=>!i.isDeleted&&i.status&&i.status.toLowerCase().includes('low stock')).length;
-            document.getElementById('new-count').textContent = newProductsData.filter(i=>!i.isDeleted).length;
+            document.getElementById('oos-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status === 'OOS').length;
+            document.getElementById('low-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).length;
+            document.getElementById('new-count').textContent = newProductsData.filter(item => !item.isDeleted).length;
         }
+
         function updateAlerts() {
-            const div = document.getElementById('alerts'); div.innerHTML=''; let content='';
-            const oos = inventoryData.filter(i=>!i.isDeleted&&i.status==='OOS').slice(0,5);
-            const low = inventoryData.filter(i=>!i.isDeleted&&i.status&&i.status.toLowerCase().includes('low stock')).slice(0,5);
-            const today=new Date(); today.setUTCHours(0,0,0,0); const ninety=new Date(today); ninety.setUTCDate(today.getUTCDate()+90);
-            const expiring = toClearData.filter(i=>{ if(!i.isDeleted&&i.expiryDate){ try{const parts=i.expiryDate.split('-'); const ed=new Date(Date.UTC(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]))); if(isNaN(ed.getTime())) return false; return ed>=today&&ed<=ninety;}catch(e){return false;}} return false; }).sort((a,b)=>new Date(Date.UTC(...a.expiryDate.split('-').map((p,idx)=>idx===1?parseInt(p)-1:parseInt(p))))-new Date(Date.UTC(...b.expiryDate.split('-').map((p,idx)=>idx===1?parseInt(p)-1:parseInt(p))))).slice(0,5);
-            if(oos.length>0) content+=`<h4>Out of Stock:</h4><ul>${oos.map(i=>`<li><span class="status-badge oos">OOS</span> ${i.product||'N/A'} (${i.brand||'N/A'})</li>`).join('')}</ul>`;
-            if(low.length>0) content+=`<h4>Low Stock:</h4><ul>${low.map(i=>`<li><span class="status-badge low">Low</span> ${i.product||'N/A'} (${i.brand||'N/A'}) - Qty: ${i.quantity}</li>`).join('')}</ul>`;
-            if(expiring.length>0) content+=`<h4>Expiring Soon (90d):</h4><ul>${expiring.map(i=>`<li><span class="status-badge alert-status">Expiring</span> ${i.product||'N/A'} (${i.brand||'N/A'}) - Exp: ${i.expiryDate}</li>`).join('')}</ul>`;
-            div.innerHTML = content || '<p>No immediate alerts.</p>';
+            const alertsDiv = document.getElementById('alerts');
+            alertsDiv.innerHTML = '';
+            let alertContent = '';
+
+            const recentOOS = inventoryData.filter(item => !item.isDeleted && item.status === 'OOS').slice(0, 5);
+            const recentLowStock = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).slice(0, 5);
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            const ninetyDaysFromToday = new Date(today);
+            ninetyDaysFromToday.setDate(today.getDate() + 90);
+
+            const expiringSoon = toClearData.filter(item => {
+                if (!item.isDeleted && item.expiryDate) {
+                    try {
+                        const expiryParts = item.expiryDate.split('-');
+                        const expiry = new Date(expiryParts[0], expiryParts[1] - 1, expiryParts[2]);
+                        expiry.setHours(0,0,0,0);
+                        return expiry >= today && expiry <= ninetyDaysFromToday;
+                    } catch (e) { console.warn("Error parsing expiry date for alert:", item.expiryDate, e); return false; }
+                }
+                return false;
+            }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate)).slice(0, 5);
+
+
+            if (recentOOS.length > 0) {
+                alertContent += '<h4>Out of Stock Items:</h4><ul>' +
+                    recentOOS.map(item => `<li><span class="status-badge oos">OOS</span> ${item.product || 'N/A'} (${item.brand || 'N/A'})</li>`).join('') +
+                    '</ul>';
+            }
+            if (recentLowStock.length > 0) {
+                alertContent += '<h4>Low Stock Items:</h4><ul>' +
+                    recentLowStock.map(item => `<li><span class="status-badge low">Low</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - Qty: ${item.quantity}</li>`).join('') +
+                    '</ul>';
+            }
+            if (expiringSoon.length > 0) {
+                alertContent += '<h4>Expiring Soon Items (within 90 days):</h4><ul>' +
+                    expiringSoon.map(item => `<li><span class="status-badge alert-status">Expiring</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - Expiry: ${item.expiryDate}</li>`).join('') +
+                    '</ul>';
+            }
+            
+            alertsDiv.innerHTML = alertContent || '<p>No immediate alerts.</p>';
         }
+
         function updateManagementStats() {
-            document.getElementById('total-products').textContent = masterProductsData.filter(i=>!i.isDeleted).length;
-            document.getElementById('total-products-all').textContent = new Set(masterProductsData.filter(i=>!i.isDeleted&&i.sku).map(i=>i.sku)).size;
+            const activeMasterProductsCount = masterProductsData.filter(item => !item.isDeleted).length;
+            document.getElementById('total-products').textContent = activeMasterProductsCount;
+            
+            const allUniqueSkus = new Set(masterProductsData.filter(item => !item.isDeleted && item.sku).map(item => item.sku));
+            document.getElementById('total-products-all').textContent = allUniqueSkus.size; 
             document.getElementById('last-updated').textContent = new Date().toLocaleString();
         }
 
-        function downloadCSV(content, fileName, isBlob = false) {
-            const blob = isBlob ? content : new Blob([content], { type: 'text/csv;charset=utf-8;' });
+
+        function downloadCSV(csvContent, fileName) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             if (link.download !== undefined) {
                 const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url); link.setAttribute('download', fileName);
-                link.style.visibility = 'hidden'; document.body.appendChild(link);
-                link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
-            } else showNotification('Download not supported.', 'error');
+                link.setAttribute('href', url);
+                link.setAttribute('download', fileName);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); 
+                URL.revokeObjectURL(url);
+            } else {
+                showNotification('Your browser does not support downloading files directly.', 'error');
+            }
         }
+
         async function importCSV(event) {
-            const file = event.target.files[0]; if (!file) return;
+            const file = event.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const text = e.target.result, lines = text.split(/\r\n|\n/).filter(l=>l.trim()!=='');
-                if (lines.length < 2) { showNotification('CSV empty/invalid.', 'error'); event.target.value=''; return; }
-                const headers = lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
-                const reqH = ['product code','brand','product name']; if (reqH.some(rh=>!headers.includes(rh))) { showNotification(`CSV missing: ${reqH.filter(rh=>!headers.includes(rh)).join(',')}. Required: 'product code', 'brand', 'product name'.`, 'error'); event.target.value=''; return; }
-                const hMap = {'product code':'sku','brand':'brand','product name':'product','category':'category','description':'description','price':'price'};
-                let dataToImport = [], skusInCSV = new Set();
-                for (let i=1; i<lines.length; i++) {
-                    const vals = lines[i].split(',').map(v=>v.trim().replace(/"/g,''));
-                    if(vals.length !== headers.length) { console.warn(`Row ${i+1} column mismatch. Skipping.`); continue; }
-                    let item = {isDeleted:false}, isValidRow=true, currentSkuInRow='';
-                    headers.forEach((h,idx)=>{ const fieldName=hMap[h.toLowerCase()]; if(fieldName){ let val=vals[idx]; if(fieldName==='price')item[fieldName]=parseFloat(val)||0; else if(fieldName==='sku'){currentSkuInRow=val.trim(); if(!currentSkuInRow){console.warn(`Row ${i+1} missing SKU. Skipping.`);isValidRow=false;} else item[fieldName]=currentSkuInRow;} else item[fieldName]=val;}});
-                    if(!item.brand||!item.product){ console.warn(`Row ${i+1} missing Brand or Product Name. Skipping.`); isValidRow=false;}
-                    if(isValidRow&&currentSkuInRow){ if(skusInCSV.has(currentSkuInRow)){console.warn(`Row ${i+1}: Duplicate SKU '${currentSkuInRow}' in CSV. Skipping.`);isValidRow=false;} else {skusInCSV.add(currentSkuInRow);dataToImport.push(item);}}
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== ''); 
+                if (lines.length < 2) { 
+                    showNotification('CSV file is empty, invalid, or has no data rows.', 'error');
+                    event.target.value = ''; 
+                    return;
                 }
-                if(dataToImport.length===0){showNotification('No valid data found in CSV to import.', 'error');event.target.value='';return;}
-                showConfirmModal(`Found ${dataToImport.length} valid items. Import will add new or update existing in Master List by SKU. Continue?`, async confirmed => {
-                    if(confirmed){let newCount=0,updatedCount=0;const batch=db.batch();
-                        for(const item of dataToImport){
-                            const existing = masterProductsData.find(mp=>mp.sku===item.sku&&!mp.isDeleted);
-                            if(existing){batch.set(masterProductsColRef.doc(existing.id),item,{merge:true});updatedCount++;}
-                            else{batch.set(masterProductsColRef.doc(),item);newCount++;}
-                        }
-                        if(newCount>0||updatedCount>0){try{await batch.commit();showNotification(`Imported: ${newCount} new, ${updatedCount} updated.`, 'success');await updateLocalData();}catch(er){showNotification('CSV import commit error. Check console.', 'error'); console.error("CSV Import Batch Error:", er);}}
-                        else showNotification('No items were imported (all might be existing without changes or invalid).', 'info');
+
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase()); 
+                const requiredHeaders = ['product code', 'brand', 'product name']; 
+                const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
+                if (missingHeaders.length > 0) {
+                    showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}. Required: 'product code', 'brand', 'product name'.`, 'error');
+                    event.target.value = '';
+                    return;
+                }
+                
+                const headerMap = {
+                    'product code': 'sku', 'brand': 'brand', 'product name': 'product',
+                    'category': 'category', 'description': 'description', 'price': 'price'
+                };
+
+                const importData = [];
+                const importedSkusThisBatch = new Set(); // To check for duplicate SKUs within the CSV itself
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                    if (values.length !== headers.length) {
+                        console.warn(`Skipping CSV row ${i + 1} due to column mismatch.`);
+                        continue;
                     }
-                    event.target.value='';
+                    let item = { isDeleted: false }; 
+                    let validRow = true;
+                    let currentSku = '';
+
+                    headers.forEach((header, index) => {
+                        const fieldName = headerMap[header.toLowerCase()]; // Ensure mapping with lowercase header
+                        if (fieldName) {
+                            let value = values[index];
+                            if (fieldName === 'price') item[fieldName] = parseFloat(value) || 0;
+                            else if (fieldName === 'sku') {
+                                currentSku = value.trim();
+                                if (!currentSku) {
+                                    console.warn(`Skipping CSV row ${i+1} due to missing SKU.`);
+                                    validRow = false; 
+                                } else {
+                                    item[fieldName] = currentSku;
+                                }
+                            }
+                            else item[fieldName] = value;
+                        }
+                    });
+
+                    if (!item.brand || !item.product) { // Check for required brand and product name
+                         console.warn(`Skipping CSV row ${i+1} due to missing Brand or Product Name.`);
+                         validRow = false;
+                    }
+
+                    if (validRow && currentSku) {
+                        if (importedSkusThisBatch.has(currentSku)) {
+                            console.warn(`Skipping CSV row ${i+1}: Duplicate SKU '${currentSku}' within this CSV file.`);
+                            validRow = false;
+                        } else {
+                            importedSkusThisBatch.add(currentSku);
+                            importData.push(item);
+                        }
+                    }
+                }
+
+                if (importData.length === 0) {
+                    showNotification('No valid data found to import from CSV after checks.', 'error');
+                    event.target.value = '';
+                    return;
+                }
+
+                showConfirmModal(`Found ${importData.length} valid items. Importing will add new items or update existing ones in Master List based on SKU. Continue?`, async (confirmed) => {
+                    if (confirmed) {
+                        const batch = db.batch();
+                        let newItemsCount = 0;
+                        let updatedItemsCount = 0;
+
+                        for (const item of importData) {
+                            try {
+                                const existingProduct = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
+                                if (existingProduct) { // Update existing
+                                    const docRef = masterProductsColRef.doc(existingProduct.id);
+                                    batch.set(docRef, item, { merge: true }); // Merge to update, keeps other fields if not in CSV
+                                    updatedItemsCount++;
+                                } else { // Add new
+                                    const docRef = masterProductsColRef.doc(); 
+                                    batch.set(docRef, item);
+                                    newItemsCount++;
+                                }
+                            } catch (err) {
+                                console.error("Error adding item to batch for import:", item, err);
+                            }
+                        }
+
+                        if (newItemsCount > 0 || updatedItemsCount > 0) {
+                            try {
+                                await batch.commit();
+                                showNotification(`Successfully imported: ${newItemsCount} new, ${updatedItemsCount} updated.`, 'success');
+                                await updateLocalData();
+                            } catch (err) {
+                                console.error("Batch commit failed for import:", err);
+                                showNotification('Error during CSV import batch commit.', 'error');
+                            }
+                        } else {
+                            showNotification('No items were imported (perhaps all were duplicates or invalid).', 'info');
+                        }
+                    }
+                    event.target.value = ''; 
                 });
             };
-            reader.onerror = () => { showNotification('Error reading CSV file.', 'error'); event.target.value=''; };
+            reader.onerror = () => {
+                showNotification('Error reading CSV file.', 'error');
+                event.target.value = '';
+            };
             reader.readAsText(file);
         }
+
 
         window.onload = async function() {
             if (typeof JSZip === 'undefined') {
                 console.log("JSZip not found, attempting to load...");
                 const script = document.createElement('script');
                 script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js";
-                script.onload = async () => { console.log("JSZip loaded."); await initializeApp(); };
-                script.onerror = () => { console.error("Failed to load JSZip."); initializeApp(); };
+                script.onload = async () => {
+                    console.log("JSZip loaded successfully.");
+                    await initializeApp();
+                };
+                script.onerror = () => {
+                    console.error("Failed to load JSZip. Export all data may not work.");
+                    initializeApp(); 
+                };
                 document.head.appendChild(script);
-            } else { await initializeApp(); }
+            } else {
+                await initializeApp();
+            }
         };
+
         async function initializeApp() {
             await updateLocalData();
-            const dashTab = document.querySelector('.tab[onclick*="dashboard"]'), dashCont = document.getElementById('dashboard');
+            // Set the Dashboard tab as active on initial load
+            const dashboardTabButton = document.querySelector('.tab[onclick*="dashboard"]');
+            const dashboardContent = document.getElementById('dashboard');
+
+            // Deactivate all tabs and content first
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            if (dashTab && dashCont) { dashTab.classList.add('active'); dashCont.classList.add('active'); }
-            else { const fT=document.querySelector('.tab'),fC=document.querySelector('.tab-content'); if(fT)fT.classList.add('active'); if(fC)fC.classList.add('active');}
-            Object.keys(sortState).forEach(key => updateSortIndicators(key));
+
+            if (dashboardTabButton && dashboardContent) {
+                dashboardTabButton.classList.add('active');
+                dashboardContent.classList.add('active');
+            } else { // Fallback
+                const firstTab = document.querySelector('.tab');
+                const firstContent = document.querySelector('.tab-content');
+                if(firstTab) firstTab.classList.add('active');
+                if(firstContent) firstContent.classList.add('active');
+            }
+            
+            Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
     </script>
-</body>
+    </body>
 </html>
