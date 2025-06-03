@@ -919,7 +919,7 @@
                 </div>
                 <div class="form-group">
                     <label for="toClearFirstHighlightedDate">First Highlighted Date:</label>
-                    <input type="date" id="toClearFirstHighlightedDate" required readonly>
+                    <input type="date" id="toClearFirstHighlightedDate" required>
                 </div>
                 <div class="form-group">
                     <label for="toClearFirstReportedBalance">First Reported Balance (Total Qty):</label>
@@ -1421,7 +1421,15 @@
                  modal.style.display = 'none';
                 const form = modal.querySelector('form');
                 if (form) {
-                    form.reset();
+                    form.reset(); // This will clear the inputs
+                    // After form reset, ensure readOnly state is correctly set for next "Add" operation if it's the toClearModal
+                    if (modalId === 'toClearModal') {
+                        document.getElementById('toClearFirstHighlightedDate').readOnly = false;
+                        document.getElementById('toClearFirstReportedBalance').readOnly = false;
+                        document.getElementById('toClearWeeklyDemand').value = ''; // Clear auto-populated field
+                        document.getElementById('editToClearId').value = ''; // Ensure edit ID is cleared
+                    }
+                    // Handle other modals as before
                     if (modalId === 'productModal') {
                         filterProductsForBrand('', 'productName', 'productsDatalist');
                         document.getElementById('editProductId').value = '';
@@ -1430,10 +1438,6 @@
                         document.getElementById('editNewProductId').value = '';
                     } else if (modalId === 'masterProductModal') {
                         document.getElementById('editMasterProductId').value = '';
-                    } else if (modalId === 'toClearModal') {
-                        filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
-                        document.getElementById('editToClearId').value = '';
-                        document.getElementById('toClearWeeklyDemand').value = ''; // Clear auto-populated field
                     }
                 }
             }
@@ -1840,57 +1844,27 @@
             });
         }
 
-        function showAddToClearModal() {
+         function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
             document.getElementById('editToClearId').value = '';
             const form = document.getElementById('toClearModal').querySelector('form');
             if (form) form.reset();
-            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date();
+
+            const firstHighlightedDateInput = document.getElementById('toClearFirstHighlightedDate');
+            firstHighlightedDateInput.valueAsDate = new Date(); // Default to today
+            firstHighlightedDateInput.readOnly = false; // Make editable for new entries
+
+            const firstReportedBalanceInput = document.getElementById('toClearFirstReportedBalance');
+            firstReportedBalanceInput.readOnly = false; // Make editable for new entries
+            firstReportedBalanceInput.value = ''; // Clear any previous value
+
+
             populateBrandDropdowns('toClearBrand');
-            filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist'); // Clear product list initially
-            document.getElementById('toClearWeeklyDemand').value = ''; // Clear auto-populated field
+            filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
+            document.getElementById('toClearWeeklyDemand').value = '';
             document.getElementById('toClearWarehouseQty').value = 0;
             document.getElementById('toClearStoreQty').value = 0;
             openModal('toClearModal');
-        }
-
-        async function saveToClear(event) {
-            event.preventDefault();
-            const id = document.getElementById('editToClearId').value;
-            const brand = document.getElementById('toClearBrand').value;
-            const productName = document.getElementById('toClearProductName').value;
-            const skuValue = getSkuForProduct(brand, productName); // Get SKU based on selected brand/product
-
-            if (!skuValue) {
-                showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
-                return;
-            }
-            // WK Demand is read-only and auto-populated, so we read its current value
-            const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
-
-            const data = {
-                brand: brand,
-                product: productName,
-                sku: skuValue, 
-                expiryDate: document.getElementById('toClearExpiryDate').value,
-                firstHighlightedDate: document.getElementById('toClearFirstHighlightedDate').value,
-                firstReportedBalance: parseInt(document.getElementById('toClearFirstReportedBalance').value || '0'),
-                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-                weeklyDemand: weeklyDemandValue,
-                remarks: document.getElementById('toClearRemarks').value, // Added remarks
-                actionPlan: document.getElementById('toClearActionPlan').value,
-                isDeleted: false
-            };
-
-            try {
-                await saveDataToFirestore(toClearColRef, id, data);
-                showNotification('Product to clear saved successfully!', 'success');
-                closeModal('toClearModal');
-                await updateLocalData();
-            } catch (e) {
-                //error handled
-            }
         }
 
         async function editToClear(id) {
@@ -1905,18 +1879,88 @@
                 filterProductsForBrand(item.brand, 'toClearProductName', 'toClearProductsDatalist');
                 document.getElementById('toClearProductName').value = item.product;
                 
-                document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand !== undefined ? item.weeklyDemand : ''; // Populate WK Demand
+                document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+
+                const firstHighlightedDateInput = document.getElementById('toClearFirstHighlightedDate');
+                firstHighlightedDateInput.value = item.firstHighlightedDate;
+                firstHighlightedDateInput.readOnly = true; // Make read-only for existing entries
+
+                const firstReportedBalanceInput = document.getElementById('toClearFirstReportedBalance');
+                firstReportedBalanceInput.value = item.firstReportedBalance;
+                firstReportedBalanceInput.readOnly = true; // Make read-only for existing entries
 
                 document.getElementById('toClearExpiryDate').value = item.expiryDate;
-                document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate;
-                document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance;
                 document.getElementById('toClearWarehouseQty').value = item.warehouseQty;
                 document.getElementById('toClearStoreQty').value = item.storeQty;
-                document.getElementById('toClearRemarks').value = item.remarks || ''; // Added remarks
+                document.getElementById('toClearRemarks').value = item.remarks || '';
                 document.getElementById('toClearActionPlan').value = item.actionPlan;
                 openModal('toClearModal');
             }
         }
+
+        async function saveToClear(event) {
+            event.preventDefault();
+            const id = document.getElementById('editToClearId').value;
+            const brand = document.getElementById('toClearBrand').value;
+            const productName = document.getElementById('toClearProductName').value;
+            const skuValue = getSkuForProduct(brand, productName);
+
+            if (!skuValue) {
+                showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+                return;
+            }
+            
+            const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
+            const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
+            const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
+
+            if (!firstHighlightedDateValue) {
+                showNotification("First Highlighted Date is required.", "error");
+                return;
+            }
+            // For a new item (no id), firstReportedBalanceValue must be provided.
+            // For an existing item, these fields are read-only, so we use their existing values if they were somehow cleared by form.reset (though readOnly should prevent this)
+            // The main point is that saveToClear will now correctly save the user-inputted or existing locked values.
+
+            const data = {
+                brand: brand,
+                product: productName,
+                sku: skuValue, 
+                expiryDate: document.getElementById('toClearExpiryDate').value,
+                firstHighlightedDate: firstHighlightedDateValue,
+                firstReportedBalance: firstReportedBalanceValue,
+                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+                weeklyDemand: weeklyDemandValue,
+                remarks: document.getElementById('toClearRemarks').value,
+                actionPlan: document.getElementById('toClearActionPlan').value,
+                isDeleted: false
+            };
+
+            // If it's an existing item, ensure that firstHighlightedDate and firstReportedBalance are not overwritten
+            // if they were somehow made editable by mistake (they shouldn't be based on editToClear logic).
+            // However, the current logic correctly sets them to readOnly on edit, so this is more of a safeguard.
+            // For new items, the values from the form (which were editable) are used.
+            if (id) {
+                const existingItem = toClearData.find(p => p.id === id);
+                if (existingItem) {
+                    data.firstHighlightedDate = existingItem.firstHighlightedDate;
+                    data.firstReportedBalance = existingItem.firstReportedBalance;
+                }
+            }
+
+
+            try {
+                await saveDataToFirestore(toClearColRef, id, data);
+                showNotification('Product to clear saved successfully!', 'success');
+                closeModal('toClearModal');
+                await updateLocalData();
+            } catch (e) {
+                //error handled in saveDataToFirestore
+            }
+        }
+        
+
 
         function searchToClear(searchTerm) {
             const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
