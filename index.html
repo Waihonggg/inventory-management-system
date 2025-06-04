@@ -1178,7 +1178,29 @@
             }
         }
 
-
+        async function togglePinToClearItem(id) {
+    const item = toClearData.find(p => p.id === id);
+    if (item) {
+        const newPinnedState = !item.isPinned; // Toggle the current pinned state (handles undefined as false)
+        try {
+            await saveDataToFirestore(toClearColRef, id, { isPinned: newPinnedState });
+            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+            
+            // Update local data directly for responsiveness
+            item.isPinned = newPinnedState;
+            const viewItem = currentToClearViewData.find(p => p.id === id);
+            if (viewItem) {
+                viewItem.isPinned = newPinnedState;
+            }
+            
+            renderToClearItems(); // Re-render the 'To Clear' table
+        } catch (e) {
+            showNotification('Error updating pin status.', 'error');
+            console.error("Error toggling pin status:", e);
+        }
+    }
+}
+        
         function updateAllTablesAndViews() {
             renderInventoryItems();
             renderNewProductsItems();
@@ -1810,39 +1832,54 @@
 
         // To Clear
         function renderToClearItems() {
-            const tableBody = document.getElementById('to-clear-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+    const tableBody = document.getElementById('to-clear-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-            const sortedData = sortArray(currentToClearViewData, sortState.toClear.column, sortState.toClear.direction);
+    // Separate pinned from unpinned items from the current view data
+    // Items where isPinned is true are pinned.
+    // Items where isPinned is false or undefined are unpinned.
+    const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.expiryDate || '';
-                row.insertCell().textContent = item.firstHighlightedDate || '';
-                row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
-                row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
-                row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
-                const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-                row.insertCell().textContent = totalQty;
-                row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
-                const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-                row.insertCell().textContent = weeksSupply;
-                const supplyStatusClass = getSupplyStatusClass(item);
-                row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
-                row.insertCell().textContent = item.remarks || ''; // Added Remarks
-                row.insertCell().textContent = item.actionPlan || '';
+    // Sort each group separately based on the current sort state
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
 
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
-                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
-                `;
-            });
-        }
+    // Combine, with pinned items always at the top
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.expiryDate || '';
+        row.insertCell().textContent = item.firstHighlightedDate || '';
+        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        row.insertCell().textContent = totalQty;
+        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+        row.insertCell().textContent = weeksSupply;
+        const supplyStatusClass = getSupplyStatusClass(item);
+        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+        row.insertCell().textContent = item.remarks || '';
+        row.insertCell().textContent = item.actionPlan || '';
+
+        const actionsCell = row.insertCell();
+        // Add Pin/Unpin button. Use btn-success for Pin and btn-warning for Unpin.
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')" style="margin-left: 4px; margin-right: 4px;">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
+        `;
+    });
+}
 
          function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
@@ -1898,67 +1935,73 @@
             }
         }
 
-        async function saveToClear(event) {
-            event.preventDefault();
-            const id = document.getElementById('editToClearId').value;
-            const brand = document.getElementById('toClearBrand').value;
-            const productName = document.getElementById('toClearProductName').value;
-            const skuValue = getSkuForProduct(brand, productName);
+        // Modify the saveToClear function
+async function saveToClear(event) {
+    event.preventDefault();
+    const id = document.getElementById('editToClearId').value;
+    const brand = document.getElementById('toClearBrand').value;
+    const productName = document.getElementById('toClearProductName').value;
+    const skuValue = getSkuForProduct(brand, productName);
 
-            if (!skuValue) {
-                showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
-                return;
-            }
-            
-            const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
-            const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
-            const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
+    if (!skuValue) {
+        showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+        return;
+    }
+    
+    const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
+    const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
+    const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
 
-            if (!firstHighlightedDateValue) {
-                showNotification("First Highlighted Date is required.", "error");
-                return;
-            }
-            // For a new item (no id), firstReportedBalanceValue must be provided.
-            // For an existing item, these fields are read-only, so we use their existing values if they were somehow cleared by form.reset (though readOnly should prevent this)
-            // The main point is that saveToClear will now correctly save the user-inputted or existing locked values.
+    if (!firstHighlightedDateValue) {
+        showNotification("First Highlighted Date is required.", "error");
+        return;
+    }
 
-            const data = {
-                brand: brand,
-                product: productName,
-                sku: skuValue, 
-                expiryDate: document.getElementById('toClearExpiryDate').value,
-                firstHighlightedDate: firstHighlightedDateValue,
-                firstReportedBalance: firstReportedBalanceValue,
-                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-                weeklyDemand: weeklyDemandValue,
-                remarks: document.getElementById('toClearRemarks').value,
-                actionPlan: document.getElementById('toClearActionPlan').value,
-                isDeleted: false
-            };
+    const data = {
+        brand: brand,
+        product: productName,
+        sku: skuValue, 
+        expiryDate: document.getElementById('toClearExpiryDate').value,
+        firstHighlightedDate: firstHighlightedDateValue,
+        firstReportedBalance: firstReportedBalanceValue,
+        warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+        storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+        weeklyDemand: weeklyDemandValue,
+        remarks: document.getElementById('toClearRemarks').value,
+        actionPlan: document.getElementById('toClearActionPlan').value,
+        isDeleted: false
+        // isPinned is NOT set here for existing items, it's handled by togglePinToClearItem.
+        // For new items, it will be set below.
+    };
 
-            // If it's an existing item, ensure that firstHighlightedDate and firstReportedBalance are not overwritten
-            // if they were somehow made editable by mistake (they shouldn't be based on editToClear logic).
-            // However, the current logic correctly sets them to readOnly on edit, so this is more of a safeguard.
-            // For new items, the values from the form (which were editable) are used.
-            if (id) {
-                const existingItem = toClearData.find(p => p.id === id);
-                if (existingItem) {
-                    data.firstHighlightedDate = existingItem.firstHighlightedDate;
-                    data.firstReportedBalance = existingItem.firstReportedBalance;
-                }
-            }
+    if (!id) { // If it's a new product being added
+        data.isPinned = false; // Default new items to unpinned
+    }
+    // For existing items (id exists), data object does not include isPinned,
+    // so saveDataToFirestore will not overwrite it unless isPinned is part of the 'data' object explicitly.
+    // This is the desired behavior, as pinning is handled by a separate function.
 
 
-            try {
-                await saveDataToFirestore(toClearColRef, id, data);
-                showNotification('Product to clear saved successfully!', 'success');
-                closeModal('toClearModal');
-                await updateLocalData();
-            } catch (e) {
-                //error handled in saveDataToFirestore
-            }
+    if (id) { // If editing an existing item, preserve its original firstHighlightedDate and firstReportedBalance
+        const existingItem = toClearData.find(p => p.id === id);
+        if (existingItem) {
+            data.firstHighlightedDate = existingItem.firstHighlightedDate;
+            data.firstReportedBalance = existingItem.firstReportedBalance;
+            // We also don't want to overwrite isPinned status during a general edit via modal.
+            // data.isPinned = existingItem.isPinned; // No, this is wrong. The 'data' object above intentionally omits isPinned for updates.
         }
+    }
+
+
+    try {
+        await saveDataToFirestore(toClearColRef, id, data); // 'data' for existing items won't include 'isPinned'
+        showNotification('Product to clear saved successfully!', 'success');
+        closeModal('toClearModal');
+        await updateLocalData(); // This will fetch all data again, including any pin changes.
+    } catch (e) {
+        //error handled in saveDataToFirestore
+    }
+}
         
 
 
