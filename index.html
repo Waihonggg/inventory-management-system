@@ -2737,6 +2737,46 @@ async function saveToClear(event) {
                     expiringSoon.map(item => `<li><span class="status-badge alert-status">Expiring</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - Expiry: ${item.expiryDate}</li>`).join('') +
                     '</ul>';
             }
+
+            // New section for Top 5 Danger Items from To Clear list
+            const dangerToClearItems = toClearData.filter(item => {
+                if (item.isDeleted) return false;
+                const statusText = getSupplyStatusText(item);
+                return statusText === 'Danger' || statusText === 'Expired';
+            }).sort((a, b) => {
+                const statusTextA = getSupplyStatusText(a);
+                const statusTextB = getSupplyStatusText(b);
+
+                // Prioritize 'Expired' items over 'Danger' items
+                if (statusTextA === 'Expired' && statusTextB !== 'Expired') return -1;
+                if (statusTextA !== 'Expired' && statusTextB === 'Expired') return 1;
+
+                // For items with the same status ('Expired' or 'Danger'), sort by expiryDate (earliest first)
+                const dateA = a.expiryDate ? new Date(a.expiryDate) : null;
+                const dateB = b.expiryDate ? new Date(b.expiryDate) : null;
+
+                if (dateA && dateB) {
+                    return dateA - dateB;
+                } else if (dateA) { // Only A has a valid date, so it comes first
+                    return -1;
+                } else if (dateB) { // Only B has a valid date, so it comes first
+                    return 1;
+                }
+                // If dates are not available or comparable for some 'Danger' items (e.g. danger due to no weekly demand)
+                // you might compare by another field like product name for stable sort, or leave as is.
+                // For simplicity, we'll leave them as is if dates are not helpful.
+                return 0; 
+            }).slice(0, 5);
+
+            if (dangerToClearItems.length > 0) {
+                alertContent += '<h4>Danger Zone (To Clear):</h4><ul>' +
+                    dangerToClearItems.map(item => {
+                        const statusText = getSupplyStatusText(item); // Will be 'Expired' or 'Danger'
+                        const badgeClass = getSupplyStatusClass(item); // Should correctly return 'danger-status'
+                        return `<li><span class="status-badge ${badgeClass}">${statusText}</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - SKU: ${item.sku || 'N/A'}${item.expiryDate ? `, Exp: ${item.expiryDate}` : ''}</li>`;
+                    }).join('') +
+                    '</ul>';
+            }
             
             alertsDiv.innerHTML = alertContent || '<p>No immediate alerts.</p>';
         }
