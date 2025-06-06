@@ -893,10 +893,17 @@
                     <label for="wkDemand">Weekly Demand (WK Demand):</label>
                     <input type="number" id="wkDemand" min="0" step="1" value="0">
                 </div>
-                <div class="form-group">
-                    <label for="masterExpiryDate">Expiry Date:</label>
-                    <input type="month" id="masterExpiryDate">
-                </div>
+               <div class="form-group">
+        <label for="masterExpiryMonth">Expiry Date:</label>
+        <div style="display: flex; gap: 10px;">
+            <select id="masterExpiryMonth" style="flex: 1;">
+                <option value="">Month</option>
+            </select>
+            <select id="masterExpiryYear" style="flex: 1;">
+                <option value="">Year</option>
+            </select>
+        </div>
+    </div>
                 <div class="form-group">
                     <label for="sku">Product Code (SKU):</label>
                     <input type="text" id="sku">
@@ -2120,71 +2127,117 @@
         }
 
         function showAddMasterProductModal() {
-            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
-            document.getElementById('editMasterProductId').value = '';
-            document.getElementById('masterProductModal').querySelector('form').reset();
-            populateBrandDropdowns('masterBrand');
-            document.getElementById('wkDemand').value = 0; // Default WK Demand
-            openModal('masterProductModal');
-        }
+    document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
+    document.getElementById('editMasterProductId').value = '';
+    document.getElementById('masterProductModal').querySelector('form').reset();
+    populateBrandDropdowns('masterBrand');
+    document.getElementById('wkDemand').value = 0; // Default WK Demand
 
+    // Populate the expiry dropdowns for a new product (they will be empty)
+    populateExpiryDateSelectors(null);
+
+    openModal('masterProductModal');
+}
+// New helper function to populate Month and Year dropdowns
+function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM' or null
+    const monthSelect = document.getElementById('masterExpiryMonth');
+    const yearSelect = document.getElementById('masterExpiryYear');
+
+    monthSelect.innerHTML = '<option value="">Month</option>';
+    yearSelect.innerHTML = '<option value="">Year</option>';
+
+    // Populate months
+    for (let i = 1; i <= 12; i++) {
+        const monthStr = String(i).padStart(2, '0');
+        const monthName = new Date(2000, i - 1, 1).toLocaleString('default', { month: 'long' });
+        monthSelect.innerHTML += `<option value="${monthStr}">${monthName}</option>`;
+    }
+
+    // Populate years (e.g., this year to 15 years from now)
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i <= currentYear + 15; i++) {
+        yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+
+    // Set selected values if they exist
+    if (selectedDate && selectedDate.includes('-')) {
+        const [year, month] = selectedDate.split('-');
+        monthSelect.value = month;
+
+        // If the year is old and not in the list, add it dynamically
+        if (!Array.from(yearSelect.options).some(opt => opt.value === year)) {
+             const option = document.createElement('option');
+             option.value = year;
+             option.textContent = year;
+             // Insert it at the correct position (e.g., after the placeholder)
+             yearSelect.insertBefore(option, yearSelect.options[1]);
+        }
+        yearSelect.value = year;
+    }
+}
         async function saveMasterProduct(event) {
-            event.preventDefault();
-            const id = document.getElementById('editMasterProductId').value;
-            const sku = document.getElementById('sku').value.trim();
-            const productName = document.getElementById('masterProductName').value.trim();
-            const brandName = document.getElementById('masterBrand').value;
+    event.preventDefault();
+    const id = document.getElementById('editMasterProductId').value;
+    const sku = document.getElementById('sku').value.trim();
+    const productName = document.getElementById('masterProductName').value.trim();
+    const brandName = document.getElementById('masterBrand').value;
 
-            if (!sku || !productName || !brandName) {
-                showNotification('SKU, Product Name, and Brand are required.', 'error');
-                return;
-            }
+    if (!sku || !productName || !brandName) {
+        showNotification('SKU, Product Name, and Brand are required.', 'error');
+        return;
+    }
 
-            if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
-                showNotification('This SKU already exists for another product.', 'error');
-                return;
-            }
-            if (masterProductsData.some(p => p.brand === brandName && p.product === productName && p.id !== id && !p.isDeleted)) {
-                 showNotification('This Brand and Product Name combination already exists.', 'error');
-                return;
-            }
-            
-            const data = {
-                brand: brandName,
-                product: productName,
-                wkDemand: parseInt(document.getElementById('wkDemand').value || '0'),
-                expiryDate: document.getElementById('masterExpiryDate').value,
-                sku: sku,
-                price: parseFloat(document.getElementById('price').value || '0'),
-                isDeleted: false
-            };
+    if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
+        showNotification('This SKU already exists for another product.', 'error');
+        return;
+    }
+    if (masterProductsData.some(p => p.brand === brandName && p.product === productName && p.id !== id && !p.isDeleted)) {
+         showNotification('This Brand and Product Name combination already exists.', 'error');
+        return;
+    }
+    
+    const month = document.getElementById('masterExpiryMonth').value;
+    const year = document.getElementById('masterExpiryYear').value;
+    const expiryDateValue = (year && month) ? `${year}-${month}` : '';
 
-            try {
-                await saveDataToFirestore(masterProductsColRef, id, data);
-                showNotification('Master product saved successfully!', 'success');
-                closeModal('masterProductModal');
-                await updateLocalData();
-            } catch (e) {
-                //error handled
-            }
-        }
+    const data = {
+        brand: brandName,
+        product: productName,
+        wkDemand: parseInt(document.getElementById('wkDemand').value || '0'),
+        expiryDate: expiryDateValue, // Use combined value from dropdowns
+        sku: sku,
+        price: parseFloat(document.getElementById('price').value || '0'),
+        isDeleted: false
+    };
+
+    try {
+        await saveDataToFirestore(masterProductsColRef, id, data);
+        showNotification('Master product saved successfully!', 'success');
+        closeModal('masterProductModal');
+        await updateLocalData();
+    } catch (e) {
+        //error handled
+    }
+}
 
         async function editMasterProduct(id) {
-            const item = masterProductsData.find(p => p.id === id);
-            if (item) {
-                document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
-                document.getElementById('editMasterProductId').value = item.id;
-                populateBrandDropdowns('masterBrand');
-                document.getElementById('masterBrand').value = item.brand;
-                document.getElementById('masterProductName').value = item.product;
-                document.getElementById('wkDemand').value = item.wkDemand !== undefined ? item.wkDemand : '';
-                document.getElementById('masterExpiryDate').value = item.expiryDate || '';
-                document.getElementById('sku').value = item.sku;
-                document.getElementById('price').value = item.price;
-                openModal('masterProductModal');
-            }
-        }
+    const item = masterProductsData.find(p => p.id === id);
+    if (item) {
+        document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
+        document.getElementById('editMasterProductId').value = item.id;
+        populateBrandDropdowns('masterBrand');
+        document.getElementById('masterBrand').value = item.brand;
+        document.getElementById('masterProductName').value = item.product;
+        document.getElementById('wkDemand').value = item.wkDemand !== undefined ? item.wkDemand : '';
+        
+        // This function now populates the dropdowns
+        populateExpiryDateSelectors(item.expiryDate || ''); 
 
+        document.getElementById('sku').value = item.sku;
+        document.getElementById('price').value = item.price;
+        openModal('masterProductModal');
+    }
+}
         function searchMasterList(searchTerm) {
             const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
             const baseData = masterProductsData.filter(item => !item.isDeleted);
