@@ -323,17 +323,22 @@
          .btn-info:hover {
             box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
+        
+        .btn-warning {
+             background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        .btn-warning:hover {
+             box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+        }
+
 
         /* Refined styles for buttons within table cells */
-        td button.btn-info,
-        td button.btn-danger,
-        td button.btn-success {
+        td button {
             padding: 7px 10px;   /* Reduced padding for compactness */
             font-size: 10px;    /* Smaller font for text like "Edit", "Delete" */
             letter-spacing: 0.3px; /* Adjust letter spacing for smaller font */
             border-radius: 18px; /* Keep pill shape, but ensure it's compact */
-            margin: 3px;         /* Spacing between buttons in a cell */
-            /* Inherits general hover effects, no need to redefine transform here unless different behavior is wanted */
+            margin: 2px;         /* Spacing between buttons in a cell */
         }
 
 
@@ -453,6 +458,16 @@
             color: #842029; /* Darker text */
             border-color: #e74c3c; /* Accent color */
         }
+        .alert-info {
+            background-color: #e7f3fe;
+            color: #0c5460;
+            border-color: #3498db;
+        }
+        .alert-warning {
+             background-color: #fff8e1;
+             color: #856404;
+             border-color: #f39c12;
+        }
 
         /* Confirmation Modal Specific Styles */
         #confirmModal .modal-content {
@@ -549,9 +564,7 @@
                 padding: 10px 15px;
             }
              /* Ensure table action buttons don't go full width on mobile */
-            td button.btn-info,
-            td button.btn-danger,
-            td button.btn-success {
+            td button {
                 width: auto; /* Override full width for table buttons */
                 margin-bottom: 2px; /* Reduce margin if stacked vertically in a small cell */
             }
@@ -743,7 +756,7 @@
                         <th onclick="sortTable('master', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'product')" data-column-key="product">Product Name <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'wkDemand')" data-column-key="wkDemand">WK Demand <span class="sort-arrow"></span></th>
-                        <th>Description</th>
+                        <th onclick="sortTable('master', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th>
                         <th>Actions</th>
                     </tr>
@@ -881,8 +894,8 @@
                     <input type="number" id="wkDemand" min="0" step="1" value="0">
                 </div>
                 <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description"></textarea>
+                    <label for="masterExpiryDate">Expiry Date:</label>
+                    <input type="month" id="masterExpiryDate">
                 </div>
                 <div class="form-group">
                     <label for="sku">Product Code (SKU):</label>
@@ -1049,7 +1062,8 @@
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => {
-                notification.remove();
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
 
@@ -1091,7 +1105,12 @@
             try {
                 const querySnapshot = await query.get();
                 querySnapshot.forEach((doc) => {
-                    data.push({ id: doc.id, ...doc.data() });
+                    const docData = doc.data();
+                    // Ensure isPinned is initialized
+                    if (collectionRef.id === 'to_clear' && typeof docData.isPinned === 'undefined') {
+                        docData.isPinned = false;
+                    }
+                    data.push({ id: doc.id, ...docData });
                 });
             } catch (error) {
                 console.error(`Error fetching data from ${collectionRef.id}:`, error);
@@ -1129,7 +1148,7 @@
         async function saveDataToFirestore(collectionRef, docId, data) {
             try {
                 if (docId) {
-                    await collectionRef.doc(docId).update(data);
+                    await collectionRef.doc(docId).set(data, { merge: true }); // Use set with merge to handle updates and new fields
                 } else {
                     const docRef = await collectionRef.add(data);
                     return docRef.id;
@@ -1177,29 +1196,6 @@
                 showNotification('Error loading data from server. Please check your internet connection or Firebase setup.', 'error');
             }
         }
-
-        async function togglePinToClearItem(id) {
-    const item = toClearData.find(p => p.id === id);
-    if (item) {
-        const newPinnedState = !item.isPinned; // Toggle the current pinned state (handles undefined as false)
-        try {
-            await saveDataToFirestore(toClearColRef, id, { isPinned: newPinnedState });
-            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
-            
-            // Update local data directly for responsiveness
-            item.isPinned = newPinnedState;
-            const viewItem = currentToClearViewData.find(p => p.id === id);
-            if (viewItem) {
-                viewItem.isPinned = newPinnedState;
-            }
-            
-            renderToClearItems(); // Re-render the 'To Clear' table
-        } catch (e) {
-            showNotification('Error updating pin status.', 'error');
-            console.error("Error toggling pin status:", e);
-        }
-    }
-}
         
         function updateAllTablesAndViews() {
             renderInventoryItems();
@@ -1718,7 +1714,6 @@
                                 product: item.product,
                                 sku: item.sku,
                                 wkDemand: 0, // Default WK Demand
-                                description: item.notes || '',
                                 price: 0.00, 
                                 isDeleted: false
                             };
@@ -1773,7 +1768,7 @@
                             const masterProductRef = masterProductsColRef.doc(); 
                             const masterProductData = {
                                 brand: item.brand, product: item.product, sku: item.sku,
-                                wkDemand: 0, description: item.notes || '', price: 0.00, isDeleted: false
+                                wkDemand: 0, price: 0.00, isDeleted: false
                             };
                             batch.set(masterProductRef, masterProductData);
 
@@ -1831,55 +1826,69 @@
         }
 
         // To Clear
+        async function togglePinToClearItem(id) {
+            const item = toClearData.find(p => p.id === id);
+            if (item) {
+                const newPinnedState = !item.isPinned; // Toggle the current pinned state
+                try {
+                    await saveDataToFirestore(toClearColRef, id, { isPinned: newPinnedState });
+                    showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+                    
+                    item.isPinned = newPinnedState;
+                    const viewItem = currentToClearViewData.find(p => p.id === id);
+                    if (viewItem) viewItem.isPinned = newPinnedState;
+                    
+                    renderToClearItems(); // Re-render the table
+                } catch (e) {
+                    showNotification('Error updating pin status.', 'error');
+                    console.error("Error toggling pin status:", e);
+                }
+            }
+        }
+        
         function renderToClearItems() {
-    const tableBody = document.getElementById('to-clear-table');
-    if (!tableBody) return;
-    tableBody.innerHTML = '';
+            const tableBody = document.getElementById('to-clear-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
 
-    // Separate pinned from unpinned items from the current view data
-    // Items where isPinned is true are pinned.
-    // Items where isPinned is false or undefined are unpinned.
-    const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
-    const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
+            const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
+            const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
 
-    // Sort each group separately based on the current sort state
-    const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
-    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
+            const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
+            const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
 
-    // Combine, with pinned items always at the top
-    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+            const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
 
-    sortedData.forEach(item => {
-        const row = tableBody.insertRow();
-        row.insertCell().textContent = item.sku || '';
-        row.insertCell().textContent = item.brand || '';
-        row.insertCell().textContent = item.product || '';
-        row.insertCell().textContent = item.expiryDate || '';
-        row.insertCell().textContent = item.firstHighlightedDate || '';
-        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
-        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
-        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
-        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-        row.insertCell().textContent = totalQty;
-        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
-        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-        row.insertCell().textContent = weeksSupply;
-        const supplyStatusClass = getSupplyStatusClass(item);
-        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
-        row.insertCell().textContent = item.remarks || '';
-        row.insertCell().textContent = item.actionPlan || '';
+            sortedData.forEach(item => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = item.sku || '';
+                row.insertCell().textContent = item.brand || '';
+                row.insertCell().textContent = item.product || '';
+                row.insertCell().textContent = item.expiryDate || '';
+                row.insertCell().textContent = item.firstHighlightedDate || '';
+                row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+                row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+                row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+                const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                row.insertCell().textContent = totalQty;
+                row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+                const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+                row.insertCell().textContent = weeksSupply;
+                const supplyStatusClass = getSupplyStatusClass(item);
+                row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+                row.insertCell().textContent = item.remarks || '';
+                row.insertCell().textContent = item.actionPlan || '';
 
-        const actionsCell = row.insertCell();
-        // Add Pin/Unpin button. Use btn-success for Pin and btn-warning for Unpin.
-        actionsCell.innerHTML = `
-            <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
-            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')" style="margin-left: 4px; margin-right: 4px;">
-                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
-            </button>
-            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
-        `;
-    });
-}
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
+                    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
+                        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+                    </button>
+                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
+                `;
+            });
+        }
 
          function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
@@ -1904,6 +1913,62 @@
             openModal('toClearModal');
         }
 
+        async function saveToClear(event) {
+            event.preventDefault();
+            const id = document.getElementById('editToClearId').value;
+            const brand = document.getElementById('toClearBrand').value;
+            const productName = document.getElementById('toClearProductName').value;
+            const skuValue = getSkuForProduct(brand, productName);
+
+            if (!skuValue) {
+                showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+                return;
+            }
+            
+            const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
+            const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
+            const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
+
+            if (!firstHighlightedDateValue) {
+                showNotification("First Highlighted Date is required.", "error");
+                return;
+            }
+
+            const data = {
+                brand: brand,
+                product: productName,
+                sku: skuValue, 
+                expiryDate: document.getElementById('toClearExpiryDate').value,
+                firstHighlightedDate: firstHighlightedDateValue,
+                firstReportedBalance: firstReportedBalanceValue,
+                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+                weeklyDemand: weeklyDemandValue,
+                remarks: document.getElementById('toClearRemarks').value,
+                actionPlan: document.getElementById('toClearActionPlan').value,
+                isDeleted: false,
+                isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
+            };
+            
+            if (id) {
+                const existingItem = toClearData.find(p => p.id === id);
+                if (existingItem) {
+                    data.firstHighlightedDate = existingItem.firstHighlightedDate;
+                    data.firstReportedBalance = existingItem.firstReportedBalance;
+                }
+            }
+
+
+            try {
+                await saveDataToFirestore(toClearColRef, id, data);
+                showNotification('Product to clear saved successfully!', 'success');
+                closeModal('toClearModal');
+                await updateLocalData();
+            } catch (e) {
+                //error handled in saveDataToFirestore
+            }
+        }
+        
         async function editToClear(id) {
             const item = toClearData.find(p => p.id === id);
             if (item) {
@@ -1934,75 +1999,6 @@
                 openModal('toClearModal');
             }
         }
-
-        // Modify the saveToClear function
-async function saveToClear(event) {
-    event.preventDefault();
-    const id = document.getElementById('editToClearId').value;
-    const brand = document.getElementById('toClearBrand').value;
-    const productName = document.getElementById('toClearProductName').value;
-    const skuValue = getSkuForProduct(brand, productName);
-
-    if (!skuValue) {
-        showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
-        return;
-    }
-    
-    const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
-    const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
-    const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
-
-    if (!firstHighlightedDateValue) {
-        showNotification("First Highlighted Date is required.", "error");
-        return;
-    }
-
-    const data = {
-        brand: brand,
-        product: productName,
-        sku: skuValue, 
-        expiryDate: document.getElementById('toClearExpiryDate').value,
-        firstHighlightedDate: firstHighlightedDateValue,
-        firstReportedBalance: firstReportedBalanceValue,
-        warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-        storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-        weeklyDemand: weeklyDemandValue,
-        remarks: document.getElementById('toClearRemarks').value,
-        actionPlan: document.getElementById('toClearActionPlan').value,
-        isDeleted: false
-        // isPinned is NOT set here for existing items, it's handled by togglePinToClearItem.
-        // For new items, it will be set below.
-    };
-
-    if (!id) { // If it's a new product being added
-        data.isPinned = false; // Default new items to unpinned
-    }
-    // For existing items (id exists), data object does not include isPinned,
-    // so saveDataToFirestore will not overwrite it unless isPinned is part of the 'data' object explicitly.
-    // This is the desired behavior, as pinning is handled by a separate function.
-
-
-    if (id) { // If editing an existing item, preserve its original firstHighlightedDate and firstReportedBalance
-        const existingItem = toClearData.find(p => p.id === id);
-        if (existingItem) {
-            data.firstHighlightedDate = existingItem.firstHighlightedDate;
-            data.firstReportedBalance = existingItem.firstReportedBalance;
-            // We also don't want to overwrite isPinned status during a general edit via modal.
-            // data.isPinned = existingItem.isPinned; // No, this is wrong. The 'data' object above intentionally omits isPinned for updates.
-        }
-    }
-
-
-    try {
-        await saveDataToFirestore(toClearColRef, id, data); // 'data' for existing items won't include 'isPinned'
-        showNotification('Product to clear saved successfully!', 'success');
-        closeModal('toClearModal');
-        await updateLocalData(); // This will fetch all data again, including any pin changes.
-    } catch (e) {
-        //error handled in saveDataToFirestore
-    }
-}
-        
 
 
         function searchToClear(searchTerm) {
@@ -2100,8 +2096,19 @@ async function saveToClear(event) {
                 row.insertCell().textContent = item.sku || '';
                 row.insertCell().textContent = item.brand || '';
                 row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.wkDemand !== undefined ? item.wkDemand : ''; // Changed from category
-                row.insertCell().textContent = item.description || '';
+                row.insertCell().textContent = item.wkDemand !== undefined ? item.wkDemand : '';
+                
+                const expiryDateCell = row.insertCell();
+                if (item.expiryDate) { // Stored as 'YYYY-MM'
+                    const [year, month] = item.expiryDate.split('-');
+                    const dateObj = new Date(year, month - 1);
+                    const monthName = dateObj.toLocaleString('default', { month: 'short' });
+                    const shortYear = year.slice(-2);
+                    expiryDateCell.textContent = `${monthName}-${shortYear}`; // e.g., Jan-27
+                } else {
+                    expiryDateCell.textContent = '';
+                }
+
                 row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
 
                 const actionsCell = row.insertCell();
@@ -2145,8 +2152,8 @@ async function saveToClear(event) {
             const data = {
                 brand: brandName,
                 product: productName,
-                wkDemand: parseInt(document.getElementById('wkDemand').value || '0'), // Changed from category
-                description: document.getElementById('description').value,
+                wkDemand: parseInt(document.getElementById('wkDemand').value || '0'),
+                expiryDate: document.getElementById('masterExpiryDate').value,
                 sku: sku,
                 price: parseFloat(document.getElementById('price').value || '0'),
                 isDeleted: false
@@ -2156,7 +2163,7 @@ async function saveToClear(event) {
                 await saveDataToFirestore(masterProductsColRef, id, data);
                 showNotification('Master product saved successfully!', 'success');
                 closeModal('masterProductModal');
-                await updateLocalData(); // This will re-populate product datalists and dropdowns
+                await updateLocalData();
             } catch (e) {
                 //error handled
             }
@@ -2170,8 +2177,8 @@ async function saveToClear(event) {
                 populateBrandDropdowns('masterBrand');
                 document.getElementById('masterBrand').value = item.brand;
                 document.getElementById('masterProductName').value = item.product;
-                document.getElementById('wkDemand').value = item.wkDemand !== undefined ? item.wkDemand : ''; // Changed from category
-                document.getElementById('description').value = item.description;
+                document.getElementById('wkDemand').value = item.wkDemand !== undefined ? item.wkDemand : '';
+                document.getElementById('masterExpiryDate').value = item.expiryDate || '';
                 document.getElementById('sku').value = item.sku;
                 document.getElementById('price').value = item.price;
                 openModal('masterProductModal');
@@ -2185,9 +2192,7 @@ async function saveToClear(event) {
                 currentMasterListViewData = baseData.filter(item =>
                     (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
                     (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
-                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
-                    (item.description && item.description.toLowerCase().includes(lowerCaseSearchTerm))
-                    // Removed category from search, wkDemand is numeric, less likely to be searched as text
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm))
                 );
             } else {
                 currentMasterListViewData = baseData;
@@ -2196,16 +2201,26 @@ async function saveToClear(event) {
         }
 
         function exportMasterList() {
-            const headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Description", "Price"];
+            const headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
             const activeMasterList = masterProductsData.filter(item => !item.isDeleted);
-            const rows = activeMasterList.map(item => [
-                item.sku || '',
-                item.brand || '',
-                item.product || '',
-                item.wkDemand !== undefined ? item.wkDemand : '', // Changed from category
-                item.description || '',
-                item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
-            ]);
+            const rows = activeMasterList.map(item => {
+                let formattedExpiry = '';
+                if (item.expiryDate) { // Stored as 'YYYY-MM'
+                    const [year, month] = item.expiryDate.split('-');
+                    const dateObj = new Date(year, month - 1);
+                    const monthName = dateObj.toLocaleString('default', { month: 'short' });
+                    const shortYear = year.slice(-2);
+                    formattedExpiry = `${monthName}-${shortYear}`;
+                }
+                return [
+                    item.sku || '',
+                    item.brand || '',
+                    item.product || '',
+                    item.wkDemand !== undefined ? item.wkDemand : '',
+                    formattedExpiry,
+                    item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
+                ];
+            });
 
             let csvContent = headers.join(',') + '\n';
             rows.forEach(row => {
@@ -2448,13 +2463,25 @@ async function saveToClear(event) {
                     ];
                 });
             } else if (tableKey === 'master_products') {
-                headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Description", "Price"];
-                rows = dataArray.filter(item => !item.isDeleted).map(item => [
-                    item.sku || '', item.brand || '', item.product || '',
-                    item.wkDemand !== undefined ? item.wkDemand : '',
-                    item.description || '',
-                    item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
-                ]);
+                headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
+                    let formattedExpiry = '';
+                    if (item.expiryDate) { // Stored as 'YYYY-MM'
+                        const [year, month] = item.expiryDate.split('-');
+                        const dateObj = new Date(year, month - 1);
+                        const monthName = dateObj.toLocaleString('default', { month: 'short' });
+                        const shortYear = year.slice(-2);
+                        formattedExpiry = `${monthName}-${shortYear}`;
+                    }
+                    return [
+                        item.sku || '',
+                        item.brand || '',
+                        item.product || '',
+                        item.wkDemand !== undefined ? item.wkDemand : '',
+                        formattedExpiry,
+                        item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
+                    ];
+                });
             }
             return { headers, rows };
         }
@@ -2527,13 +2554,13 @@ async function saveToClear(event) {
                 { name: 'OOS', isDeleted: false }, { name: 'Low stock', isDeleted: false }, { name: 'Awaiting Delivery', isDeleted: false }
             ];
             const sampleMasterProducts = [
-                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', wkDemand: 10, description: 'High performance laptop', price: 1200.00, isDeleted: false },
-                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', wkDemand: 25, description: 'Ergonomic wireless mouse', price: 25.00, isDeleted: false },
-                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', wkDemand: 15, description: 'RGB Mechanical Keyboard', price: 80.00, isDeleted: false },
-                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', wkDemand: 5, description: 'Voice activated smart speaker', price: 99.00, isDeleted: false },
-                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', wkDemand: 2, description: 'Adjustable ergonomic office chair', price: 350.00, isDeleted: false },
-                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', wkDemand: 1, description: '1080p LED Monitor', price: 150.00, isDeleted: false },
-                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', wkDemand: 0, description: 'Compact Android Tablet', price: 100.00, isDeleted: false }
+                { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', wkDemand: 10, expiryDate: '2027-12', price: 1200.00, isDeleted: false },
+                { brand: 'BrandY', product: 'Wireless Mouse', sku: 'WM2002', wkDemand: 25, expiryDate: '2026-06', price: 25.00, isDeleted: false },
+                { brand: 'BrandX', product: 'Mechanical Keyboard', sku: 'MK3003', wkDemand: 15, expiryDate: '', price: 80.00, isDeleted: false },
+                { brand: 'BrandZ', product: 'Smart Speaker', sku: 'SS4004', wkDemand: 5, expiryDate: '2028-01', price: 99.00, isDeleted: false },
+                { brand: 'BrandA', product: 'Ergonomic Chair', sku: 'EC5005', wkDemand: 2, expiryDate: '2029-05', price: 350.00, isDeleted: false },
+                { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', wkDemand: 1, expiryDate: '2025-07', price: 150.00, isDeleted: false },
+                { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', wkDemand: 0, expiryDate: '2025-08', price: 100.00, isDeleted: false }
             ];
             const sampleInventory = [
                 { brand: 'BrandX', product: 'Laptop Pro', sku: 'LX1001', quantity: 5, status: 'Low stock', shipmentDate: '2025-07-01', remarks: 'Partial shipment received', isDeleted: false },
@@ -2636,7 +2663,8 @@ async function saveToClear(event) {
                 if (bUndefined) return direction === 'asc' ? -1 : 1;
 
                 if (typeof valA === 'string' && typeof valB === 'string') {
-                    if (/^\d{4}-\d{2}-\d{2}$/.test(valA) && /^\d{4}-\d{2}-\d{2}$/.test(valB)) { // Date sort
+                    // YYYY-MM-DD for to_clear or YYYY-MM for master
+                    if (/^\d{4}-\d{2}(-\d{2})?$/.test(valA) && /^\d{4}-\d{2}(-\d{2})?$/.test(valB)) { 
                         return direction === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
                     }
                     const numA = parseFloat(valA);
@@ -2657,27 +2685,14 @@ async function saveToClear(event) {
         }
 
         function updateSortIndicators(tableKey) {
-            const tableContainerId = `${tableKey}-table-container`; // e.g., inventory-table-container
+            const tableContainerId = `${tableKey === 'master' ? 'master-table' : tableKey}-table-container`;
             const tableContainer = document.getElementById(tableContainerId);
             let headers;
 
             if (tableContainer && tableContainer.querySelector('thead')) {
                 headers = tableContainer.querySelectorAll('thead th[data-column-key]');
             } else {
-                // Fallback for tables not having the specific *-table-container structure or missing thead
-                const directTable = document.getElementById(`${tableKey}-table`); // e.g. master-table
-                if (directTable && directTable.querySelector('thead')) {
-                    headers = directTable.querySelectorAll('thead th[data-column-key]');
-                } else {
-                    // Fallback to querySelector if ID scheme is different
-                    const genericTable = document.querySelector(`#${tableKey} table`);
-                    if (genericTable && genericTable.querySelector('thead')) {
-                        headers = genericTable.querySelectorAll('thead th[data-column-key]');
-                    } else {
-                        // console.warn(`Could not find headers for table key: ${tableKey}`);
-                        return; 
-                    }
-                }
+                return;
             }
             
             headers.forEach(header => {
@@ -2694,7 +2709,7 @@ async function saveToClear(event) {
             document.getElementById('oos-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status === 'OOS').length;
             document.getElementById('low-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).length;
             document.getElementById('new-count').textContent = newProductsData.filter(item => !item.isDeleted).length;
-            document.getElementById('to-clear-count').textContent = toClearData.filter(item => !item.isDeleted).length; // Added for To Clear
+            document.getElementById('to-clear-count').textContent = toClearData.filter(item => !item.isDeleted).length;
         }
 
         function updateAlerts() {
@@ -2737,7 +2752,7 @@ async function saveToClear(event) {
                     expiringSoon.map(item => `<li><span class="status-badge alert-status">Expiring</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - Expiry: ${item.expiryDate}</li>`).join('') +
                     '</ul>';
             }
-
+            
             // New section for Top 5 Danger Items from To Clear list
             const dangerToClearItems = toClearData.filter(item => {
                 if (item.isDeleted) return false;
@@ -2762,9 +2777,6 @@ async function saveToClear(event) {
                 } else if (dateB) { // Only B has a valid date, so it comes first
                     return 1;
                 }
-                // If dates are not available or comparable for some 'Danger' items (e.g. danger due to no weekly demand)
-                // you might compare by another field like product name for stable sort, or leave as is.
-                // For simplicity, we'll leave them as is if dates are not helpful.
                 return 0; 
             }).slice(0, 5);
 
@@ -2814,15 +2826,15 @@ async function saveToClear(event) {
                 const requiredHeaders = ['product code', 'brand', 'product name']; 
                 const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
                 if (missingHeaders.length > 0) {
-                    showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}. Required: 'product code', 'brand', 'product name'. Optional: 'wk demand', 'description', 'price'`, 'error');
+                    showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}.`, 'error');
                     event.target.value = '';
                     return;
                 }
                 
-                // Adjusted headerMap for "wk demand"
+                // Adjusted headerMap for "wk demand" and "expiry date"
                 const headerMap = {
                     'product code': 'sku', 'brand': 'brand', 'product name': 'product',
-                    'wk demand': 'wkDemand', 'description': 'description', 'price': 'price'
+                    'wk demand': 'wkDemand', 'expiry date': 'expiryDate', 'price': 'price'
                 };
 
                 const importData = [];
@@ -2843,7 +2855,7 @@ async function saveToClear(event) {
                         if (fieldName) {
                             let value = values[index];
                             if (fieldName === 'price') item[fieldName] = parseFloat(value) || 0;
-                            else if (fieldName === 'wkDemand') item[fieldName] = parseInt(value) || 0; // Added wkDemand
+                            else if (fieldName === 'wkDemand') item[fieldName] = parseInt(value) || 0;
                             else if (fieldName === 'sku') {
                                 currentSku = value.trim();
                                 if (!currentSku) validRow = false; 
@@ -2885,13 +2897,10 @@ async function saveToClear(event) {
                                 const existingProduct = masterProductsData.find(mp => mp.sku === item.sku && !mp.isDeleted);
                                 if (existingProduct) { 
                                     const docRef = masterProductsColRef.doc(existingProduct.id);
-                                    // Ensure all fields from CSV are merged, and isDeleted remains false
-                                    const updatePayload = { ...item, isDeleted: false };
-                                    batch.set(docRef, updatePayload, { merge: true }); 
+                                    batch.set(docRef, item, { merge: true }); 
                                     updatedItemsCount++;
                                 } else { 
                                     const docRef = masterProductsColRef.doc(); 
-                                    // Ensure new items have wkDemand defaulted if not in CSV
                                     const newPayload = { ...item, wkDemand: item.wkDemand || 0, isDeleted: false };
                                     batch.set(docRef, newPayload);
                                     newItemsCount++;
