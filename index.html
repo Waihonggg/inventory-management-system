@@ -716,7 +716,7 @@
     <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
     <th>Remarks</th>
     <th onclick="sortTable('inventory', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-    <th>Actions</th>
+    <th style="min-width: 200px;">Actions</th>
 </tr>
                 </thead>
                 <tbody id="inventory-table">
@@ -1621,7 +1621,13 @@ function toggleClearButton(inputElement, show) {
             const tableBody = document.getElementById('inventory-table');
             if (!tableBody) return;
             tableBody.innerHTML = '';
-            const sortedData = sortArray(currentInventoryViewData, sortState.inventory.column, sortState.inventory.direction);
+            const pinnedItems = currentInventoryViewData.filter(item => item.isPinned === true);
+const unpinnedItems = currentInventoryViewData.filter(item => !item.isPinned);
+
+const sortedPinnedItems = sortArray(pinnedItems, sortState.inventory.column, sortState.inventory.direction);
+const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.inventory.column, sortState.inventory.direction);
+
+const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
 
             sortedData.forEach(item => {
                 const row = tableBody.insertRow();
@@ -1641,6 +1647,9 @@ lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLo
 const actionsCell = row.insertCell();
 actionsCell.innerHTML = `
     <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
+    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinInventoryItem('${item.id}')">
+        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+    </button>
     <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
 `;
             });
@@ -1704,7 +1713,8 @@ if (!id) {
     shipmentDate: document.getElementById('shipmentDate').value,
     remarks: document.getElementById('remarks').value,
     lastUpdated: new Date().toISOString(),
-    isDeleted: false 
+    isDeleted: false,
+    isPinned: id ? (inventoryData.find(p => p.id === id)?.isPinned || false) : false
 };
 
             try {
@@ -2001,6 +2011,30 @@ actionsCell.innerHTML = `
             renderNewProductsItems();
         }
 
+        // ADD this new function (around line 1550, near togglePinToClearItem)
+async function togglePinInventoryItem(id) {
+    const item = inventoryData.find(p => p.id === id);
+    if (item) {
+        const newPinnedState = !item.isPinned; // Toggle the current pinned state
+        try {
+            await saveDataToFirestore(inventoryColRef, id, { 
+                isPinned: newPinnedState,
+                lastUpdated: new Date().toISOString()
+            });
+            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+            
+            item.isPinned = newPinnedState;
+            const viewItem = currentInventoryViewData.find(p => p.id === id);
+            if (viewItem) viewItem.isPinned = newPinnedState;
+            
+            renderInventoryItems(); // Re-render the table
+        } catch (e) {
+            showNotification('Error updating pin status.', 'error');
+            console.error("Error toggling pin status:", e);
+        }
+    }
+}
+        
         // To Clear
         async function togglePinToClearItem(id) {
             const item = toClearData.find(p => p.id === id);
@@ -2662,36 +2696,39 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             let rows = [];
 
             if (tableKey === 'inventory') {
-                headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment Date", "Remarks"];
-                rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
-                    item.sku || '', item.brand || '', item.product || '',
-                    item.quantity !== undefined ? item.quantity : '',
-                    item.status || '', item.shipmentDate || '', item.remarks || ''
-                ]);
-            } else if (tableKey === 'new_products') {
-                headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes"];
-                rows = dataArray.filter(item => !item.isDeleted).map(item => [
-                    item.sku || '', item.brand || '', item.product || '',
-                    item.addedDate || '', item.arrivalDate || '',
-                    item.quantity !== undefined ? item.quantity : '', item.notes || ''
-                ]);
-            } else if (tableKey === 'to_clear') {
-                headers = ["Product Code", "Brand", "Product", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Remarks", "Action Plan"];
-                rows = dataArray.filter(item => !item.isDeleted).map(item => {
-                    const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-                    const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-                    return [
-                        item.sku || '', item.brand || '', item.product || '',
-                        item.expiryDate || '', item.firstHighlightedDate || '',
-                        item.firstReportedBalance !== undefined ? item.firstReportedBalance : '',
-                        item.warehouseQty !== undefined ? item.warehouseQty : '',
-                        item.storeQty !== undefined ? item.storeQty : '',
-                        totalQty,
-                        item.weeklyDemand !== undefined ? item.weeklyDemand : '',
-                        weeksSupply, getSupplyStatusText(item), item.remarks || '', item.actionPlan || ''
-                    ];
-                });
-            } else if (tableKey === 'master_products') {
+    headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment Date", "Remarks", "Last Updated"];
+    rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
+        item.sku || '', item.brand || '', item.product || '',
+        item.quantity !== undefined ? item.quantity : '',
+        item.status || '', item.shipmentDate || '', item.remarks || '',
+        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+    ]);
+} else if (tableKey === 'new_products') {
+    headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes", "Last Updated"];
+    rows = dataArray.filter(item => !item.isDeleted).map(item => [
+        item.sku || '', item.brand || '', item.product || '',
+        item.addedDate || '', item.arrivalDate || '',
+        item.quantity !== undefined ? item.quantity : '', item.notes || '',
+        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+    ]);
+} else if (tableKey === 'to_clear') {
+    headers = ["Product Code", "Brand", "Product", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Remarks", "Action Plan", "Last Updated"];
+    rows = dataArray.filter(item => !item.isDeleted).map(item => {
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+        return [
+            item.sku || '', item.brand || '', item.product || '',
+            item.expiryDate || '', item.firstHighlightedDate || '',
+            item.firstReportedBalance !== undefined ? item.firstReportedBalance : '',
+            item.warehouseQty !== undefined ? item.warehouseQty : '',
+            item.storeQty !== undefined ? item.storeQty : '',
+            totalQty,
+            item.weeklyDemand !== undefined ? item.weeklyDemand : '',
+            weeksSupply, getSupplyStatusText(item), item.remarks || '', item.actionPlan || '',
+            item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+        ];
+    });
+} else if (tableKey === 'master_products') {
                 headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
                 rows = dataArray.filter(item => !item.isDeleted).map(item => {
                     let formattedExpiry = '';
