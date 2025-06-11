@@ -397,6 +397,45 @@
             transition: color 0.3s ease;
         }
 
+        /* Add this after the existing form-group input styles */
+/* Clear button styling - NEW */
+.clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f8f9fa;
+    border: 1px solid #e1e8ed;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    z-index: 10;
+    font-weight: bold;
+    line-height: 1;
+    min-width: 24px;
+    display: none;
+}
+
+.clear-btn:hover {
+    background: #e9ecef;
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.input-with-clear {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-clear input {
+    padding-right: 40px !important;
+}
+        
         .close:hover {
             color: #e74c3c;
         }
@@ -812,10 +851,13 @@
                         </select>
                 </div>
                 <div class="form-group">
-                    <label for="productName">Product Name:</label>
-                    <input type="text" id="productName" list="productsDatalist" required>
-                    <datalist id="productsDatalist"></datalist>
-                </div>
+    <label for="productName">Product Name:</label>
+    <div class="input-with-clear">
+        <input type="text" id="productName" list="productsDatalist" required>
+        <datalist id="productsDatalist"></datalist>
+        <button type="button" class="clear-btn" onclick="clearProductSelection('productName')" title="Clear selection">×</button>
+    </div>
+</div>
                 <div class="form-group">
                     <label for="inventoryQuantity">Quantity:</label>
                     <input type="number" id="inventoryQuantity" min="0" required>
@@ -853,6 +895,14 @@
                     <label for="newProductSku">Product Code (SKU):</label>
                     <input type="text" id="newProductSku" required>
                 </div>
+                <div class="form-group">
+    <label for="newProductName">Product Name:</label>
+    <div class="input-with-clear">
+        <input type="text" id="newProductName" list="newProductsDatalist" required>
+        <datalist id="newProductsDatalist"></datalist>
+        <button type="button" class="clear-btn" onclick="clearProductSelection('newProductName')" title="Clear selection">×</button>
+    </div>
+</div>
                 <div class="form-group">
                     <label for="newProductName">Product Name:</label>
                     <input type="text" id="newProductName" list="newProductsDatalist" required>
@@ -929,10 +979,13 @@
                         </select>
                 </div>
                 <div class="form-group">
-                    <label for="toClearProductName">Product Name:</label>
-                    <input type="text" id="toClearProductName" list="toClearProductsDatalist" required onchange="handleToClearProductChange()">
-                    <datalist id="toClearProductsDatalist"></datalist>
-                </div>
+    <label for="toClearProductName">Product Name:</label>
+    <div class="input-with-clear">
+        <input type="text" id="toClearProductName" list="toClearProductsDatalist" required onchange="handleToClearProductChange()">
+        <datalist id="toClearProductsDatalist"></datalist>
+        <button type="button" class="clear-btn" onclick="clearProductSelection('toClearProductName')" title="Clear selection">×</button>
+    </div>
+</div>
                 <div class="form-group">
                     <label for="toClearExpiryDate">Expiry Date:</label>
                     <input type="date" id="toClearExpiryDate" required>
@@ -1211,7 +1264,35 @@
             renderToClearItems();
             renderRecycleBinItems();
         }
+        // Helper function to clear product selection - NEW
+function clearProductSelection(inputId) {
+    const input = document.getElementById(inputId);
+    const clearButton = input.parentElement.querySelector('.clear-btn');
+    
+    if (input) {
+        input.value = '';
+        input.style.borderColor = '#e1e8ed';
+        input.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        input.focus();
+    }
+    
+    if (clearButton) {
+        clearButton.style.display = 'none';
+    }
 
+    // Special handling for toClear modal
+    if (inputId === 'toClearProductName') {
+        document.getElementById('toClearWeeklyDemand').value = '';
+    }
+}
+
+// Function to toggle clear button visibility - NEW
+function toggleClearButton(inputElement, show) {
+    const clearButton = inputElement.parentElement.querySelector('.clear-btn');
+    if (clearButton) {
+        clearButton.style.display = show ? 'block' : 'none';
+    }
+}
         // --- Dynamic Dropdowns ---
         function setupDynamicDropdowns() {
             populateBrandDropdowns('brand');
@@ -1346,29 +1427,81 @@
         }
 
         function filterProductsForBrand(brand, productNameInputId, datalistId) {
-            const productNameInput = document.getElementById(productNameInputId);
-            const datalist = document.getElementById(datalistId);
-            if (!productNameInput || !datalist) return;
+    const productNameInput = document.getElementById(productNameInputId);
+    const datalist = document.getElementById(datalistId);
+    if (!productNameInput || !datalist) return;
 
-            datalist.innerHTML = ''; // Clear existing options
-            if (brand) { // Only populate if a brand is selected
-                const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand);
-                const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product).filter(Boolean))].sort();
+    const currentValue = productNameInput.value;
+    datalist.innerHTML = '';
+    
+    if (brand) {
+        const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand);
+        const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product).filter(Boolean))].sort();
 
-                uniqueProductNames.forEach(productName => {
-                    const option = document.createElement('option');
-                    option.value = productName;
-                    datalist.appendChild(option);
-                });
-            }
-            
-            // Clear product name if it's not in the new list for the selected brand (unless no brand is selected)
-            if (brand && productNameInput.value && !Array.from(datalist.options).some(opt => opt.value === productNameInput.value)) {
-                 productNameInput.value = '';
-            } else if (!brand) { // If brand is cleared, clear product name too
-                productNameInput.value = '';
+        uniqueProductNames.forEach(productName => {
+            const option = document.createElement('option');
+            option.value = productName;
+            datalist.appendChild(option);
+        });
+
+        if (currentValue && !uniqueProductNames.includes(currentValue)) {
+            productNameInput.value = '';
+            toggleClearButton(productNameInput, false);
+        }
+    } else { 
+        productNameInput.value = '';
+        toggleClearButton(productNameInput, false);
+    }
+
+    // Remove existing event listeners to prevent duplicates
+    const existingInputHandler = productNameInput.inputHandler;
+    const existingChangeHandler = productNameInput.changeHandler;
+    
+    if (existingInputHandler) productNameInput.removeEventListener('input', existingInputHandler);
+    if (existingChangeHandler) productNameInput.removeEventListener('change', existingChangeHandler);
+
+    // Add input event to show/hide clear button and validate
+    const inputHandler = function() {
+        const currentVal = this.value.trim();
+        toggleClearButton(this, currentVal.length > 0);
+        
+        if (brand && currentVal) {
+            const validOptions = Array.from(datalist.options).map(opt => opt.value);
+            if (!validOptions.includes(currentVal)) {
+                this.style.borderColor = '#e74c3c';
+                this.style.boxShadow = '0 0 5px rgba(231, 76, 60, 0.3)';
+            } else {
+                this.style.borderColor = '#e1e8ed';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
             }
         }
+    };
+    productNameInput.inputHandler = inputHandler;
+    productNameInput.addEventListener('input', inputHandler);
+
+    // Add change event to clear invalid selections
+    const changeHandler = function() {
+        if (brand && this.value) {
+            const validOptions = Array.from(datalist.options).map(opt => opt.value);
+            if (!validOptions.includes(this.value)) {
+                showNotification(`"${this.value}" is not available for ${brand}. Please select from the dropdown list.`, 'warning');
+                this.value = '';
+                this.style.borderColor = '#e1e8ed';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                toggleClearButton(this, false);
+            }
+        }
+        
+        if (productNameInputId === 'toClearProductName') {
+            handleToClearProductChange();
+        }
+    };
+    productNameInput.changeHandler = changeHandler;
+    productNameInput.addEventListener('change', changeHandler);
+
+    // Initialize clear button visibility
+    toggleClearButton(productNameInput, productNameInput.value.trim().length > 0);
+}
         
         function handleToClearBrandChange(brandValue) {
             filterProductsForBrand(brandValue, 'toClearProductName', 'toClearProductsDatalist');
@@ -1528,6 +1661,19 @@
                 showNotification("Product not found in Master List. Please add to Master List first or ensure Brand/Product Name match.", "error");
                 return;
             }
+            // Check for duplicates in OOS/Low Stock list (only if adding new item) - NEW
+if (!id) {
+    const duplicateExists = inventoryData.some(item => 
+        !item.isDeleted && 
+        item.sku === sku &&
+        (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+    );
+    
+    if (duplicateExists) {
+        showNotification(`This product (${brand} - ${productName}) is already in the OOS/Low Stock list. Please check the existing entry or edit it instead.`, "error");
+        return;
+    }
+}
 
             // Check for duplicates in OOS/Low Stock list (only if adding new item)
             if (!id) {
