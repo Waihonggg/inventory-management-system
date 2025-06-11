@@ -1524,23 +1524,35 @@
             const productName = document.getElementById('productName').value;
             let sku = getSkuForProduct(brand, productName); 
 
-            const data = {
-                brand: brand,
-                product: productName,
-                quantity: parseInt(document.getElementById('inventoryQuantity').value),
-                status: document.getElementById('status').value,
-                shipmentDate: document.getElementById('shipmentDate').value, // Changed from shipment
-                remarks: document.getElementById('remarks').value,
-                isDeleted: false 
-            };
-            
-            if (sku) {
-                 data.sku = sku;
-            } else {
+            if (!sku) {
                 showNotification("Product not found in Master List. Please add to Master List first or ensure Brand/Product Name match.", "error");
                 return;
             }
 
+            // Check for duplicates in OOS/Low Stock list (only if adding new item)
+            if (!id) {
+                const duplicateExists = inventoryData.some(item => 
+                    !item.isDeleted && 
+                    item.sku === sku &&
+                    (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+                
+                if (duplicateExists) {
+                    showNotification(`This product (${brand} - ${productName}) is already in the OOS/Low Stock list. Please check the existing entry or edit it instead.`, "error");
+                    return;
+                }
+            }
+
+            const data = {
+                brand: brand,
+                product: productName,
+                sku: sku,
+                quantity: parseInt(document.getElementById('inventoryQuantity').value),
+                status: document.getElementById('status').value,
+                shipmentDate: document.getElementById('shipmentDate').value,
+                remarks: document.getElementById('remarks').value,
+                isDeleted: false 
+            };
 
             try {
                 await saveDataToFirestore(inventoryColRef, id, data);
