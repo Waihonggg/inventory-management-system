@@ -708,15 +708,16 @@
             <table id="inventory-table-container">
                 <thead>
                     <tr>
-                        <th onclick="sortTable('inventory', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'status')" data-column-key="status">Status <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
-                        <th>Remarks</th>
-                        <th>Actions</th>
-                    </tr>
+    <th onclick="sortTable('inventory', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'status')" data-column-key="status">Status <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
+    <th>Remarks</th>
+    <th onclick="sortTable('inventory', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    <th>Actions</th>
+</tr>
                 </thead>
                 <tbody id="inventory-table">
                     </tbody>
@@ -733,15 +734,16 @@
             <table id="new-products-table-container">
                 <thead>
                     <tr>
-                        <th onclick="sortTable('newProducts', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'addedDate')" data-column-key="addedDate">Added Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'arrivalDate')" data-column-key="arrivalDate">Arrival Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
-                        <th>Notes</th>
-                        <th>Actions</th>
-                    </tr>
+    <th onclick="sortTable('newProducts', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'addedDate')" data-column-key="addedDate">Added Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'arrivalDate')" data-column-key="arrivalDate">Arrival Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
+    <th>Notes</th>
+    <th onclick="sortTable('newProducts', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    <th>Actions</th>
+</tr>
                 </thead>
                 <tbody id="new-products-table">
                     </tbody>
@@ -757,22 +759,23 @@
             <table id="to-clear-table-container">
                 <thead>
                     <tr>
-                        <th onclick="sortTable('toClear', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'firstHighlightedDate')" data-column-key="firstHighlightedDate">First Highlighted <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
-                        <th>Remarks</th>
-                        <th>Action Plan</th>
-                        <th>Actions</th>
-                    </tr>
+    <th onclick="sortTable('toClear', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'firstHighlightedDate')" data-column-key="firstHighlightedDate">First Highlighted <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
+    <th>Remarks</th>
+    <th>Action Plan</th>
+    <th onclick="sortTable('toClear', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    <th>Actions</th>
+</tr>
                 </thead>
                 <tbody id="to-clear-table">
                     </tbody>
@@ -1632,11 +1635,14 @@ function toggleClearButton(inputElement, show) {
                 row.insertCell().textContent = item.shipmentDate || ''; // Changed from shipment
                 row.insertCell().textContent = item.remarks || '';
 
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
-                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
-                `;
+                const lastUpdatedCell = row.insertCell();
+lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+
+const actionsCell = row.insertCell();
+actionsCell.innerHTML = `
+    <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
+    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
+`;
             });
         }
 
@@ -1690,15 +1696,16 @@ if (!id) {
             }
 
             const data = {
-                brand: brand,
-                product: productName,
-                sku: sku,
-                quantity: parseInt(document.getElementById('inventoryQuantity').value),
-                status: document.getElementById('status').value,
-                shipmentDate: document.getElementById('shipmentDate').value,
-                remarks: document.getElementById('remarks').value,
-                isDeleted: false 
-            };
+    brand: brand,
+    product: productName,
+    sku: sku,
+    quantity: parseInt(document.getElementById('inventoryQuantity').value),
+    status: document.getElementById('status').value,
+    shipmentDate: document.getElementById('shipmentDate').value,
+    remarks: document.getElementById('remarks').value,
+    lastUpdated: new Date().toISOString(),
+    isDeleted: false 
+};
 
             try {
                 await saveDataToFirestore(inventoryColRef, id, data);
@@ -1787,12 +1794,15 @@ if (!id) {
                 row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
                 row.insertCell().textContent = item.notes || '';
 
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
-                    <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
-                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
-                `;
+                const lastUpdatedCell = row.insertCell();
+lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+
+const actionsCell = row.insertCell();
+actionsCell.innerHTML = `
+    <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
+    <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
+    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
+`;
             });
         }
 
@@ -1825,15 +1835,16 @@ if (!id) {
             }
 
             const data = {
-                brand: document.getElementById('newBrand').value,
-                sku: skuValue,
-                product: document.getElementById('newProductName').value,
-                arrivalDate: document.getElementById('arrivalDate').value,
-                quantity: parseInt(document.getElementById('newProductQuantity').value),
-                notes: document.getElementById('notes').value,
-                addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
-                isDeleted: false
-            };
+    brand: document.getElementById('newBrand').value,
+    sku: skuValue,
+    product: document.getElementById('newProductName').value,
+    arrivalDate: document.getElementById('arrivalDate').value,
+    quantity: parseInt(document.getElementById('newProductQuantity').value),
+    notes: document.getElementById('notes').value,
+    addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+    lastUpdated: new Date().toISOString(),
+    isDeleted: false
+};
 
             try {
                 await saveDataToFirestore(newProductsColRef, id, data);
@@ -1996,7 +2007,10 @@ if (!id) {
             if (item) {
                 const newPinnedState = !item.isPinned; // Toggle the current pinned state
                 try {
-                    await saveDataToFirestore(toClearColRef, id, { isPinned: newPinnedState });
+                    await saveDataToFirestore(toClearColRef, id, { 
+    isPinned: newPinnedState,
+    lastUpdated: new Date().toISOString()
+});
                     showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
                     
                     item.isPinned = newPinnedState;
@@ -2044,14 +2058,17 @@ if (!id) {
                 row.insertCell().textContent = item.remarks || '';
                 row.insertCell().textContent = item.actionPlan || '';
 
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
-                    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
-                        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
-                    </button>
-                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
-                `;
+                const lastUpdatedCell = row.insertCell();
+lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+
+const actionsCell = row.insertCell();
+actionsCell.innerHTML = `
+    <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
+    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
+        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+    </button>
+    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
+`;
             });
         }
 
@@ -2099,21 +2116,22 @@ if (!id) {
                 return;
             }
 
-            const data = {
-                brand: brand,
-                product: productName,
-                sku: skuValue, 
-                expiryDate: document.getElementById('toClearExpiryDate').value,
-                firstHighlightedDate: firstHighlightedDateValue,
-                firstReportedBalance: firstReportedBalanceValue,
-                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-                weeklyDemand: weeklyDemandValue,
-                remarks: document.getElementById('toClearRemarks').value,
-                actionPlan: document.getElementById('toClearActionPlan').value,
-                isDeleted: false,
-                isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
-            };
+        const data = {
+    brand: brand,
+    product: productName,
+    sku: skuValue, 
+    expiryDate: document.getElementById('toClearExpiryDate').value,
+    firstHighlightedDate: firstHighlightedDateValue,
+    firstReportedBalance: firstReportedBalanceValue,
+    warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+    storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+    weeklyDemand: weeklyDemandValue,
+    remarks: document.getElementById('toClearRemarks').value,
+    actionPlan: document.getElementById('toClearActionPlan').value,
+    lastUpdated: new Date().toISOString(),
+    isDeleted: false,
+    isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
+};
             
             if (id) {
                 const existingItem = toClearData.find(p => p.id === id);
