@@ -1420,43 +1420,43 @@ function toggleClearButton(inputElement, show) {
         }
 
         function populateBrandDropdowns(selectId) {
-            const selectElement = document.getElementById(selectId);
-            if (!selectElement) return;
+    const selectElement = document.getElementById(selectId);
+    if (!selectElement) return;
 
-            const currentValue = selectElement.value; 
-            selectElement.innerHTML = '<option value="">Select Brand</option>';
+    const currentValue = selectElement.value; 
+    selectElement.innerHTML = '<option value="">Select Brand</option>';
 
-            const uniqueBrandsFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.brand).filter(Boolean))];
-            let allUniqueBrands = [...uniqueBrandsFromMaster];
-            
-            brandsData.forEach(brandDoc => {
-                if (brandDoc.name && !allUniqueBrands.includes(brandDoc.name)) {
-                    allUniqueBrands.push(brandDoc.name);
-                }
-            });
-            allUniqueBrands.sort((a, b) => a.localeCompare(b));
-
-            allUniqueBrands.forEach(brand => {
-                const option = document.createElement('option');
-                option.value = brand;
-                option.textContent = brand;
-                selectElement.appendChild(option);
-            });
-
-            const addNewOption = document.createElement('option');
-            addNewOption.value = 'add_new_brand';
-            addNewOption.textContent = '+ Add New Brand...';
-            selectElement.appendChild(addNewOption);
-            
-            if (currentValue && allUniqueBrands.includes(currentValue)) {
-                selectElement.value = currentValue;
-            } else if (currentValue === 'add_new_brand') {
-                selectElement.value = ''; 
-            }
-
-            selectElement.removeEventListener('change', handleDynamicDropdownChange); 
-            selectElement.addEventListener('change', handleDynamicDropdownChange);
+    const uniqueBrandsFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.brand).filter(Boolean))];
+    let allUniqueBrands = [...uniqueBrandsFromMaster];
+    
+    brandsData.forEach(brandDoc => {
+        if (brandDoc.name && !allUniqueBrands.includes(brandDoc.name)) {
+            allUniqueBrands.push(brandDoc.name);
         }
+    });
+    allUniqueBrands.sort((a, b) => a.localeCompare(b));
+
+    allUniqueBrands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        selectElement.appendChild(option);
+    });
+
+    const addNewOption = document.createElement('option');
+    addNewOption.value = 'add_new_brand';
+    addNewOption.textContent = '+ Add New Brand...';
+    selectElement.appendChild(addNewOption);
+    
+    if (currentValue && allUniqueBrands.includes(currentValue)) {
+        selectElement.value = currentValue;
+    } else if (currentValue === 'add_new_brand') {
+        selectElement.value = ''; 
+    }
+
+    selectElement.removeEventListener('change', handleDynamicDropdownChange); 
+    selectElement.addEventListener('change', handleDynamicDropdownChange);
+}
 
         function populateStatusDropdowns(selectId) {
             const selectElement = document.getElementById(selectId);
@@ -1518,30 +1518,37 @@ function toggleClearButton(inputElement, show) {
 
         // --- Product Datalists (for autocomplete) ---
         function populateProductDatalists() {
-            const productsDatalist = document.getElementById('productsDatalist');
-            const newProductsDatalist = document.getElementById('newProductsDatalist');
-            const toClearProductsDatalist = document.getElementById('toClearProductsDatalist');
+    const productsDatalist = document.getElementById('productsDatalist');
+    const newProductsDatalist = document.getElementById('newProductsDatalist');
+    const toClearProductsDatalist = document.getElementById('toClearProductsDatalist');
+    const staffClaimProductsDatalist = document.getElementById('staffClaimProductsDatalist'); // ADD THIS LINE
 
-            if (productsDatalist) productsDatalist.innerHTML = '';
-            if (newProductsDatalist) newProductsDatalist.innerHTML = '';
-            if (toClearProductsDatalist) toClearProductsDatalist.innerHTML = '';
+    if (productsDatalist) productsDatalist.innerHTML = '';
+    if (newProductsDatalist) newProductsDatalist.innerHTML = '';
+    if (toClearProductsDatalist) toClearProductsDatalist.innerHTML = '';
+    if (staffClaimProductsDatalist) staffClaimProductsDatalist.innerHTML = ''; // ADD THIS LINE
 
-            const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.product).filter(Boolean))].sort();
+    const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.product).filter(Boolean))].sort();
 
-            allProductNames.forEach(productName => {
-                const option1 = document.createElement('option');
-                option1.value = productName;
-                if (productsDatalist) productsDatalist.appendChild(option1);
+    allProductNames.forEach(productName => {
+        const option1 = document.createElement('option');
+        option1.value = productName;
+        if (productsDatalist) productsDatalist.appendChild(option1);
 
-                const option2 = document.createElement('option');
-                option2.value = productName;
-                if (newProductsDatalist) newProductsDatalist.appendChild(option2);
+        const option2 = document.createElement('option');
+        option2.value = productName;
+        if (newProductsDatalist) newProductsDatalist.appendChild(option2);
 
-                const option3 = document.createElement('option');
-                option3.value = productName;
-                if (toClearProductsDatalist) toClearProductsDatalist.appendChild(option3);
-            });
-        }
+        const option3 = document.createElement('option');
+        option3.value = productName;
+        if (toClearProductsDatalist) toClearProductsDatalist.appendChild(option3);
+
+        // ADD THIS BLOCK
+        const option4 = document.createElement('option');
+        option4.value = productName;
+        if (staffClaimProductsDatalist) staffClaimProductsDatalist.appendChild(option4);
+    });
+}
 
         function filterProductsForBrand(brand, productNameInputId, datalistId) {
     const productNameInput = document.getElementById(productNameInputId);
@@ -2521,6 +2528,11 @@ async function saveNewRemark(event) {
         showNotification('Remark added successfully!', 'success');
         closeModal('addRemarkModal');
         await updateLocalData();
+        
+        // IMPORTANT: Re-populate the remarks dropdown and set the new value
+        populateRemarksDropdowns('staffClaimRemarks');
+        document.getElementById('staffClaimRemarks').value = newRemarkText;
+        
     } catch (e) {
         showNotification('Error adding remark. Check console.', 'error');
         console.error("Error adding new remark:", e);
