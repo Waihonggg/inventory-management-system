@@ -156,6 +156,12 @@
         .stat-card.toclear-card:hover {
             box-shadow: 0 15px 35px rgba(155, 89, 182, 0.4);
         }
+        .stat-card.staff-claim-card {
+    background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+}
+.stat-card.staff-claim-card:hover {
+    box-shadow: 0 15px 35px rgba(22, 160, 133, 0.4);
+}
 
 
         .stat-number {
@@ -667,7 +673,8 @@
             <div class="tab active" onclick="switchTab(this, 'dashboard')">📊 Dashboard</div>
             <div class="tab" onclick="switchTab(this, 'oos-lowstock')"> OOS/LOW STOCK</div>
             <div class="tab" onclick="switchTab(this, 'new-products')">✨ New Products</div>
-            <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ To Clear</div>
+            <div class="tab" onclick="switchTab(this, 'to-clear')">🏷️ 7-12 Months</div>
+            <div class="tab" onclick="switchTab(this, 'staff-claim')">👥 Staff Claim</div>
             <div class="tab" onclick="switchTab(this, 'master-list')">📋 Master List</div>
             <div class="tab" onclick="switchTab(this, 'recycle-bin')">🗑️ Recycle Bin</div>
             <div class="tab" onclick="switchTab(this, 'management')">⚙️ Management</div>
@@ -689,7 +696,11 @@
                 </div>
                 <div class="stat-card toclear-card" onclick="switchTab(document.querySelector('.tab[onclick*=\'to-clear\']'), 'to-clear')">
                     <div class="stat-number" id="to-clear-count">0</div>
-                    <div class="stat-label">To Clear</div>
+                    <div class="stat-label">7-12 Months</div>
+                </div>
+                <div class="stat-card staff-claim-card" onclick="switchTab(document.querySelector('.tab[onclick*=\'staff-claim\']'), 'staff-claim')">
+                    <div class="stat-number" id="staff-claim-count">0</div>
+                    <div class="stat-label">Staff Claim</div>
                 </div>
             </div>
             
@@ -708,6 +719,7 @@
             <table id="inventory-table-container">
                 <thead>
                     <tr>
+                        <th style="min-width: 200px;">Actions</th>
     <th onclick="sortTable('inventory', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
     <th onclick="sortTable('inventory', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
     <th onclick="sortTable('inventory', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
@@ -716,7 +728,7 @@
     <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
     <th>Remarks</th>
     <th onclick="sortTable('inventory', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-    <th style="min-width: 200px;">Actions</th>
+    
 </tr>
                 </thead>
                 <tbody id="inventory-table">
@@ -734,6 +746,7 @@
             <table id="new-products-table-container">
                 <thead>
                     <tr>
+                        <th>Actions</th>
     <th onclick="sortTable('newProducts', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
     <th onclick="sortTable('newProducts', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
     <th onclick="sortTable('newProducts', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
@@ -742,7 +755,7 @@
     <th onclick="sortTable('newProducts', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
     <th>Notes</th>
     <th onclick="sortTable('newProducts', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-    <th>Actions</th>
+    
 </tr>
                 </thead>
                 <tbody id="new-products-table">
@@ -752,13 +765,14 @@
         
         <div id="to-clear" class="tab-content">
             <div class="controls">
-                <button onclick="showAddToClearModal()">➕ Add Product to Clear</button>
+                <button onclick="showAddToClearModal()">➕ Add Product to 7-12 Months</button>
                 <input type="text" id="toClearSearchInput" class="search-box" placeholder="Search products to clear..." onkeyup="searchToClear(this.value)">
             </div>
             
             <table id="to-clear-table-container">
                 <thead>
                     <tr>
+                        <th>Actions</th>
     <th onclick="sortTable('toClear', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
     <th onclick="sortTable('toClear', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
     <th onclick="sortTable('toClear', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
@@ -774,7 +788,7 @@
     <th>Remarks</th>
     <th>Action Plan</th>
     <th onclick="sortTable('toClear', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-    <th>Actions</th>
+    
 </tr>
                 </thead>
                 <tbody id="to-clear-table">
@@ -782,6 +796,37 @@
             </table>
         </div>
         
+        <div id="staff-claim" class="tab-content">
+            <div class="controls">
+                <button onclick="showAddStaffClaimModal()">➕ Add Product to Staff Claim</button>
+                <input type="text" id="staffClaimSearchInput" class="search-box" placeholder="Search staff claim products..." onkeyup="searchStaffClaim(this.value)">
+            </div>
+            
+            <table id="staff-claim-table-container">
+                <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th onclick="sortTable('staffClaim', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'claimRemarks')" data-column-key="claimRemarks">Remarks <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
+                        <th>Action Plan</th>
+                        <th onclick="sortTable('staffClaim', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="staff-claim-table">
+                </tbody>
+            </table>
+        </div>
+
         <div id="master-list" class="tab-content">
             <div class="controls">
                 <button onclick="showAddMasterProductModal()">➕ Add Product</button>
@@ -794,13 +839,14 @@
             <table id="master-table-container">
                 <thead>
                     <tr>
+                        <th>Actions</th>
                         <th onclick="sortTable('master', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'product')" data-column-key="product">Product Name <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'wkDemand')" data-column-key="wkDemand">WK Demand <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('master', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th>
-                        <th>Actions</th>
+                        
                     </tr>
                 </thead>
                 <tbody id="master-table">
@@ -817,11 +863,12 @@
             <table id="recycle-bin-table-container">
                 <thead>
                     <tr>
+                        <th>Actions</th>
                         <th onclick="sortTable('recycleBin', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('recycleBin', 'originalCollection')" data-column-key="originalCollection">Original Tab <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('recycleBin', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('recycleBin', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th>Actions</th>
+                        
                     </tr>
                 </thead>
                 <tbody id="recycle-bin-table">
@@ -899,13 +946,9 @@
                     <input type="text" id="newProductSku" required>
                 </div>
                 <div class="form-group">
-    <label for="newProductName">Product Name:</label>
-    <div class="input-with-clear">
-        <input type="text" id="newProductName" list="newProductsDatalist" required>
-        <datalist id="newProductsDatalist"></datalist>
-        <button type="button" class="clear-btn" onclick="clearProductSelection('newProductName')" title="Clear selection">×</button>
-    </div>
-</div>
+                    <label for="newProductName">Product Name:</label>
+                    <input type="text" id="newProductName" required>
+                </div>
 
                 <div class="form-group">
                     <label for="arrivalDate">Arrival Date:</label>
@@ -1022,6 +1065,61 @@
         </div>
     </div>
 
+    <div id="staffClaimModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('staffClaimModal')">&times;</span>
+            <h2 id="staffClaimModalTitle">Add Product to Staff Claim</h2>
+            <form onsubmit="saveStaffClaim(event)">
+                <input type="hidden" id="editStaffClaimId" value="">
+                <div class="form-group">
+                    <label for="staffClaimBrand">Brand:</label>
+                    <select id="staffClaimBrand" required onchange="handleStaffClaimBrandChange(this.value)">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimProductName">Product Name:</label>
+                    <div class="input-with-clear">
+                        <input type="text" id="staffClaimProductName" list="staffClaimProductsDatalist" required onchange="handleStaffClaimProductChange()">
+                        <datalist id="staffClaimProductsDatalist"></datalist>
+                        <button type="button" class="clear-btn" onclick="clearProductSelection('staffClaimProductName')" title="Clear selection">×</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimExpiryDate">Expiry Date:</label>
+                    <input type="date" id="staffClaimExpiryDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimRemarks">Remarks:</label>
+                    <select id="staffClaimRemarks" required onchange="handleRemarksChange()">
+                        <option value="">Select Remarks</option>
+                        <option value="add_new_remark">+ Add New Remark...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimFirstReportedBalance">First Reported Balance (Total Qty):</label>
+                    <input type="number" id="staffClaimFirstReportedBalance" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimWarehouseQty">Warehouse Qty:</label>
+                    <input type="number" id="staffClaimWarehouseQty" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimStoreQty">Store Qty:</label>
+                    <input type="number" id="staffClaimStoreQty" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimWeeklyDemand">Weekly Demand:</label>
+                    <input type="number" id="staffClaimWeeklyDemand" min="0" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimActionPlan">Action Plan:</label>
+                    <textarea id="staffClaimActionPlan"></textarea>
+                </div>
+                <button type="submit">Save Product to Staff Claim</button>
+            </form>
+        </div>
+    </div>
+    
     <div id="confirmModal" class="modal">
         <div class="modal-content">
             <h2>Confirmation</h2>
@@ -1057,6 +1155,20 @@
                     <input type="text" id="newStatusName" required>
                 </div>
                 <button type="submit">Add Status</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addRemarkModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addRemarkModal')">&times;</span>
+            <h2>Add New Remark</h2>
+            <form onsubmit="saveNewRemark(event)">
+                <div class="form-group">
+                    <label for="newRemarkText">Remark Text:</label>
+                    <input type="text" id="newRemarkText" required>
+                </div>
+                <button type="submit">Add Remark</button>
             </form>
         </div>
     </div>
@@ -1111,6 +1223,7 @@
             newProducts: { column: null, direction: 'asc' },
             master: { column: null, direction: 'asc' },
             toClear: { column: null, direction: 'asc' },
+            staffClaim: { column: null, direction: 'asc' },
             recycleBin: { column: null, direction: 'asc' }
         };
 
@@ -1228,6 +1341,10 @@
                 toClearData = await fetchDataFromFirestore(toClearColRef);
                 masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
                 deletedItemsData = await fetchAllDataForRecycleBin();
+                staffClaimData = await fetchDataFromFirestore(staffClaimColRef); // ADD THIS
+const rawRemarks = await fetchDataFromFirestore(remarksColRef, true); // ADD THIS
+remarksData = rawRemarks.filter(r => r.isDeleted === false || typeof r.isDeleted === 'undefined'); // ADD THIS
+currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted); // ADD THIS
 
                 const rawBrands = await fetchDataFromFirestore(brandsColRef, true); // Fetch all, then filter
                 brandsData = rawBrands.filter(b => b.isDeleted === false || typeof b.isDeleted === 'undefined');
@@ -1261,6 +1378,7 @@
             renderNewProductsItems();
             renderMasterListItems();
             renderToClearItems();
+            renderStaffClaimItems();
             renderRecycleBinItems();
         }
         // Helper function to clear product selection - NEW
@@ -1614,42 +1732,45 @@ function toggleClearButton(inputElement, show) {
 
         // Inventory (OOS/Low Stock)
         function renderInventoryItems() {
-            const tableBody = document.getElementById('inventory-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
-            const pinnedItems = currentInventoryViewData.filter(item => item.isPinned === true);
-const unpinnedItems = currentInventoryViewData.filter(item => !item.isPinned);
+    const tableBody = document.getElementById('inventory-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+    const pinnedItems = currentInventoryViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentInventoryViewData.filter(item => !item.isPinned);
 
-const sortedPinnedItems = sortArray(pinnedItems, sortState.inventory.column, sortState.inventory.direction);
-const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.inventory.column, sortState.inventory.direction);
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.inventory.column, sortState.inventory.direction);
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.inventory.column, sortState.inventory.direction);
 
-const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
-                const statusCell = row.insertCell();
-                const badgeClass = item.status === 'OOS' ? 'oos' : (item.status && item.status.toLowerCase().includes('low stock') ? 'low' : 'normal');
-                statusCell.innerHTML = `<span class="status-badge ${badgeClass}">${item.status || ''}</span>`;
-                row.insertCell().textContent = item.shipmentDate || ''; // Changed from shipment
-                row.insertCell().textContent = item.remarks || '';
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinInventoryItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+        const statusCell = row.insertCell();
+        const badgeClass = item.status === 'OOS' ? 'oos' : (item.status && item.status.toLowerCase().includes('low stock') ? 'low' : 'normal');
+        statusCell.innerHTML = `<span class="status-badge ${badgeClass}">${item.status || ''}</span>`;
+        row.insertCell().textContent = item.shipmentDate || '';
+        row.insertCell().textContent = item.remarks || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
 
-                const lastUpdatedCell = row.insertCell();
-lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
-
-const actionsCell = row.insertCell();
-actionsCell.innerHTML = `
-    <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
-    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinInventoryItem('${item.id}')">
-        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
-    </button>
-    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
-`;
-            });
-        }
 
         function showAddProductModal() {
             document.getElementById('productModalTitle').textContent = 'Add Product (OOS/Low Stock)';
@@ -1784,33 +1905,36 @@ if (!id) {
 
         // New Products
         function renderNewProductsItems() {
-            const tableBody = document.getElementById('new-products-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+    const tableBody = document.getElementById('new-products-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-            const sortedData = sortArray(currentNewProductsViewData, sortState.newProducts.column, sortState.newProducts.direction);
+    const sortedData = sortArray(currentNewProductsViewData, sortState.newProducts.column, sortState.newProducts.direction);
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.addedDate || '';
-                row.insertCell().textContent = item.arrivalDate || '';
-                row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
-                row.insertCell().textContent = item.notes || '';
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
+            <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.addedDate || '';
+        row.insertCell().textContent = item.arrivalDate || '';
+        row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+        row.insertCell().textContent = item.notes || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
 
-                const lastUpdatedCell = row.insertCell();
-lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
-
-const actionsCell = row.insertCell();
-actionsCell.innerHTML = `
-    <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
-    <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
-    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
-`;
-            });
-        }
 
         function showAddNewProductModal() {
             document.getElementById('newProductModalTitle').textContent = 'Add New Product Entry';
@@ -2056,51 +2180,54 @@ async function togglePinInventoryItem(id) {
         }
         
         function renderToClearItems() {
-            const tableBody = document.getElementById('to-clear-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+    const tableBody = document.getElementById('to-clear-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-            const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
-            const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
+    const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
 
-            const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
-            const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
 
-            const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.expiryDate || '';
-                row.insertCell().textContent = item.firstHighlightedDate || '';
-                row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
-                row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
-                row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
-                const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-                row.insertCell().textContent = totalQty;
-                row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
-                const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-                row.insertCell().textContent = weeksSupply;
-                const supplyStatusClass = getSupplyStatusClass(item);
-                row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
-                row.insertCell().textContent = item.remarks || '';
-                row.insertCell().textContent = item.actionPlan || '';
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.expiryDate || '';
+        row.insertCell().textContent = item.firstHighlightedDate || '';
+        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        row.insertCell().textContent = totalQty;
+        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+        row.insertCell().textContent = weeksSupply;
+        const supplyStatusClass = getSupplyStatusClass(item);
+        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+        row.insertCell().textContent = item.remarks || '';
+        row.insertCell().textContent = item.actionPlan || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
 
-                const lastUpdatedCell = row.insertCell();
-lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
-
-const actionsCell = row.insertCell();
-actionsCell.innerHTML = `
-    <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
-    <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
-        ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
-    </button>
-    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
-`;
-            });
-        }
 
          function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
@@ -2125,6 +2252,280 @@ actionsCell.innerHTML = `
             openModal('toClearModal');
         }
 
+        // Staff Claim functions - COMPLETE IMPLEMENTATION
+let staffClaimData = [];
+let currentStaffClaimViewData = [];
+let remarksData = [];
+const staffClaimColRef = db.collection('staff_claim');
+const remarksColRef = db.collection('remarks');
+
+function renderStaffClaimItems() {
+    const tableBody = document.getElementById('staff-claim-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const pinnedItems = currentStaffClaimViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentStaffClaimViewData.filter(item => !item.isPinned);
+
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.staffClaim?.column, sortState.staffClaim?.direction || 'asc');
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.staffClaim?.column, sortState.staffClaim?.direction || 'asc');
+
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editStaffClaim('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinStaffClaimItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'staff_claim')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.expiryDate || '';
+        row.insertCell().textContent = item.claimRemarks || '';
+        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        row.insertCell().textContent = totalQty;
+        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+        row.insertCell().textContent = weeksSupply;
+        const supplyStatusClass = getSupplyStatusClass(item);
+        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+        row.insertCell().textContent = item.actionPlan || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
+
+function showAddStaffClaimModal() {
+    document.getElementById('staffClaimModalTitle').textContent = 'Add Product to Staff Claim';
+    document.getElementById('editStaffClaimId').value = '';
+    const form = document.getElementById('staffClaimModal').querySelector('form');
+    if (form) form.reset();
+
+    populateBrandDropdowns('staffClaimBrand');
+    filterProductsForBrand('', 'staffClaimProductName', 'staffClaimProductsDatalist');
+    populateRemarksDropdowns('staffClaimRemarks');
+    document.getElementById('staffClaimWeeklyDemand').value = '';
+    document.getElementById('staffClaimWarehouseQty').value = 0;
+    document.getElementById('staffClaimStoreQty').value = 0;
+    openModal('staffClaimModal');
+}
+
+function handleStaffClaimBrandChange(brandValue) {
+    filterProductsForBrand(brandValue, 'staffClaimProductName', 'staffClaimProductsDatalist');
+    document.getElementById('staffClaimWeeklyDemand').value = '';
+    document.getElementById('staffClaimProductName').value = '';
+}
+
+function handleStaffClaimProductChange() {
+    const brand = document.getElementById('staffClaimBrand').value;
+    const productName = document.getElementById('staffClaimProductName').value;
+    const wkDemandInput = document.getElementById('staffClaimWeeklyDemand');
+
+    if (brand && productName) {
+        const masterProduct = masterProductsData.find(mp => 
+            !mp.isDeleted && mp.brand === brand && mp.product === productName
+        );
+        if (masterProduct) {
+            wkDemandInput.value = masterProduct.wkDemand !== undefined ? masterProduct.wkDemand : 0;
+        } else {
+            wkDemandInput.value = 0;
+            showNotification("Selected product not found in Master List, or WK Demand is missing. Please check Master List.", "warning");
+        }
+    } else {
+        wkDemandInput.value = '';
+    }
+}
+
+async function saveStaffClaim(event) {
+    event.preventDefault();
+    const id = document.getElementById('editStaffClaimId').value;
+    const brand = document.getElementById('staffClaimBrand').value;
+    const productName = document.getElementById('staffClaimProductName').value;
+    const skuValue = getSkuForProduct(brand, productName);
+
+    if (!skuValue) {
+        showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+        return;
+    }
+    
+    const weeklyDemandValue = parseInt(document.getElementById('staffClaimWeeklyDemand').value || '0');
+
+    const data = {
+        brand: brand,
+        product: productName,
+        sku: skuValue, 
+        expiryDate: document.getElementById('staffClaimExpiryDate').value,
+        claimRemarks: document.getElementById('staffClaimRemarks').value,
+        firstReportedBalance: parseInt(document.getElementById('staffClaimFirstReportedBalance').value || '0'),
+        warehouseQty: parseInt(document.getElementById('staffClaimWarehouseQty').value || '0'),
+        storeQty: parseInt(document.getElementById('staffClaimStoreQty').value || '0'),
+        weeklyDemand: weeklyDemandValue,
+        actionPlan: document.getElementById('staffClaimActionPlan').value,
+        lastUpdated: new Date().toISOString(),
+        isDeleted: false,
+        isPinned: id ? (staffClaimData.find(p => p.id === id)?.isPinned || false) : false
+    };
+
+    try {
+        await saveDataToFirestore(staffClaimColRef, id, data);
+        showNotification('Product to staff claim saved successfully!', 'success');
+        closeModal('staffClaimModal');
+        await updateLocalData();
+    } catch (e) {
+        //error handled in saveDataToFirestore
+    }
+}
+
+async function editStaffClaim(id) {
+    const item = staffClaimData.find(p => p.id === id);
+    if (item) {
+        document.getElementById('staffClaimModalTitle').textContent = 'Edit Staff Claim Product';
+        document.getElementById('editStaffClaimId').value = item.id;
+        
+        populateBrandDropdowns('staffClaimBrand');
+        document.getElementById('staffClaimBrand').value = item.brand;
+        
+        filterProductsForBrand(item.brand, 'staffClaimProductName', 'staffClaimProductsDatalist');
+        document.getElementById('staffClaimProductName').value = item.product;
+        
+        document.getElementById('staffClaimWeeklyDemand').value = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+        document.getElementById('staffClaimExpiryDate').value = item.expiryDate;
+        populateRemarksDropdowns('staffClaimRemarks');
+        document.getElementById('staffClaimRemarks').value = item.claimRemarks;
+        document.getElementById('staffClaimFirstReportedBalance').value = item.firstReportedBalance;
+        document.getElementById('staffClaimWarehouseQty').value = item.warehouseQty;
+        document.getElementById('staffClaimStoreQty').value = item.storeQty;
+        document.getElementById('staffClaimActionPlan').value = item.actionPlan;
+        openModal('staffClaimModal');
+    }
+}
+
+async function togglePinStaffClaimItem(id) {
+    const item = staffClaimData.find(p => p.id === id);
+    if (item) {
+        const newPinnedState = !item.isPinned;
+        try {
+            await saveDataToFirestore(staffClaimColRef, id, { 
+                isPinned: newPinnedState,
+                lastUpdated: new Date().toISOString()
+            });
+            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+            
+            item.isPinned = newPinnedState;
+            const viewItem = currentStaffClaimViewData.find(p => p.id === id);
+            if (viewItem) viewItem.isPinned = newPinnedState;
+            
+            renderStaffClaimItems();
+        } catch (e) {
+            showNotification('Error updating pin status.', 'error');
+            console.error("Error toggling pin status:", e);
+        }
+    }
+}
+
+function searchStaffClaim(searchTerm) {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+    const baseData = staffClaimData.filter(item => !item.isDeleted);
+    if (lowerCaseSearchTerm) {
+        currentStaffClaimViewData = baseData.filter(item =>
+            (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.claimRemarks && item.claimRemarks.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.actionPlan && item.actionPlan.toLowerCase().includes(lowerCaseSearchTerm))
+        );
+    } else {
+        currentStaffClaimViewData = baseData;
+    }
+    renderStaffClaimItems();
+}
+
+function populateRemarksDropdowns(selectId) {
+    const selectElement = document.getElementById(selectId);
+    if (!selectElement) return;
+
+    const currentValue = selectElement.value;
+    selectElement.innerHTML = '<option value="">Select Remarks</option>';
+
+    let allUniqueRemarks = [...new Set(remarksData.map(item => item.text).filter(Boolean))];
+    
+    staffClaimData.forEach(item => {
+        if (item.claimRemarks && !allUniqueRemarks.includes(item.claimRemarks) && !item.isDeleted) {
+            allUniqueRemarks.push(item.claimRemarks);
+        }
+    });
+
+    allUniqueRemarks.sort((a, b) => a.localeCompare(b));
+
+    allUniqueRemarks.forEach(remark => {
+        const option = document.createElement('option');
+        option.value = remark;
+        option.textContent = remark;
+        selectElement.appendChild(option);
+    });
+
+    const addNewOption = document.createElement('option');
+    addNewOption.value = 'add_new_remark';
+    addNewOption.textContent = '+ Add New Remark...';
+    selectElement.appendChild(addNewOption);
+
+    if (currentValue && allUniqueRemarks.includes(currentValue)) {
+        selectElement.value = currentValue;
+    } else if (currentValue === 'add_new_remark') {
+        selectElement.value = ''; 
+    }
+
+    selectElement.removeEventListener('change', handleRemarksChange);
+    selectElement.addEventListener('change', handleRemarksChange);
+}
+
+function handleRemarksChange() {
+    const selectElement = document.getElementById('staffClaimRemarks');
+    if (selectElement && selectElement.value === 'add_new_remark') {
+        showAddRemarkModal();
+    }
+}
+
+function showAddRemarkModal() {
+    document.getElementById('addRemarkModal').querySelector('form').reset();
+    openModal('addRemarkModal');
+}
+
+async function saveNewRemark(event) {
+    event.preventDefault();
+    const newRemarkTextInput = document.getElementById('newRemarkText');
+    const newRemarkText = newRemarkTextInput.value.trim();
+
+    if (!newRemarkText) {
+        showNotification('Remark text cannot be empty.', 'error');
+        return;
+    }
+    if (remarksData.some(remark => remark.text.toLowerCase() === newRemarkText.toLowerCase())) {
+        showNotification('This remark already exists.', 'error');
+        return;
+    }
+    try {
+        await saveDataToFirestore(remarksColRef, null, { text: newRemarkText, isDeleted: false });
+        showNotification('Remark added successfully!', 'success');
+        closeModal('addRemarkModal');
+        await updateLocalData();
+    } catch (e) {
+        showNotification('Error adding remark. Check console.', 'error');
+        console.error("Error adding new remark:", e);
+    }
+}
         async function saveToClear(event) {
             event.preventDefault();
             const id = document.getElementById('editToClearId').value;
@@ -2298,39 +2699,42 @@ actionsCell.innerHTML = `
 
         // Master List
         function renderMasterListItems() {
-            const tableBody = document.getElementById('master-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+    const tableBody = document.getElementById('master-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-            const sortedData = sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction);
+    const sortedData = sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction);
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-                row.insertCell().textContent = item.wkDemand !== undefined ? item.wkDemand : '';
-                
-                const expiryDateCell = row.insertCell();
-                if (item.expiryDate) { // Stored as 'YYYY-MM'
-                    const [year, month] = item.expiryDate.split('-');
-                    const dateObj = new Date(year, month - 1);
-                    const monthName = dateObj.toLocaleString('default', { month: 'short' });
-                    const shortYear = year.slice(-2);
-                    expiryDateCell.textContent = `${monthName}-${shortYear}`; // e.g., Jan-27
-                } else {
-                    expiryDateCell.textContent = '';
-                }
-
-                row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
-
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button>
-                    <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>
-                `;
-            });
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.wkDemand !== undefined ? item.wkDemand : '';
+        
+        const expiryDateCell = row.insertCell();
+        if (item.expiryDate) {
+            const [year, month] = item.expiryDate.split('-');
+            const dateObj = new Date(year, month - 1);
+            const monthName = dateObj.toLocaleString('default', { month: 'short' });
+            const shortYear = year.slice(-2);
+            expiryDateCell.textContent = `${monthName}-${shortYear}`;
+        } else {
+            expiryDateCell.textContent = '';
         }
+
+        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
+    });
+}
 
         function showAddMasterProductModal() {
     document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
@@ -2492,26 +2896,29 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
 
         // Recycle Bin
         function renderRecycleBinItems() {
-            const tableBody = document.getElementById('recycle-bin-table');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+    const tableBody = document.getElementById('recycle-bin-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-            const sortedData = sortArray(currentRecycleBinViewData, sortState.recycleBin.column, sortState.recycleBin.direction);
+    const sortedData = sortArray(currentRecycleBinViewData, sortState.recycleBin.column, sortState.recycleBin.direction);
 
-            sortedData.forEach(item => {
-                const row = tableBody.insertRow();
-                row.insertCell().textContent = item.sku || '';
-                row.insertCell().textContent = item.originalCollection || '';
-                row.insertCell().textContent = item.brand || '';
-                row.insertCell().textContent = item.product || '';
-
-                const actionsCell = row.insertCell();
-                actionsCell.innerHTML = `
-                    <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button>
-                    <button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>
-                `;
-            });
-        }
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button>
+            <button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.originalCollection || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+    });
+}
 
         async function moveToRecycleBin(id, collectionName) {
             showConfirmModal('Are you sure you want to move this item to Recycle Bin?', async (confirmed) => {
@@ -2972,6 +3379,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             document.getElementById('low-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).length;
             document.getElementById('new-count').textContent = newProductsData.filter(item => !item.isDeleted).length;
             document.getElementById('to-clear-count').textContent = toClearData.filter(item => !item.isDeleted).length;
+            document.getElementById('staff-claim-count').textContent = staffClaimData.filter(item => !item.isDeleted).length;
         }
 
         function updateAlerts() {
