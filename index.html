@@ -1844,6 +1844,10 @@ if (!id) {
             try {
                 await saveDataToFirestore(inventoryColRef, id, data);
                 showNotification('Product saved successfully!', 'success');
+                showBrowserNotification(
+  'Inventory Update',
+  `${brand} - ${productName} has been added to OOS/Low Stock.`
+);
                 closeModal('productModal');
                 await updateLocalData(); 
             } catch (e) {
@@ -1986,6 +1990,10 @@ if (!id) {
             try {
                 await saveDataToFirestore(newProductsColRef, id, data);
                 showNotification('New product entry saved successfully!', 'success');
+                showBrowserNotification(
+  'New Product Added',
+  `${document.getElementById('newBrand').value} - ${document.getElementById('newProductName').value} (SKU: ${document.getElementById('newProductSku').value}) has been added.`
+);
                 closeModal('newProductModal');
                 await updateLocalData();
             } catch (e) {
