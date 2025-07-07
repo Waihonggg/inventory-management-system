@@ -1191,6 +1191,43 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // --- Real-time notifications for new Inventory items ---
+const seenInventoryIds = new Set();
+db.collection('inventory').get().then(snapshot => {
+  snapshot.forEach(doc => seenInventoryIds.add(doc.id));
+});
+db.collection('inventory').onSnapshot(snapshot => {
+  snapshot.docChanges().forEach(change => {
+    if (change.type === 'added' && !seenInventoryIds.has(change.doc.id)) {
+      const data = change.doc.data();
+      // Optional: Don't notify if this browser/tab just added it
+      showBrowserNotification(
+        'New Inventory Item Added',
+        `${data.brand} - ${data.product} added to OOS/Low Stock.`
+      );
+      seenInventoryIds.add(change.doc.id);
+    }
+  });
+});
+
+// --- Real-time notifications for new New Products ---
+const seenNewProductIds = new Set();
+db.collection('new_products').get().then(snapshot => {
+  snapshot.forEach(doc => seenNewProductIds.add(doc.id));
+});
+db.collection('new_products').onSnapshot(snapshot => {
+  snapshot.docChanges().forEach(change => {
+    if (change.type === 'added' && !seenNewProductIds.has(change.doc.id)) {
+      const data = change.doc.data();
+      showBrowserNotification(
+        'New Product Added',
+        `${data.brand} - ${data.product} (SKU: ${data.sku}) added.`
+      );
+      seenNewProductIds.add(change.doc.id);
+    }
+  });
+});
+
         // Global data arrays to hold fetched data
         let inventoryData = [];
         let newProductsData = [];
