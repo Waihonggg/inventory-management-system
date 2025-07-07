@@ -3654,7 +3654,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
 
-        // Register service worker and request notification permission
+       // --- Browser Notification Setup ---
 if ('serviceWorker' in navigator && 'Notification' in window) {
   navigator.serviceWorker.register('sw.js')
     .then(() => {
@@ -3678,7 +3678,7 @@ function showBrowserNotification(title, message) {
       if (reg) {
         reg.showNotification(title, {
           body: message,
-          icon: '/icon.png' // Set this to your app's icon if desired
+          icon: '/icon.png' // Optional: put your app icon here
         });
       }
     });
