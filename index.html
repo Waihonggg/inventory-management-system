@@ -664,7 +664,6 @@
             }
         }
     </style>
-
 </head>
 <body>
     <div class="container">
@@ -1191,8 +1190,6 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
-        const messaging = firebase.messaging();
 
         // Global data arrays to hold fetched data
         let inventoryData = [];
@@ -3665,6 +3662,36 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
 
+// --- Browser Notification Setup ---
+if ('serviceWorker' in navigator && 'Notification' in window) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => {
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            console.log('Notification permission granted.');
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Service Worker registration failed:', error);
+    });
+}
+
+// Utility for showing notifications via service worker
+function showBrowserNotification(title, message) {
+  if (Notification.permission === 'granted') {
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      if (reg) {
+        reg.showNotification(title, {
+          body: message,
+          icon: '/icon.png' // Optional: place a PNG icon in your project root or change this path
+        });
+      }
+    });
+  }
+}
     </script>
     </body>
 </html>
