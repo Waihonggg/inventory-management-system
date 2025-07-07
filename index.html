@@ -664,8 +664,7 @@
             }
         }
     </style>
-     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+
 </head>
 <body>
     <div class="container">
@@ -1194,38 +1193,6 @@
         const db = firebase.firestore();
 
         const messaging = firebase.messaging();
-
-navigator.serviceWorker.register('firebase-messaging-sw.js')
-  .then((registration) => {
-    messaging.useServiceWorker(registration);
-    // Request permission and get token
-    return messaging.getToken({ vapidKey: 'BDd6ldzT0ca-asPECNGWWWrbGNCCqavbH6xISjhrlqK8Hhu68aQKyJVjS42D9k4pvXzUkznQ6E8EIVxp-J0-eE8' });
-  })
-  .then((token) => {
-    console.log('FCM token:', token);
-    // Save this token to Firestore
-    db.collection('fcmTokens').doc(token).set({
-      token: token,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  })
-  .catch((err) => {
-    console.error('FCM error or permission denied:', err);
-  });
-
-// Foreground message handler
-messaging.onMessage((payload) => {
-  if (Notification.permission === 'granted') {
-    navigator.serviceWorker.getRegistration().then((reg) => {
-      if (reg) {
-        reg.showNotification(payload.notification.title, {
-          body: payload.notification.body,
-          icon: '/icon.png'
-        });
-      }
-    });
-  }
-});
 
         // Global data arrays to hold fetched data
         let inventoryData = [];
@@ -3698,36 +3665,6 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
 
-// --- Browser Notification Setup ---
-if ('serviceWorker' in navigator && 'Notification' in window) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => {
-      if (Notification.permission !== 'granted') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            console.log('Notification permission granted.');
-          }
-        });
-      }
-    })
-    .catch(error => {
-      console.error('Service Worker registration failed:', error);
-    });
-}
-
-// Utility for showing notifications via service worker
-function showBrowserNotification(title, message) {
-  if (Notification.permission === 'granted') {
-    navigator.serviceWorker.getRegistration().then(function(reg) {
-      if (reg) {
-        reg.showNotification(title, {
-          body: message,
-          icon: '/icon.png' // Optional: place a PNG icon in your project root or change this path
-        });
-      }
-    });
-  }
-}
     </script>
     </body>
 </html>
