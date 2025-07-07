@@ -1,9 +1,11 @@
-self.addEventListener('push', function(event) {
-  const data = event.data.json();
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon || '/icon.png' // Optional
+    clients.matchAll({ type: "window" }).then(function(clientList) {
+      for (let client of clientList) {
+        if (client.url && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow('/');
     })
   );
 });
