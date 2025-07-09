@@ -6,8 +6,7 @@
     <title>Inventory Management System</title>
     <style>
         /* General Reset */
-        * {
-            margin: 0;
+        * {\n            margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
@@ -157,11 +156,11 @@
             box-shadow: 0 15px 35px rgba(155, 89, 182, 0.4);
         }
         .stat-card.staff-claim-card {
-    background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
-}
-.stat-card.staff-claim-card:hover {
-    box-shadow: 0 15px 35px rgba(22, 160, 133, 0.4);
-}
+            background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+        }
+        .stat-card.staff-claim-card:hover {
+            box-shadow: 0 15px 35px rgba(22, 160, 133, 0.4);
+        }
 
 
         .stat-number {
@@ -208,10 +207,11 @@
         }
 
         th, td {
-            padding: 14px; /* Increased padding for more space */
+            padding: 8px 14px; /* Reduced padding for shorter rows */
             text-align: left;
             border-bottom: 1px solid #ecf0f1;
             vertical-align: middle; /* Better vertical alignment */
+            font-size: 13px; /* Slightly smaller font for compactness */
         }
 
         th {
@@ -247,7 +247,11 @@
         #to-clear-table td:nth-child(10), /* Weekly Demand */
         #to-clear-table td:nth-child(11), /* Weeks Supply */
         #master-table td:nth-child(4), /* WK Demand */ /* Adjusted index due to category->wkDemand */
-        #master-table td:nth-child(6)  /* Price */
+        #master-table td:nth-child(6),  /* Price */
+        #staff-claim-table td:nth-child(7), /* WH Qty */
+        #staff-claim-table td:nth-child(8), /* Store Qty */
+        #staff-claim-table td:nth-child(9), /* Total Qty */
+        #staff-claim-table td:nth-child(10) /* Price - NEW */
         {
             text-align: right;
             font-variant-numeric: tabular-nums; /* Helps align numbers if using proportional fonts */
@@ -800,6 +804,7 @@
             <div class="controls">
                 <button onclick="showAddStaffClaimModal()">➕ Add Product to Staff Claim</button>
                 <input type="text" id="staffClaimSearchInput" class="search-box" placeholder="Search staff claim products..." onkeyup="searchStaffClaim(this.value)">
+                <button onclick="exportStaffClaimList()">📥 Export List</button>
             </div>
             
             <table id="staff-claim-table-container">
@@ -811,14 +816,11 @@
                         <th onclick="sortTable('staffClaim', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'claimRemarks')" data-column-key="claimRemarks">Remarks <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
-                        <th>Action Plan</th>
+                        <th onclick="sortTable('staffClaim', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th> <!-- NEW -->
+                        <th onclick="sortTable('staffClaim', 'actionPlan')" data-column-key="actionPlan">Action Plan <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
                     </tr>
                 </thead>
@@ -1096,20 +1098,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="staffClaimFirstReportedBalance">First Reported Balance (Total Qty):</label>
-                    <input type="number" id="staffClaimFirstReportedBalance" min="0">
-                </div>
-                <div class="form-group">
                     <label for="staffClaimWarehouseQty">Warehouse Qty:</label>
                     <input type="number" id="staffClaimWarehouseQty" min="0" value="0">
                 </div>
                 <div class="form-group">
                     <label for="staffClaimStoreQty">Store Qty:</label>
                     <input type="number" id="staffClaimStoreQty" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="staffClaimWeeklyDemand">Weekly Demand:</label>
-                    <input type="number" id="staffClaimWeeklyDemand" min="0" readonly>
                 </div>
                 <div class="form-group">
                     <label for="staffClaimActionPlan">Action Plan:</label>
@@ -1199,6 +1193,8 @@
         let deletedItemsData = []; // For Recycle Bin
         let brandsData = []; 
         let statusesData = []; 
+        let staffClaimData = []; // Added for Staff Claim
+        let remarksData = []; // Added for Staff Claim remarks
         // let categoriesData = []; // Categories removed
 
         // Data for current views (used for filtering and sorting)
@@ -1207,6 +1203,7 @@
         let currentToClearViewData = [];
         let currentMasterListViewData = [];
         let currentRecycleBinViewData = [];
+        let currentStaffClaimViewData = []; // Added for Staff Claim
 
         // Firestore collection references
         const inventoryColRef = db.collection('inventory');
@@ -1215,6 +1212,8 @@
         const masterProductsColRef = db.collection('master_products');
         const brandsColRef = db.collection('brands');
         const statusesColRef = db.collection('statuses');
+        const staffClaimColRef = db.collection('staff_claim'); // Added for Staff Claim
+        const remarksColRef = db.collection('remarks'); // Added for Staff Claim remarks
         // const categoriesColRef = db.collection('categories'); // Categories removed
 
         // Sort state for tables
@@ -1270,7 +1269,8 @@
                 (collectionRef.id === 'inventory' || 
                  collectionRef.id === 'new_products' || 
                  collectionRef.id === 'to_clear' || 
-                 collectionRef.id === 'master_products')) {
+                 collectionRef.id === 'master_products' ||
+                 collectionRef.id === 'staff_claim')) { // Added staff_claim
                 query = collectionRef.where("isDeleted", "==", false);
             }
             
@@ -1279,7 +1279,7 @@
                 querySnapshot.forEach((doc) => {
                     const docData = doc.data();
                     // Ensure isPinned is initialized
-                    if (collectionRef.id === 'to_clear' && typeof docData.isPinned === 'undefined') {
+                    if ((collectionRef.id === 'to_clear' || collectionRef.id === 'staff_claim') && typeof docData.isPinned === 'undefined') { // Added staff_claim
                         docData.isPinned = false;
                     }
                     data.push({ id: doc.id, ...docData });
@@ -1291,7 +1291,7 @@
                 } else if (error.code === 'failed-precondition') {
                      console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console.`);
                 }
-                if (!( (collectionRef.id === 'brands' || collectionRef.id === 'statuses') && error.code === 'failed-precondition' ) ) {
+                if (!( (collectionRef.id === 'brands' || collectionRef.id === 'statuses' || collectionRef.id === 'remarks') && error.code === 'failed-precondition' ) ) { // Added remarks
                    // showNotification(`Error loading data from ${collectionRef.id}. Check console.`, 'error');
                 }
             }
@@ -1299,7 +1299,7 @@
         }
 
         async function fetchAllDataForRecycleBin() {
-            const collectionsToFetchFrom = [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef];
+            const collectionsToFetchFrom = [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef, staffClaimColRef]; // Added staffClaimColRef
             let allDeletedItems = [];
             for (const colRef of collectionsToFetchFrom) {
                 try {
@@ -1342,9 +1342,9 @@
                 masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
                 deletedItemsData = await fetchAllDataForRecycleBin();
                 staffClaimData = await fetchDataFromFirestore(staffClaimColRef); // ADD THIS
-const rawRemarks = await fetchDataFromFirestore(remarksColRef, true); // ADD THIS
-remarksData = rawRemarks.filter(r => r.isDeleted === false || typeof r.isDeleted === 'undefined'); // ADD THIS
-currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted); // ADD THIS
+                const rawRemarks = await fetchDataFromFirestore(remarksColRef, true); // ADD THIS
+                remarksData = rawRemarks.filter(r => r.isDeleted === false || typeof r.isDeleted === 'undefined'); // ADD THIS
+                currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted); // ADD THIS
 
                 const rawBrands = await fetchDataFromFirestore(brandsColRef, true); // Fetch all, then filter
                 brandsData = rawBrands.filter(b => b.isDeleted === false || typeof b.isDeleted === 'undefined');
@@ -1416,7 +1416,9 @@ function toggleClearButton(inputElement, show) {
             populateBrandDropdowns('newBrand');
             populateBrandDropdowns('masterBrand');
             populateBrandDropdowns('toClearBrand');
+            populateBrandDropdowns('staffClaimBrand'); // Added for Staff Claim
             populateStatusDropdowns('status');
+            populateRemarksDropdowns('staffClaimRemarks'); // Added for Staff Claim
         }
 
         function populateBrandDropdowns(selectId) {
@@ -1618,6 +1620,8 @@ function toggleClearButton(inputElement, show) {
         
         if (productNameInputId === 'toClearProductName') {
             handleToClearProductChange();
+        } else if (productNameInputId === 'staffClaimProductName') { // Added for Staff Claim
+            handleStaffClaimProductChange();
         }
     };
     productNameInput.changeHandler = changeHandler;
@@ -1681,7 +1685,12 @@ function toggleClearButton(inputElement, show) {
                 currentToClearViewData = toClearData.filter(item => !item.isDeleted);
                 if(document.getElementById('toClearSearchInput')) document.getElementById('toClearSearchInput').value = '';
                 renderToClearItems();
-            } else if (tabId === 'master-list') {
+            } else if (tabId === 'staff-claim') { // Added for Staff Claim
+                currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted);
+                if(document.getElementById('staffClaimSearchInput')) document.getElementById('staffClaimSearchInput').value = '';
+                renderStaffClaimItems();
+            }
+            else if (tabId === 'master-list') {
                 currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
                 if(document.getElementById('masterListSearchInput')) document.getElementById('masterListSearchInput').value = '';
                 renderMasterListItems();
@@ -1720,6 +1729,9 @@ function toggleClearButton(inputElement, show) {
                         document.getElementById('editNewProductId').value = '';
                     } else if (modalId === 'masterProductModal') {
                         document.getElementById('editMasterProductId').value = '';
+                    } else if (modalId === 'staffClaimModal') { // Added for Staff Claim
+                        filterProductsForBrand('', 'staffClaimProductName', 'staffClaimProductsDatalist');
+                        document.getElementById('editStaffClaimId').value = '';
                     }
                 }
             }
@@ -1801,20 +1813,6 @@ function toggleClearButton(inputElement, show) {
                 return;
             }
             // Check for duplicates in OOS/Low Stock list (only if adding new item) - NEW
-if (!id) {
-    const duplicateExists = inventoryData.some(item => 
-        !item.isDeleted && 
-        item.sku === sku &&
-        (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
-    );
-    
-    if (duplicateExists) {
-        showNotification(`This product (${brand} - ${productName}) is already in the OOS/Low Stock list. Please check the existing entry or edit it instead.`, "error");
-        return;
-    }
-}
-
-            // Check for duplicates in OOS/Low Stock list (only if adding new item)
             if (!id) {
                 const duplicateExists = inventoryData.some(item => 
                     !item.isDeleted && 
@@ -1829,25 +1827,25 @@ if (!id) {
             }
 
             const data = {
-    brand: brand,
-    product: productName,
-    sku: sku,
-    quantity: parseInt(document.getElementById('inventoryQuantity').value),
-    status: document.getElementById('status').value,
-    shipmentDate: document.getElementById('shipmentDate').value,
-    remarks: document.getElementById('remarks').value,
-    lastUpdated: new Date().toISOString(),
-    isDeleted: false,
-    isPinned: id ? (inventoryData.find(p => p.id === id)?.isPinned || false) : false
-};
+                brand: brand,
+                product: productName,
+                sku: sku,
+                quantity: parseInt(document.getElementById('inventoryQuantity').value),
+                status: document.getElementById('status').value,
+                shipmentDate: document.getElementById('shipmentDate').value,
+                remarks: document.getElementById('remarks').value,
+                lastUpdated: new Date().toISOString(),
+                isDeleted: false,
+                isPinned: id ? (inventoryData.find(p => p.id === id)?.isPinned || false) : false
+            };
 
             try {
                 await saveDataToFirestore(inventoryColRef, id, data);
                 showNotification('Product saved successfully!', 'success');
                 showBrowserNotification(
-  'Inventory Update',
-  `${brand} - ${productName} has been added to OOS/Low Stock.`
-);
+                    'Inventory Update',
+                    `${brand} - ${productName} has been added to OOS/Low Stock.`
+                );
                 closeModal('productModal');
                 await updateLocalData(); 
             } catch (e) {
@@ -1976,24 +1974,24 @@ if (!id) {
             }
 
             const data = {
-    brand: document.getElementById('newBrand').value,
-    sku: skuValue,
-    product: document.getElementById('newProductName').value,
-    arrivalDate: document.getElementById('arrivalDate').value,
-    quantity: parseInt(document.getElementById('newProductQuantity').value),
-    notes: document.getElementById('notes').value,
-    addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
-    lastUpdated: new Date().toISOString(),
-    isDeleted: false
-};
+                brand: document.getElementById('newBrand').value,
+                sku: skuValue,
+                product: document.getElementById('newProductName').value,
+                arrivalDate: document.getElementById('arrivalDate').value,
+                quantity: parseInt(document.getElementById('newProductQuantity').value),
+                notes: document.getElementById('notes').value,
+                addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+                lastUpdated: new Date().toISOString(),
+                isDeleted: false
+            };
 
             try {
                 await saveDataToFirestore(newProductsColRef, id, data);
                 showNotification('New product entry saved successfully!', 'success');
                 showBrowserNotification(
-  'New Product Added',
-  `${document.getElementById('newBrand').value} - ${document.getElementById('newProductName').value} (SKU: ${document.getElementById('newProductSku').value}) has been added.`
-);
+                    'New Product Added',
+                    `${document.getElementById('newBrand').value} - ${document.getElementById('newProductName').value} (SKU: ${document.getElementById('newProductSku').value}) has been added.`
+                );
                 closeModal('newProductModal');
                 await updateLocalData();
             } catch (e) {
@@ -2177,9 +2175,9 @@ async function togglePinInventoryItem(id) {
                 const newPinnedState = !item.isPinned; // Toggle the current pinned state
                 try {
                     await saveDataToFirestore(toClearColRef, id, { 
-    isPinned: newPinnedState,
-    lastUpdated: new Date().toISOString()
-});
+                        isPinned: newPinnedState,
+                        lastUpdated: new Date().toISOString()
+                    });
                     showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
                     
                     item.isPinned = newPinnedState;
@@ -2268,12 +2266,6 @@ async function togglePinInventoryItem(id) {
         }
 
         // Staff Claim functions - COMPLETE IMPLEMENTATION
-let staffClaimData = [];
-let currentStaffClaimViewData = [];
-let remarksData = [];
-const staffClaimColRef = db.collection('staff_claim');
-const remarksColRef = db.collection('remarks');
-
 function renderStaffClaimItems() {
     const tableBody = document.getElementById('staff-claim-table');
     if (!tableBody) return;
@@ -2306,16 +2298,11 @@ function renderStaffClaimItems() {
         row.insertCell().textContent = item.product || '';
         row.insertCell().textContent = item.expiryDate || '';
         row.insertCell().textContent = item.claimRemarks || '';
-        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
         row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
         row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
         const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
         row.insertCell().textContent = totalQty;
-        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
-        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-        row.insertCell().textContent = weeksSupply;
-        const supplyStatusClass = getSupplyStatusClass(item);
-        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''; // NEW: Price column
         row.insertCell().textContent = item.actionPlan || '';
         const lastUpdatedCell = row.insertCell();
         lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
@@ -2331,7 +2318,6 @@ function showAddStaffClaimModal() {
     populateBrandDropdowns('staffClaimBrand');
     filterProductsForBrand('', 'staffClaimProductName', 'staffClaimProductsDatalist');
     populateRemarksDropdowns('staffClaimRemarks');
-    document.getElementById('staffClaimWeeklyDemand').value = '';
     document.getElementById('staffClaimWarehouseQty').value = 0;
     document.getElementById('staffClaimStoreQty').value = 0;
     openModal('staffClaimModal');
@@ -2339,28 +2325,11 @@ function showAddStaffClaimModal() {
 
 function handleStaffClaimBrandChange(brandValue) {
     filterProductsForBrand(brandValue, 'staffClaimProductName', 'staffClaimProductsDatalist');
-    document.getElementById('staffClaimWeeklyDemand').value = '';
     document.getElementById('staffClaimProductName').value = '';
 }
 
 function handleStaffClaimProductChange() {
-    const brand = document.getElementById('staffClaimBrand').value;
-    const productName = document.getElementById('staffClaimProductName').value;
-    const wkDemandInput = document.getElementById('staffClaimWeeklyDemand');
-
-    if (brand && productName) {
-        const masterProduct = masterProductsData.find(mp => 
-            !mp.isDeleted && mp.brand === brand && mp.product === productName
-        );
-        if (masterProduct) {
-            wkDemandInput.value = masterProduct.wkDemand !== undefined ? masterProduct.wkDemand : 0;
-        } else {
-            wkDemandInput.value = 0;
-            showNotification("Selected product not found in Master List, or WK Demand is missing. Please check Master List.", "warning");
-        }
-    } else {
-        wkDemandInput.value = '';
-    }
+    // No weekly demand for staff claim, so no need to update it here.
 }
 
 async function saveStaffClaim(event) {
@@ -2375,18 +2344,37 @@ async function saveStaffClaim(event) {
         return;
     }
     
-    const weeklyDemandValue = parseInt(document.getElementById('staffClaimWeeklyDemand').value || '0');
+    const expiryDate = document.getElementById('staffClaimExpiryDate').value;
+    const claimRemarks = document.getElementById('staffClaimRemarks').value;
+
+    // Retrieve price from master list
+    const masterProduct = masterProductsData.find(mp => !mp.isDeleted && mp.sku === skuValue);
+    const price = masterProduct ? (parseFloat(masterProduct.price) || 0) : 0; // Default to 0 if not found or invalid
+
+    // Duplication check
+    if (!id) { // Only check for new entries
+        const duplicateExists = staffClaimData.some(item => 
+            !item.isDeleted && 
+            item.sku === skuValue &&
+            item.expiryDate === expiryDate &&
+            item.claimRemarks === claimRemarks
+        );
+        
+        if (duplicateExists) {
+            showNotification(`This product with the same expiry date and remarks has already been added to Staff Claim.`, "error");
+            return;
+        }
+    }
 
     const data = {
         brand: brand,
         product: productName,
         sku: skuValue, 
-        expiryDate: document.getElementById('staffClaimExpiryDate').value,
-        claimRemarks: document.getElementById('staffClaimRemarks').value,
-        firstReportedBalance: parseInt(document.getElementById('staffClaimFirstReportedBalance').value || '0'),
+        expiryDate: expiryDate,
+        claimRemarks: claimRemarks,
         warehouseQty: parseInt(document.getElementById('staffClaimWarehouseQty').value || '0'),
         storeQty: parseInt(document.getElementById('staffClaimStoreQty').value || '0'),
-        weeklyDemand: weeklyDemandValue,
+        price: price, // ADDED: Price from master list
         actionPlan: document.getElementById('staffClaimActionPlan').value,
         lastUpdated: new Date().toISOString(),
         isDeleted: false,
@@ -2415,13 +2403,12 @@ async function editStaffClaim(id) {
         filterProductsForBrand(item.brand, 'staffClaimProductName', 'staffClaimProductsDatalist');
         document.getElementById('staffClaimProductName').value = item.product;
         
-        document.getElementById('staffClaimWeeklyDemand').value = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
         document.getElementById('staffClaimExpiryDate').value = item.expiryDate;
         populateRemarksDropdowns('staffClaimRemarks');
         document.getElementById('staffClaimRemarks').value = item.claimRemarks;
-        document.getElementById('staffClaimFirstReportedBalance').value = item.firstReportedBalance;
         document.getElementById('staffClaimWarehouseQty').value = item.warehouseQty;
         document.getElementById('staffClaimStoreQty').value = item.storeQty;
+        // Price is not an input in the modal, it's derived from master list
         document.getElementById('staffClaimActionPlan').value = item.actionPlan;
         openModal('staffClaimModal');
     }
@@ -2546,6 +2533,37 @@ async function saveNewRemark(event) {
         console.error("Error adding new remark:", e);
     }
 }
+
+function exportStaffClaimList() {
+    const headers = ["Actions", "Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Action Plan", "Last Updated"];
+    const activeStaffClaimList = staffClaimData.filter(item => !item.isDeleted);
+    const rows = activeStaffClaimList.map(item => {
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        return [
+            '', // Actions column is empty for export
+            item.sku || '',
+            item.brand || '',
+            item.product || '',
+            item.expiryDate || '',
+            item.claimRemarks || '',
+            item.warehouseQty !== undefined ? item.warehouseQty : '',
+            item.storeQty !== undefined ? item.storeQty : '',
+            totalQty,
+            item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', // ADDED price
+            item.actionPlan || '',
+            item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+        ];
+    });
+
+    let csvContent = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
+    rows.forEach(row => {
+        csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+    });
+
+    downloadCSV(csvContent, 'staff_claim_list.csv');
+    showNotification('Staff Claim list exported!', 'success');
+}
+
         async function saveToClear(event) {
             event.preventDefault();
             const id = document.getElementById('editToClearId').value;
@@ -2568,21 +2586,21 @@ async function saveNewRemark(event) {
             }
 
         const data = {
-    brand: brand,
-    product: productName,
-    sku: skuValue, 
-    expiryDate: document.getElementById('toClearExpiryDate').value,
-    firstHighlightedDate: firstHighlightedDateValue,
-    firstReportedBalance: firstReportedBalanceValue,
-    warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-    storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-    weeklyDemand: weeklyDemandValue,
-    remarks: document.getElementById('toClearRemarks').value,
-    actionPlan: document.getElementById('toClearActionPlan').value,
-    lastUpdated: new Date().toISOString(),
-    isDeleted: false,
-    isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
-};
+            brand: brand,
+            product: productName,
+            sku: skuValue, 
+            expiryDate: document.getElementById('toClearExpiryDate').value,
+            firstHighlightedDate: firstHighlightedDateValue,
+            firstReportedBalance: firstReportedBalanceValue,
+            warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+            storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+            weeklyDemand: weeklyDemandValue,
+            remarks: document.getElementById('toClearRemarks').value,
+            actionPlan: document.getElementById('toClearActionPlan').value,
+            lastUpdated: new Date().toISOString(),
+            isDeleted: false,
+            isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
+        };
             
             if (id) {
                 const existingItem = toClearData.find(p => p.id === id);
@@ -2905,7 +2923,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 ];
             });
 
-            let csvContent = headers.join(',') + '\n';
+            let csvContent = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
             rows.forEach(row => {
                 csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
             });
@@ -2966,11 +2984,12 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                              return;
                         }
 
-                        if (originalCollection === 'master_products' || originalCollection === 'new_products') {
+                        if (originalCollection === 'master_products' || originalCollection === 'new_products' || originalCollection === 'staff_claim') { // Added staff_claim
                             const sku = itemToRestore.sku;
                             if (sku) {
                                 if ( (originalCollection === 'master_products' && masterProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
-                                     (originalCollection === 'new_products' && newProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) {
+                                     (originalCollection === 'new_products' && newProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
+                                     (originalCollection === 'staff_claim' && staffClaimData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) { // Added staff_claim
                                      showNotification(`Cannot restore: SKU ${sku} already exists in an active item in ${originalCollection}. Please resolve conflict first.`, 'error');
                                      return;
                                 }
@@ -3119,39 +3138,39 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             let rows = [];
 
             if (tableKey === 'inventory') {
-    headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment Date", "Remarks", "Last Updated"];
-    rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
-        item.sku || '', item.brand || '', item.product || '',
-        item.quantity !== undefined ? item.quantity : '',
-        item.status || '', item.shipmentDate || '', item.remarks || '',
-        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
-    ]);
-} else if (tableKey === 'new_products') {
-    headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes", "Last Updated"];
-    rows = dataArray.filter(item => !item.isDeleted).map(item => [
-        item.sku || '', item.brand || '', item.product || '',
-        item.addedDate || '', item.arrivalDate || '',
-        item.quantity !== undefined ? item.quantity : '', item.notes || '',
-        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
-    ]);
-} else if (tableKey === 'to_clear') {
-    headers = ["Product Code", "Brand", "Product", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Remarks", "Action Plan", "Last Updated"];
-    rows = dataArray.filter(item => !item.isDeleted).map(item => {
-        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
-        return [
-            item.sku || '', item.brand || '', item.product || '',
-            item.expiryDate || '', item.firstHighlightedDate || '',
-            item.firstReportedBalance !== undefined ? item.firstReportedBalance : '',
-            item.warehouseQty !== undefined ? item.warehouseQty : '',
-            item.storeQty !== undefined ? item.storeQty : '',
-            totalQty,
-            item.weeklyDemand !== undefined ? item.weeklyDemand : '',
-            weeksSupply, getSupplyStatusText(item), item.remarks || '', item.actionPlan || '',
-            item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
-        ];
-    });
-} else if (tableKey === 'master_products') {
+                headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment Date", "Remarks", "Last Updated"];
+                rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
+                    item.sku || '', item.brand || '', item.product || '',
+                    item.quantity !== undefined ? item.quantity : '',
+                    item.status || '', item.shipmentDate || '', item.remarks || '',
+                    item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+                ]);
+            } else if (tableKey === 'new_products') {
+                headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes", "Last Updated"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => [
+                    item.sku || '', item.brand || '', item.product || '',
+                    item.addedDate || '', item.arrivalDate || '',
+                    item.quantity !== undefined ? item.quantity : '', item.notes || '',
+                    item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+                ]);
+            } else if (tableKey === 'to_clear') {
+                headers = ["Product Code", "Brand", "Product", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Remarks", "Action Plan", "Last Updated"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
+                    const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                    const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+                    return [
+                        item.sku || '', item.brand || '', item.product || '',
+                        item.expiryDate || '', item.firstHighlightedDate || '',
+                        item.firstReportedBalance !== undefined ? item.firstReportedBalance : '',
+                        item.warehouseQty !== undefined ? item.warehouseQty : '',
+                        item.storeQty !== undefined ? item.storeQty : '',
+                        totalQty,
+                        item.weeklyDemand !== undefined ? item.weeklyDemand : '',
+                        weeksSupply, getSupplyStatusText(item), item.remarks || '', item.actionPlan || '',
+                        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+                    ];
+                });
+            } else if (tableKey === 'master_products') {
                 headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
                 rows = dataArray.filter(item => !item.isDeleted).map(item => {
                     let formattedExpiry = '';
@@ -3171,6 +3190,24 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                         item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
                     ];
                 });
+            } else if (tableKey === 'staff_claim') { // Added for Staff Claim
+                headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Action Plan", "Last Updated"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
+                    const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                    return [
+                        item.sku || '',
+                        item.brand || '',
+                        item.product || '',
+                        item.expiryDate || '',
+                        item.claimRemarks || '',
+                        item.warehouseQty !== undefined ? item.warehouseQty : '',
+                        item.storeQty !== undefined ? item.storeQty : '',
+                        totalQty,
+                        item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', // ADDED price
+                        item.actionPlan || '',
+                        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+                    ];
+                });
             }
             return { headers, rows };
         }
@@ -3183,7 +3220,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 if (!document.querySelector('script[src*="jszip.min.js"]')) {
                     const script = document.createElement('script');
                     script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js";
-                    script.onload = () => {
+                    script.onload = async () => {
                         console.log("JSZip loaded dynamically. Please try exporting again.");
                         showNotification("JSZip loaded. Please click Export All Data again.", "info");
                     };
@@ -3198,7 +3235,8 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 { key: 'inventory', data: inventoryData, fileName: 'oos_low_stock_products.csv' },
                 { key: 'new_products', data: newProductsData, fileName: 'new_products.csv' },
                 { key: 'to_clear', data: toClearData, fileName: 'to_clear_products.csv' },
-                { key: 'master_products', data: masterProductsData, fileName: 'master_list.csv' }
+                { key: 'master_products', data: masterProductsData, fileName: 'master_list.csv' },
+                { key: 'staff_claim', data: staffClaimData, fileName: 'staff_claim_list.csv' } // Added for Staff Claim
             ];
 
             for (const collectionInfo of collectionsToExport) {
@@ -3264,6 +3302,15 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', expiryDate: '2025-07-31', firstHighlightedDate: '2025-05-01', firstReportedBalance: 20, warehouseQty: 10, storeQty: 5, weeklyDemand: 1, remarks: 'Slight scratch on bezel', actionPlan: 'Promotional discount 20%', isDeleted: false },
                 { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', expiryDate: '2025-08-30', firstHighlightedDate: '2025-05-10', firstReportedBalance: 5, warehouseQty: 1, storeQty: 2, weeklyDemand: 0, remarks: 'Used for display', actionPlan: 'Bundle with accessories', isDeleted: false }
             ];
+            const sampleStaffClaim = [ // Added sample data for Staff Claim
+                { brand: 'BrandX', product: 'Faulty Headset', sku: 'FH8008', expiryDate: '2025-10-15', claimRemarks: 'Damaged during transit', warehouseQty: 2, storeQty: 0, actionPlan: 'Claim from supplier', lastUpdated: new Date().toISOString(), isDeleted: false, price: 50.00 },
+                { brand: 'BrandY', product: 'Scratched Phone', sku: 'SP9009', expiryDate: '2026-01-20', claimRemarks: 'Customer return', warehouseQty: 0, storeQty: 1, actionPlan: 'Send for repair', lastUpdated: new Date().toISOString(), isDeleted: false, price: 200.00 }
+            ];
+            const sampleRemarks = [ // Added sample data for Remarks
+                { text: 'Damaged during transit', isDeleted: false },
+                { text: 'Customer return', isDeleted: false },
+                { text: 'Expired product', isDeleted: false }
+            ];
             
             const collectionsAndData = [
                 { ref: brandsColRef, data: sampleBrands },
@@ -3271,7 +3318,9 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 { ref: masterProductsColRef, data: sampleMasterProducts },
                 { ref: inventoryColRef, data: sampleInventory },
                 { ref: newProductsColRef, data: sampleNewProducts },
-                { ref: toClearColRef, data: sampleToClear }
+                { ref: toClearColRef, data: sampleToClear },
+                { ref: staffClaimColRef, data: sampleStaffClaim }, // Added for Staff Claim
+                { ref: remarksColRef, data: sampleRemarks } // Added for Remarks
             ];
 
             try {
@@ -3324,6 +3373,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
             else if (tableKey === 'newProducts') renderNewProductsItems();
             else if (tableKey === 'master') renderMasterListItems();
             else if (tableKey === 'toClear') renderToClearItems();
+            else if (tableKey === 'staffClaim') renderStaffClaimItems(); // Added for Staff Claim
             else if (tableKey === 'recycleBin') renderRecycleBinItems();
         }
 
@@ -3342,6 +3392,12 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                     valA = (Number(a.weeklyDemand) || 0) > 0 ? (totalA / Number(a.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
                     const totalB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
                     valB = (Number(b.weeklyDemand) || 0) > 0 ? (totalB / Number(b.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
+                } else if (sortState.staffClaim.column === 'totalQty' && column === 'totalQty') { // Added for Staff Claim
+                    valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                } else if (sortState.staffClaim.column === 'price' && column === 'price') { // NEW: Price sorting for Staff Claim
+                    valA = parseFloat(a.price) || 0;
+                    valB = parseFloat(b.price) || 0;
                 }
 
                 const aUndefined = (valA === undefined || valA === null || valA === '' || valA === 'N/A' || (typeof valA === 'number' && isNaN(valA)) );
@@ -3352,7 +3408,7 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 if (bUndefined) return direction === 'asc' ? -1 : 1;
 
                 if (typeof valA === 'string' && typeof valB === 'string') {
-                    // YYYY-MM-DD for to_clear or YYYY-MM for master
+                    //YYYY-MM-DD for to_clear or YYYY-MM for master
                     if (/^\d{4}-\d{2}(-\d{2})?$/.test(valA) && /^\d{4}-\d{2}(-\d{2})?$/.test(valB)) { 
                         return direction === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
                     }
