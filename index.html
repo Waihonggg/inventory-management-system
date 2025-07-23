@@ -251,7 +251,8 @@
         #staff-claim-table td:nth-child(7), /* WH Qty */
         #staff-claim-table td:nth-child(8), /* Store Qty */
         #staff-claim-table td:nth-child(9), /* Total Qty */
-        #staff-claim-table td:nth-child(10) /* Price - NEW */
+        #staff-claim-table td:nth-child(10), /* Price */
+        #staff-claim-table td:nth-child(11) /* Staff Price - NEW */
         {
             text-align: right;
             font-variant-numeric: tabular-nums; /* Helps align numbers if using proportional fonts */
@@ -805,6 +806,8 @@
                 <button onclick="showAddStaffClaimModal()">➕ Add Product to Staff Claim</button>
                 <input type="text" id="staffClaimSearchInput" class="search-box" placeholder="Search staff claim products..." onkeyup="searchStaffClaim(this.value)">
                 <button onclick="exportStaffClaimList()">📥 Export List</button>
+                <button onclick="document.getElementById('staffClaimCsvFileInput').click()">📤 Import CSV</button>
+                <input type="file" id="staffClaimCsvFileInput" accept=".csv" style="display: none;" onchange="importStaffClaimCSV(event)">
             </div>
             
             <table id="staff-claim-table-container">
@@ -819,7 +822,8 @@
                         <th onclick="sortTable('staffClaim', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th> <!-- NEW -->
+                        <th onclick="sortTable('staffClaim', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'staffPrice')" data-column-key="staffPrice">Staff Price <span class="sort-arrow"></span></th> <!-- NEW -->
                         <th onclick="sortTable('staffClaim', 'actionPlan')" data-column-key="actionPlan">Action Plan <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
                     </tr>
@@ -2266,6 +2270,38 @@ async function togglePinInventoryItem(id) {
         }
 
         // Staff Claim functions - COMPLETE IMPLEMENTATION
+function calculateStaffPrice(expiryDateStr, originalPrice) {
+    if (!expiryDateStr || isNaN(originalPrice) || originalPrice < 0) {
+        return 0; // Or some other default/error indicator
+    }
+
+    const expiryDate = new Date(expiryDateStr);
+    const currentDate = new Date();
+
+    // Set both dates to the first day of their respective months for accurate month difference
+    expiryDate.setDate(1);
+    currentDate.setDate(1);
+
+    const diffMonths = (expiryDate.getFullYear() - currentDate.getFullYear()) * 12 + (expiryDate.getMonth() - currentDate.getMonth());
+
+    let staffPrice = 0;
+    if (diffMonths <= 1) { // Within 1 month from expiry month (0 or 1 month difference)
+        staffPrice = originalPrice * 0.3;
+    } else if (diffMonths === 2) {
+        staffPrice = originalPrice * 0.35;
+    } else if (diffMonths === 3) {
+        staffPrice = originalPrice * 0.4;
+    } else if (diffMonths === 4) {
+        staffPrice = originalPrice * 0.45;
+    } else if (diffMonths >= 5) { // 5 months onwards
+        staffPrice = originalPrice * 0.5;
+    }
+    // If expiryDate is in the past, or diffMonths is negative (e.g., already expired), it falls into the <=1 month category by this logic.
+    // If you want a different rule for expired items, add an explicit check.
+    
+    return parseFloat(staffPrice.toFixed(2));
+}
+
 function renderStaffClaimItems() {
     const tableBody = document.getElementById('staff-claim-table');
     if (!tableBody) return;
@@ -2302,7 +2338,11 @@ function renderStaffClaimItems() {
         row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
         const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
         row.insertCell().textContent = totalQty;
-        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''; // NEW: Price column
+        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''; 
+        // NEW: Staff Price column
+        const staffPrice = calculateStaffPrice(item.expiryDate, item.price);
+        row.insertCell().textContent = staffPrice !== undefined ? staffPrice.toFixed(2) : ''; 
+        
         row.insertCell().textContent = item.actionPlan || '';
         const lastUpdatedCell = row.insertCell();
         lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
@@ -2351,6 +2391,9 @@ async function saveStaffClaim(event) {
     const masterProduct = masterProductsData.find(mp => !mp.isDeleted && mp.sku === skuValue);
     const price = masterProduct ? (parseFloat(masterProduct.price) || 0) : 0; // Default to 0 if not found or invalid
 
+    // Calculate staff price
+    const staffPrice = calculateStaffPrice(expiryDate, price);
+
     // Duplication check
     if (!id) { // Only check for new entries
         const duplicateExists = staffClaimData.some(item => 
@@ -2374,7 +2417,8 @@ async function saveStaffClaim(event) {
         claimRemarks: claimRemarks,
         warehouseQty: parseInt(document.getElementById('staffClaimWarehouseQty').value || '0'),
         storeQty: parseInt(document.getElementById('staffClaimStoreQty').value || '0'),
-        price: price, // ADDED: Price from master list
+        price: price, 
+        staffPrice: staffPrice, // ADDED: Staff Price
         actionPlan: document.getElementById('staffClaimActionPlan').value,
         lastUpdated: new Date().toISOString(),
         isDeleted: false,
@@ -2408,7 +2452,7 @@ async function editStaffClaim(id) {
         document.getElementById('staffClaimRemarks').value = item.claimRemarks;
         document.getElementById('staffClaimWarehouseQty').value = item.warehouseQty;
         document.getElementById('staffClaimStoreQty').value = item.storeQty;
-        // Price is not an input in the modal, it's derived from master list
+        // Price and Staff Price are not inputs in the modal, they are derived from master list and calculation
         document.getElementById('staffClaimActionPlan').value = item.actionPlan;
         openModal('staffClaimModal');
     }
@@ -2535,12 +2579,12 @@ async function saveNewRemark(event) {
 }
 
 function exportStaffClaimList() {
-    const headers = ["Actions", "Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Action Plan", "Last Updated"];
+    const headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Staff Price", "Action Plan", "Last Updated"];
     const activeStaffClaimList = staffClaimData.filter(item => !item.isDeleted);
     const rows = activeStaffClaimList.map(item => {
         const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        const staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate for export to ensure accuracy
         return [
-            '', // Actions column is empty for export
             item.sku || '',
             item.brand || '',
             item.product || '',
@@ -2549,7 +2593,8 @@ function exportStaffClaimList() {
             item.warehouseQty !== undefined ? item.warehouseQty : '',
             item.storeQty !== undefined ? item.storeQty : '',
             totalQty,
-            item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', // ADDED price
+            item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', 
+            staffPrice !== undefined ? staffPrice.toFixed(2) : '', // ADDED staff price
             item.actionPlan || '',
             item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
         ];
@@ -2563,6 +2608,162 @@ function exportStaffClaimList() {
     downloadCSV(csvContent, 'staff_claim_list.csv');
     showNotification('Staff Claim list exported!', 'success');
 }
+
+async function importStaffClaimCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const text = e.target.result;
+        const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+        if (lines.length < 2) {
+            showNotification('CSV file is empty, invalid, or has no data rows.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+        const requiredHeaders = ['product code', 'brand', 'product', 'expiry date', 'remarks', 'warehouse quantities', 'store quantities', 'action plan'];
+        const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
+        if (missingHeaders.length > 0) {
+            showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}.`, 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const headerMap = {
+            'product code': 'sku', 'brand': 'brand', 'product': 'product',
+            'expiry date': 'expiryDate', 'remarks': 'claimRemarks',
+            'warehouse quantities': 'warehouseQty', 'store quantities': 'storeQty',
+            'action plan': 'actionPlan'
+        };
+
+        const importData = [];
+        const importedEntriesThisBatch = new Set(); // To track unique entries by SKU, Expiry, Remarks
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/"/g, '')); // Handle commas within quoted strings
+            if (values.length !== headers.length) {
+                console.warn(`Skipping CSV row ${i + 1} due to column mismatch.`);
+                continue;
+            }
+            let item = { isDeleted: false };
+            let validRow = true;
+            let currentSku = '';
+            let currentExpiryDate = '';
+            let currentClaimRemarks = '';
+
+            headers.forEach((header, index) => {
+                const fieldName = headerMap[header.toLowerCase()];
+                if (fieldName) {
+                    let value = values[index];
+                    if (fieldName === 'warehouseQty' || fieldName === 'storeQty') {
+                        item[fieldName] = parseInt(value) || 0;
+                    } else if (fieldName === 'sku') {
+                        currentSku = value.trim();
+                        if (!currentSku) validRow = false;
+                        item[fieldName] = currentSku;
+                    } else if (fieldName === 'expiryDate') {
+                        currentExpiryDate = value.trim();
+                        if (!currentExpiryDate) validRow = false; // Expiry date is required
+                        item[fieldName] = currentExpiryDate;
+                    } else if (fieldName === 'claimRemarks') {
+                        currentClaimRemarks = value.trim();
+                        item[fieldName] = currentClaimRemarks;
+                    }
+                    else item[fieldName] = value;
+                }
+            });
+
+            // Ensure essential fields are present
+            if (!item.brand || !item.product || !item.sku || !item.expiryDate) {
+                validRow = false;
+            }
+
+            if (validRow) {
+                // Check if SKU exists in Master List to retrieve price
+                const masterProduct = masterProductsData.find(mp => !mp.isDeleted && mp.sku === item.sku);
+                if (!masterProduct) {
+                    showNotification(`Skipping row ${i + 1}: Product with SKU '${item.sku}' not found in Master List.`, 'warning');
+                    continue;
+                }
+                item.price = masterProduct.price !== undefined ? parseFloat(masterProduct.price) : 0;
+                item.staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate staff price on import
+
+                // Create a unique key for duplication check: SKU + Expiry Date + Remarks
+                const uniqueKey = `${item.sku}-${item.expiryDate}-${item.claimRemarks}`;
+                if (importedEntriesThisBatch.has(uniqueKey)) {
+                    console.warn(`Skipping CSV row ${i + 1}: Duplicate entry '${uniqueKey}' in CSV.`);
+                    continue;
+                } else {
+                    importedEntriesThisBatch.add(uniqueKey);
+                    importData.push(item);
+                }
+            } else if (!validRow) {
+                console.warn(`Skipping invalid CSV row ${i + 1}. Missing required fields or invalid SKU.`);
+            }
+        }
+
+        if (importData.length === 0) {
+            showNotification('No valid data found to import from CSV.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        showConfirmModal(`Found ${importData.length} valid staff claim items. Importing will add new items or update existing ones based on Product Code, Expiry Date, and Remarks. Continue?`, async (confirmed) => {
+            if (confirmed) {
+                const batch = db.batch();
+                let newItemsCount = 0;
+                let updatedItemsCount = 0;
+
+                for (const item of importData) {
+                    try {
+                        // Find existing staff claim entry by SKU, Expiry Date, and Remarks
+                        const existingEntry = staffClaimData.find(sc =>
+                            !sc.isDeleted &&
+                            sc.sku === item.sku &&
+                            sc.expiryDate === item.expiryDate &&
+                            sc.claimRemarks === item.claimRemarks
+                        );
+
+                        if (existingEntry) {
+                            const docRef = staffClaimColRef.doc(existingEntry.id);
+                            batch.set(docRef, { ...item, lastUpdated: new Date().toISOString() }, { merge: true });
+                            updatedItemsCount++;
+                        } else {
+                            const docRef = staffClaimColRef.doc();
+                            batch.set(docRef, { ...item, lastUpdated: new Date().toISOString() });
+                            newItemsCount++;
+                        }
+                    } catch (err) {
+                        console.error("Error adding item to batch for staff claim import:", item, err);
+                    }
+                }
+
+                if (newItemsCount > 0 || updatedItemsCount > 0) {
+                    try {
+                        await batch.commit();
+                        showNotification(`Successfully imported staff claims: ${newItemsCount} new, ${updatedItemsCount} updated.`, 'success');
+                        await updateLocalData();
+                    } catch (err) {
+                        console.error("Batch commit failed for staff claim import:", err);
+                        showNotification('Error during Staff Claim CSV import batch commit.', 'error');
+                    }
+                } else {
+                    showNotification('No staff claim items were imported.', 'info');
+                }
+            }
+            event.target.value = '';
+        });
+    };
+    reader.onerror = () => {
+        showNotification('Error reading CSV file.', 'error');
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
 
         async function saveToClear(event) {
             event.preventDefault();
@@ -3191,9 +3392,10 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                     ];
                 });
             } else if (tableKey === 'staff_claim') { // Added for Staff Claim
-                headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Action Plan", "Last Updated"];
+                headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Staff Price", "Action Plan", "Last Updated"];
                 rows = dataArray.filter(item => !item.isDeleted).map(item => {
                     const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                    const staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate for export to ensure accuracy
                     return [
                         item.sku || '',
                         item.brand || '',
@@ -3203,7 +3405,8 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                         item.warehouseQty !== undefined ? item.warehouseQty : '',
                         item.storeQty !== undefined ? item.storeQty : '',
                         totalQty,
-                        item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', // ADDED price
+                        item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', 
+                        staffPrice !== undefined ? staffPrice.toFixed(2) : '', // ADDED staff price
                         item.actionPlan || '',
                         item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
                     ];
@@ -3395,9 +3598,12 @@ function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM
                 } else if (sortState.staffClaim.column === 'totalQty' && column === 'totalQty') { // Added for Staff Claim
                     valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
                     valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
-                } else if (sortState.staffClaim.column === 'price' && column === 'price') { // NEW: Price sorting for Staff Claim
+                } else if (sortState.staffClaim.column === 'price' && column === 'price') { 
                     valA = parseFloat(a.price) || 0;
                     valB = parseFloat(b.price) || 0;
+                } else if (sortState.staffClaim.column === 'staffPrice' && column === 'staffPrice') { // NEW: Staff Price sorting
+                    valA = parseFloat(a.staffPrice) || 0;
+                    valB = parseFloat(b.staffPrice) || 0;
                 }
 
                 const aUndefined = (valA === undefined || valA === null || valA === '' || valA === 'N/A' || (typeof valA === 'number' && isNaN(valA)) );
