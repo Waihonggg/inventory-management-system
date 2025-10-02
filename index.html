@@ -6,8 +6,7 @@
     <title>Inventory Management System</title>
     <style>
         /* General Reset */
-        * {
-            margin: 0;
+        * {\n            margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
@@ -239,18 +238,21 @@
         }
 
         /* Right-align specific numeric columns */
-        #inventory-table td:nth-child(5), /* Quantity */
-        #new-products-table td:nth-child(7), /* Quantity */
-        #to-clear-table td:nth-child(7), /* Initial Bal */
-        #to-clear-table td:nth-child(8), /* WH Qty */
-        #to-clear-table td:nth-child(9), /* Store Qty */
-        #to-clear-table td:nth-child(10), /* Total Qty */
-        #to-clear-table td:nth-child(11), /* Weekly Demand */
-        #to-clear-table td:nth-child(12), /* Weeks Supply */
-        #master-table td:nth-child(5), /* WK Demand */
-        #master-table td:nth-child(7),  /* Price */
-        #staff-claim-table td:nth-child(4), /* Price */
-        #staff-claim-table td:nth-child(7) /* Quantities */
+        #inventory-table td:nth-child(4), /* Quantity */
+        #new-products-table td:nth-child(6), /* Quantity */
+        #to-clear-table td:nth-child(6), /* Initial Bal */ /* Adjusted index due to category removal */
+        #to-clear-table td:nth-child(7), /* WH Qty */
+        #to-clear-table td:nth-child(8), /* Store Qty */
+        #to-clear-table td:nth-child(9), /* Total Qty */
+        #to-clear-table td:nth-child(10), /* Weekly Demand */
+        #to-clear-table td:nth-child(11), /* Weeks Supply */
+        #master-table td:nth-child(4), /* WK Demand */ /* Adjusted index due to category->wkDemand */
+        #master-table td:nth-child(6),  /* Price */
+        #staff-claim-table td:nth-child(7), /* WH Qty */
+        #staff-claim-table td:nth-child(8), /* Store Qty */
+        #staff-claim-table td:nth-child(9), /* Total Qty */
+        #staff-claim-table td:nth-child(10), /* Price */
+        #staff-claim-table td:nth-child(11) /* Staff Price - NEW */
         {
             text-align: right;
             font-variant-numeric: tabular-nums; /* Helps align numbers if using proportional fonts */
@@ -638,19 +640,16 @@
                 padding: 10px;    /* Adjust padding for mobile if needed */
             }
             /* Adjust right-alignment for mobile if it causes issues, or keep it */
-             #inventory-table td:nth-child(5), /* Quantity */
-            #new-products-table td:nth-child(7), /* Quantity */
+             #inventory-table td:nth-child(4), /* Quantity */
+            #new-products-table td:nth-child(6), /* Quantity */
+            #to-clear-table td:nth-child(6), 
             #to-clear-table td:nth-child(7), 
             #to-clear-table td:nth-child(8), 
             #to-clear-table td:nth-child(9), 
             #to-clear-table td:nth-child(10), 
             #to-clear-table td:nth-child(11), 
-            #to-clear-table td:nth-child(12), 
-            #master-table td:nth-child(5),
-            #master-table td:nth-child(7),
-            #staff-claim-table td:nth-child(4),
-            #staff-claim-table td:nth-child(7)
-             {
+            #master-table td:nth-child(4),
+            #master-table td:nth-child(6) {
                 text-align: right; /* Keep right alignment for consistency */
             }
 
@@ -726,15 +725,16 @@
                 <thead>
                     <tr>
                         <th style="min-width: 200px;">Actions</th>
-                        <th onclick="sortTable('inventory', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'status')" data-column-key="status">Status <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
-                        <th>Remarks</th>
-                        <th onclick="sortTable('inventory', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-                    </tr>
+    <th onclick="sortTable('inventory', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'status')" data-column-key="status">Status <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('inventory', 'shipmentDate')" data-column-key="shipmentDate">Shipment Date <span class="sort-arrow"></span></th>
+    <th>Remarks</th>
+    <th onclick="sortTable('inventory', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    
+</tr>
                 </thead>
                 <tbody id="inventory-table">
                     </tbody>
@@ -752,15 +752,16 @@
                 <thead>
                     <tr>
                         <th>Actions</th>
-                        <th onclick="sortTable('newProducts', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'addedDate')" data-column-key="addedDate">Added Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'arrivalDate')" data-column-key="arrivalDate">Arrival Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('newProducts', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
-                        <th>Notes</th>
-                        <th onclick="sortTable('newProducts', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-                    </tr>
+    <th onclick="sortTable('newProducts', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'addedDate')" data-column-key="addedDate">Added Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'arrivalDate')" data-column-key="arrivalDate">Arrival Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('newProducts', 'quantity')" data-column-key="quantity">Quantity <span class="sort-arrow"></span></th>
+    <th>Notes</th>
+    <th onclick="sortTable('newProducts', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    
+</tr>
                 </thead>
                 <tbody id="new-products-table">
                     </tbody>
@@ -777,22 +778,23 @@
                 <thead>
                     <tr>
                         <th>Actions</th>
-                        <th onclick="sortTable('toClear', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'firstHighlightedDate')" data-column-key="firstHighlightedDate">First Highlighted <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('toClear', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
-                        <th>Remarks</th>
-                        <th>Action Plan</th>
-                        <th onclick="sortTable('toClear', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
-                    </tr>
+    <th onclick="sortTable('toClear', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'firstHighlightedDate')" data-column-key="firstHighlightedDate">First Highlighted <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'firstReportedBalance')" data-column-key="firstReportedBalance">Initial Bal <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'weeklyDemand')" data-column-key="weeklyDemand">Wk Demand <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'weeksSupply')" data-column-key="weeksSupply">Wks Supply <span class="sort-arrow"></span></th>
+    <th onclick="sortTable('toClear', 'supplyStatus')" data-column-key="supplyStatus">Supply Status <span class="sort-arrow"></span></th>
+    <th>Remarks</th>
+    <th>Action Plan</th>
+    <th onclick="sortTable('toClear', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
+    
+</tr>
                 </thead>
                 <tbody id="to-clear-table">
                     </tbody>
@@ -811,15 +813,19 @@
             <table id="staff-claim-table-container">
                 <thead>
                     <tr>
+                        <th>Actions</th>
                         <th onclick="sortTable('staffClaim', 'sku')" data-column-key="sku">Product Code <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'brand')" data-column-key="brand">Brand <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'product')" data-column-key="product">Product Name <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'product')" data-column-key="product">Product <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'expiryDate')" data-column-key="expiryDate">Expiry Date <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'claimRemarks')" data-column-key="claimRemarks">Remarks <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'warehouseQty')" data-column-key="warehouseQty">WH Qty <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'storeQty')" data-column-key="storeQty">Store Qty <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'totalQty')" data-column-key="totalQty">Total Qty <span class="sort-arrow"></span></th>
                         <th onclick="sortTable('staffClaim', 'price')" data-column-key="price">Price <span class="sort-arrow"></span></th>
-                        <th onclick="sortTable('staffClaim', 'expiryDate')" data-column-key="expiryDate">Exp. Date <span class="sort-arrow"></span></th>
-                        <th>Import Remarks</th>
-                        <th onclick="sortTable('staffClaim', 'warehouseQty')" data-column-key="warehouseQty">Quantities <span class="sort-arrow"></span></th>
-                        <th>Action Remark</th>
-                        <th>Actions</th>
+                        <th onclick="sortTable('staffClaim', 'staffPrice')" data-column-key="staffPrice">Staff Price <span class="sort-arrow"></span></th> <!-- NEW -->
+                        <th onclick="sortTable('staffClaim', 'actionPlan')" data-column-key="actionPlan">Action Plan <span class="sort-arrow"></span></th>
+                        <th onclick="sortTable('staffClaim', 'lastUpdated')" data-column-key="lastUpdated">Last Updated <span class="sort-arrow"></span></th>
                     </tr>
                 </thead>
                 <tbody id="staff-claim-table">
@@ -1068,34 +1074,46 @@
     <div id="staffClaimModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('staffClaimModal')">&times;</span>
-            <h2 id="staffClaimModalTitle">Edit Staff Claim Product</h2>
+            <h2 id="staffClaimModalTitle">Add Product to Staff Claim</h2>
             <form onsubmit="saveStaffClaim(event)">
                 <input type="hidden" id="editStaffClaimId" value="">
                 <div class="form-group">
-                    <label for="staffClaimProductCode" class="disabled-label">Product Code:</label>
-                    <input type="text" id="staffClaimProductCode" disabled>
+                    <label for="staffClaimBrand">Brand:</label>
+                    <select id="staffClaimBrand" required onchange="handleStaffClaimBrandChange(this.value)">
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label for="staffClaimBrand" class="disabled-label">Brand:</label>
-                    <input type="text" id="staffClaimBrand" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="staffClaimProductName" class="disabled-label">Product Name:</label>
-                    <input type="text" id="staffClaimProductName" disabled>
+                    <label for="staffClaimProductName">Product Name:</label>
+                    <div class="input-with-clear">
+                        <input type="text" id="staffClaimProductName" list="staffClaimProductsDatalist" required onchange="handleStaffClaimProductChange()">
+                        <datalist id="staffClaimProductsDatalist"></datalist>
+                        <button type="button" class="clear-btn" onclick="clearProductSelection('staffClaimProductName')" title="Clear selection">×</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="staffClaimExpiryDate">Expiry Date:</label>
                     <input type="date" id="staffClaimExpiryDate" required>
                 </div>
-                 <div class="form-group">
-                    <label for="staffClaimWarehouseQty">Quantities:</label>
+                <div class="form-group">
+                    <label for="staffClaimRemarks">Remarks:</label>
+                    <select id="staffClaimRemarks" required onchange="handleRemarksChange()">
+                        <option value="">Select Remarks</option>
+                        <option value="add_new_remark">+ Add New Remark...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimWarehouseQty">Warehouse Qty:</label>
                     <input type="number" id="staffClaimWarehouseQty" min="0" value="0">
                 </div>
                 <div class="form-group">
-                    <label for="staffClaimActionPlan">Action Remark:</label>
+                    <label for="staffClaimStoreQty">Store Qty:</label>
+                    <input type="number" id="staffClaimStoreQty" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="staffClaimActionPlan">Action Plan:</label>
                     <textarea id="staffClaimActionPlan"></textarea>
                 </div>
-                <button type="submit">Save Changes</button>
+                <button type="submit">Save Product to Staff Claim</button>
             </form>
         </div>
     </div>
@@ -1179,7 +1197,9 @@
         let deletedItemsData = []; // For Recycle Bin
         let brandsData = []; 
         let statusesData = []; 
-        let staffClaimData = []; 
+        let staffClaimData = []; // Added for Staff Claim
+        let remarksData = []; // Added for Staff Claim remarks
+        // let categoriesData = []; // Categories removed
 
         // Data for current views (used for filtering and sorting)
         let currentInventoryViewData = [];
@@ -1187,7 +1207,7 @@
         let currentToClearViewData = [];
         let currentMasterListViewData = [];
         let currentRecycleBinViewData = [];
-        let currentStaffClaimViewData = [];
+        let currentStaffClaimViewData = []; // Added for Staff Claim
 
         // Firestore collection references
         const inventoryColRef = db.collection('inventory');
@@ -1196,16 +1216,18 @@
         const masterProductsColRef = db.collection('master_products');
         const brandsColRef = db.collection('brands');
         const statusesColRef = db.collection('statuses');
-        const staffClaimColRef = db.collection('staff_claim'); 
+        const staffClaimColRef = db.collection('staff_claim'); // Added for Staff Claim
+        const remarksColRef = db.collection('remarks'); // Added for Staff Claim remarks
+        // const categoriesColRef = db.collection('categories'); // Categories removed
 
         // Sort state for tables
         let sortState = {
-            inventory: { column: 'lastUpdated', direction: 'desc' },
-            newProducts: { column: 'addedDate', direction: 'desc' },
-            master: { column: 'sku', direction: 'asc' },
-            toClear: { column: 'expiryDate', direction: 'asc' },
-            staffClaim: { column: 'expiryDate', direction: 'asc' },
-            recycleBin: { column: 'sku', direction: 'asc' }
+            inventory: { column: null, direction: 'asc' },
+            newProducts: { column: null, direction: 'asc' },
+            master: { column: null, direction: 'asc' },
+            toClear: { column: null, direction: 'asc' },
+            staffClaim: { column: null, direction: 'asc' },
+            recycleBin: { column: null, direction: 'asc' }
         };
 
         // --- Notification System ---
@@ -1217,7 +1239,7 @@
             setTimeout(() => {
                 notification.style.opacity = '0';
                 setTimeout(() => notification.remove(), 300);
-            }, 5000);
+            }, 3000);
         }
 
         // --- Confirmation Modal ---
@@ -1229,47 +1251,71 @@
         }
 
         document.getElementById('confirmYes').onclick = () => {
-            if (confirmCallback) confirmCallback(true);
+            if (confirmCallback) {
+                confirmCallback(true);
+            }
             document.getElementById('confirmModal').style.display = 'none';
         };
 
         document.getElementById('confirmNo').onclick = () => {
-            if (confirmCallback) confirmCallback(false);
+            if (confirmCallback) {
+                confirmCallback(false);
+            }
             document.getElementById('confirmModal').style.display = 'none';
         };
+
 
         // --- Firestore Data Operations ---
         async function fetchDataFromFirestore(collectionRef, includeDeleted = false) {
             let data = [];
-            let query = includeDeleted ? collectionRef : collectionRef.where("isDeleted", "==", false);
+            let query = collectionRef;
+            if (!includeDeleted && 
+                (collectionRef.id === 'inventory' || 
+                 collectionRef.id === 'new_products' || 
+                 collectionRef.id === 'to_clear' || 
+                 collectionRef.id === 'master_products' ||
+                 collectionRef.id === 'staff_claim')) { // Added staff_claim
+                query = collectionRef.where("isDeleted", "==", false);
+            }
             
             try {
                 const querySnapshot = await query.get();
                 querySnapshot.forEach((doc) => {
                     const docData = doc.data();
-                    if ((collectionRef.id === 'to_clear' || collectionRef.id === 'staff_claim' || collectionRef.id === 'inventory') && typeof docData.isPinned === 'undefined') {
+                    // Ensure isPinned is initialized
+                    if ((collectionRef.id === 'to_clear' || collectionRef.id === 'staff_claim') && typeof docData.isPinned === 'undefined') { // Added staff_claim
                         docData.isPinned = false;
                     }
                     data.push({ id: doc.id, ...docData });
                 });
             } catch (error) {
                 console.error(`Error fetching data from ${collectionRef.id}:`, error);
-                if (error.code === 'failed-precondition') {
+                if (error.code === 'failed-precondition' && !includeDeleted) {
+                    console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console. Query details: where("isDeleted", "==", false)`);
+                } else if (error.code === 'failed-precondition') {
                      console.warn(`Firestore query for ${collectionRef.id} might require an index. Check Firestore console.`);
+                }
+                if (!( (collectionRef.id === 'brands' || collectionRef.id === 'statuses' || collectionRef.id === 'remarks') && error.code === 'failed-precondition' ) ) { // Added remarks
+                   // showNotification(`Error loading data from ${collectionRef.id}. Check console.`, 'error');
                 }
             }
             return data;
         }
 
         async function fetchAllDataForRecycleBin() {
-            const collectionsToFetchFrom = [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef, staffClaimColRef];
+            const collectionsToFetchFrom = [inventoryColRef, newProductsColRef, toClearColRef, masterProductsColRef, staffClaimColRef]; // Added staffClaimColRef
             let allDeletedItems = [];
             for (const colRef of collectionsToFetchFrom) {
                 try {
                     const querySnapshot = await colRef.where("isDeleted", "==", true).get();
-                    querySnapshot.forEach((doc) => allDeletedItems.push({ id: doc.id, ...doc.data(), originalCollection: colRef.id }));
+                    querySnapshot.forEach((doc) => {
+                        allDeletedItems.push({ id: doc.id, ...doc.data(), originalCollection: colRef.id });
+                    });
                 } catch (error) {
                     console.error(`Error fetching deleted items from ${colRef.id}:`, error);
+                    if (error.code === 'failed-precondition') {
+                        console.warn(`Firestore query for deleted items in ${colRef.id} might require an index for 'isDeleted'. Check Firestore console.`);
+                    }
                 }
             }
             return allDeletedItems;
@@ -1278,7 +1324,7 @@
         async function saveDataToFirestore(collectionRef, docId, data) {
             try {
                 if (docId) {
-                    await collectionRef.doc(docId).set(data, { merge: true });
+                    await collectionRef.doc(docId).set(data, { merge: true }); // Use set with merge to handle updates and new fields
                 } else {
                     const docRef = await collectionRef.add(data);
                     return docRef.id;
@@ -1286,7 +1332,7 @@
                 return docId;
             } catch (error) {
                 console.error(`Error saving data to ${collectionRef.id}:`, error);
-                showNotification(`Error saving data to server.`, 'error');
+                showNotification(`Error saving data to server for ${collectionRef.id}.`, 'error');
                 throw error;
             }
         }
@@ -1294,32 +1340,29 @@
         // --- Update Local Data & UI ---
         async function updateLocalData() {
             try {
-                [
-                    inventoryData,
-                    newProductsData,
-                    toClearData,
-                    masterProductsData,
-                    staffClaimData,
-                    deletedItemsData,
-                    brandsData,
-                    statusesData
-                ] = await Promise.all([
-                    fetchDataFromFirestore(inventoryColRef),
-                    fetchDataFromFirestore(newProductsColRef),
-                    fetchDataFromFirestore(toClearColRef),
-                    fetchDataFromFirestore(masterProductsColRef),
-                    fetchDataFromFirestore(staffClaimColRef),
-                    fetchAllDataForRecycleBin(),
-                    fetchDataFromFirestore(brandsColRef),
-                    fetchDataFromFirestore(statusesColRef)
-                ]);
+                inventoryData = await fetchDataFromFirestore(inventoryColRef);
+                newProductsData = await fetchDataFromFirestore(newProductsColRef);
+                toClearData = await fetchDataFromFirestore(toClearColRef);
+                masterProductsData = await fetchDataFromFirestore(masterProductsColRef);
+                deletedItemsData = await fetchAllDataForRecycleBin();
+                staffClaimData = await fetchDataFromFirestore(staffClaimColRef); // ADD THIS
+                const rawRemarks = await fetchDataFromFirestore(remarksColRef, true); // ADD THIS
+                remarksData = rawRemarks.filter(r => r.isDeleted === false || typeof r.isDeleted === 'undefined'); // ADD THIS
+                currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted); // ADD THIS
+
+                const rawBrands = await fetchDataFromFirestore(brandsColRef, true); // Fetch all, then filter
+                brandsData = rawBrands.filter(b => b.isDeleted === false || typeof b.isDeleted === 'undefined');
+
+                const rawStatuses = await fetchDataFromFirestore(statusesColRef, true); // Fetch all, then filter
+                statusesData = rawStatuses.filter(s => s.isDeleted === false || typeof s.isDeleted === 'undefined');
                 
-                // Initialize current views
-                const activeTab = document.querySelector('.tab.active') || document.querySelector('.tab');
-                if (activeTab) {
-                    const activeTabId = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
-                    switchTab(activeTab, activeTabId, false); // Pass false to prevent re-rendering before full setup
-                }
+                currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+                currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
+                currentToClearViewData = toClearData.filter(item => !item.isDeleted);
+                currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
+                currentRecycleBinViewData = [...deletedItemsData];
 
 
                 updateAllTablesAndViews();
@@ -1330,7 +1373,7 @@
                 setupDynamicDropdowns();
             } catch (error) {
                 console.error("Error updating local data from Firestore:", error);
-                showNotification('Error loading data from server.', 'error');
+                showNotification('Error loading data from server. Please check your internet connection or Firebase setup.', 'error');
             }
         }
         
@@ -1342,132 +1385,261 @@
             renderStaffClaimItems();
             renderRecycleBinItems();
         }
-        
-        // --- UI Helper Functions ---
-        function clearProductSelection(inputId) {
-            const input = document.getElementById(inputId);
-            if (input) {
-                input.value = '';
-                toggleClearButton(input, false);
-                if (inputId === 'toClearProductName') {
-                    document.getElementById('toClearWeeklyDemand').value = '';
-                }
-                input.focus();
-            }
-        }
+        // Helper function to clear product selection - NEW
+function clearProductSelection(inputId) {
+    const input = document.getElementById(inputId);
+    const clearButton = input.parentElement.querySelector('.clear-btn');
+    
+    if (input) {
+        input.value = '';
+        input.style.borderColor = '#e1e8ed';
+        input.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        input.focus();
+    }
+    
+    if (clearButton) {
+        clearButton.style.display = 'none';
+    }
 
-        function toggleClearButton(inputElement, show) {
-            const clearButton = inputElement.parentElement.querySelector('.clear-btn');
-            if (clearButton) clearButton.style.display = show ? 'block' : 'none';
-        }
-        
+    // Special handling for toClear modal
+    if (inputId === 'toClearProductName') {
+        document.getElementById('toClearWeeklyDemand').value = '';
+    }
+}
+
+// Function to toggle clear button visibility - NEW
+function toggleClearButton(inputElement, show) {
+    const clearButton = inputElement.parentElement.querySelector('.clear-btn');
+    if (clearButton) {
+        clearButton.style.display = show ? 'block' : 'none';
+    }
+}
         // --- Dynamic Dropdowns ---
         function setupDynamicDropdowns() {
-            ['brand', 'newBrand', 'masterBrand', 'toClearBrand'].forEach(id => populateBrandDropdowns(id));
+            populateBrandDropdowns('brand');
+            populateBrandDropdowns('newBrand');
+            populateBrandDropdowns('masterBrand');
+            populateBrandDropdowns('toClearBrand');
+            populateBrandDropdowns('staffClaimBrand'); // Added for Staff Claim
             populateStatusDropdowns('status');
+            populateRemarksDropdowns('staffClaimRemarks'); // Added for Staff Claim
         }
 
         function populateBrandDropdowns(selectId) {
-            const selectElement = document.getElementById(selectId);
-            if (!selectElement) return;
+    const selectElement = document.getElementById(selectId);
+    if (!selectElement) return;
 
-            const currentValue = selectElement.value; 
-            const uniqueBrands = [...new Set([
-                ...masterProductsData.map(item => item.brand),
-                ...brandsData.map(brandDoc => brandDoc.name)
-            ])].filter(Boolean).sort((a, b) => a.localeCompare(b));
+    const currentValue = selectElement.value; 
+    selectElement.innerHTML = '<option value="">Select Brand</option>';
 
-            selectElement.innerHTML = '<option value="">Select Brand</option>';
-            uniqueBrands.forEach(brand => selectElement.innerHTML += `<option value="${brand}">${brand}</option>`);
-            selectElement.innerHTML += '<option value="add_new_brand">+ Add New Brand...</option>';
-            
-            if (currentValue && uniqueBrands.includes(currentValue)) {
-                selectElement.value = currentValue;
-            }
-
-            selectElement.removeEventListener('change', handleDynamicDropdownChange); 
-            selectElement.addEventListener('change', handleDynamicDropdownChange);
+    const uniqueBrandsFromMaster = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.brand).filter(Boolean))];
+    let allUniqueBrands = [...uniqueBrandsFromMaster];
+    
+    brandsData.forEach(brandDoc => {
+        if (brandDoc.name && !allUniqueBrands.includes(brandDoc.name)) {
+            allUniqueBrands.push(brandDoc.name);
         }
+    });
+    allUniqueBrands.sort((a, b) => a.localeCompare(b));
+
+    allUniqueBrands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        selectElement.appendChild(option);
+    });
+
+    const addNewOption = document.createElement('option');
+    addNewOption.value = 'add_new_brand';
+    addNewOption.textContent = '+ Add New Brand...';
+    selectElement.appendChild(addNewOption);
+    
+    if (currentValue && allUniqueBrands.includes(currentValue)) {
+        selectElement.value = currentValue;
+    } else if (currentValue === 'add_new_brand') {
+        selectElement.value = ''; 
+    }
+
+    selectElement.removeEventListener('change', handleDynamicDropdownChange); 
+    selectElement.addEventListener('change', handleDynamicDropdownChange);
+}
 
         function populateStatusDropdowns(selectId) {
             const selectElement = document.getElementById(selectId);
             if (!selectElement) return;
 
             const currentValue = selectElement.value;
-            const allowedStatuses = [...new Set([
-                'OOS', 'Low stock',
-                ...statusesData.map(s => s.name),
-                ...inventoryData.map(i => i.status)
-            ])].filter(s => s && s.toLowerCase() !== 'in stock').sort();
-
             selectElement.innerHTML = '<option value="">Select Status</option>';
-            allowedStatuses.forEach(status => selectElement.innerHTML += `<option value="${status}">${status}</option>`);
-            selectElement.innerHTML += '<option value="add_new_status">+ Add New Status...</option>';
+
+            // Define core statuses and add any from statusesData, excluding "In stock" for OOS/Low Stock modal
+            let allowedStatuses = ['OOS', 'Low stock']; 
+            
+            statusesData.forEach(statusDoc => { 
+                if (statusDoc.name && !allowedStatuses.includes(statusDoc.name) && statusDoc.name.toLowerCase() !== 'in stock') {
+                    allowedStatuses.push(statusDoc.name);
+                }
+            });
+             // Also include statuses currently in use in inventoryData (excluding "In stock")
+            inventoryData.forEach(item => {
+                if (item.status && !allowedStatuses.includes(item.status) && item.status.toLowerCase() !== 'in stock' && !item.isDeleted) {
+                    allowedStatuses.push(item.status);
+                }
+            });
+
+            allowedStatuses = [...new Set(allowedStatuses)]; // Make unique
+            allowedStatuses.sort((a, b) => a.localeCompare(b));
+
+            allowedStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                selectElement.appendChild(option);
+            });
+
+            const addNewOption = document.createElement('option');
+            addNewOption.value = 'add_new_status';
+            addNewOption.textContent = '+ Add New Status...';
+            selectElement.appendChild(addNewOption);
 
             if (currentValue && allowedStatuses.includes(currentValue)) {
                 selectElement.value = currentValue;
+            }  else if (currentValue === 'add_new_status') {
+                selectElement.value = ''; 
             }
             selectElement.removeEventListener('change', handleDynamicDropdownChange);
             selectElement.addEventListener('change', handleDynamicDropdownChange);
         }
 
+
         function handleDynamicDropdownChange(event) {
-            if (event.target.value === 'add_new_brand') showAddBrandModal();
-            else if (event.target.value === 'add_new_status') showAddStatusModal();
+            const selectElement = event.target;
+            const selectedOptionValue = selectElement.value;
+            
+            if (selectedOptionValue === 'add_new_brand') {
+                showAddBrandModal();
+            } else if (selectedOptionValue === 'add_new_status') {
+                showAddStatusModal();
+            }
         }
 
-        // --- Product Datalists ---
+        // --- Product Datalists (for autocomplete) ---
         function populateProductDatalists() {
-            const datalistIds = ['productsDatalist', 'newProductsDatalist', 'toClearProductsDatalist', 'staffClaimProductsDatalist'];
-            const allProductNames = [...new Set(masterProductsData.map(item => item.product).filter(Boolean))].sort();
-            
-            datalistIds.forEach(id => {
-                const datalist = document.getElementById(id);
-                if (datalist) {
-                    datalist.innerHTML = allProductNames.map(name => `<option value="${name}"></option>`).join('');
-                }
-            });
-        }
+    const productsDatalist = document.getElementById('productsDatalist');
+    const newProductsDatalist = document.getElementById('newProductsDatalist');
+    const toClearProductsDatalist = document.getElementById('toClearProductsDatalist');
+    const staffClaimProductsDatalist = document.getElementById('staffClaimProductsDatalist'); // ADD THIS LINE
+
+    if (productsDatalist) productsDatalist.innerHTML = '';
+    if (newProductsDatalist) newProductsDatalist.innerHTML = '';
+    if (toClearProductsDatalist) toClearProductsDatalist.innerHTML = '';
+    if (staffClaimProductsDatalist) staffClaimProductsDatalist.innerHTML = ''; // ADD THIS LINE
+
+    const allProductNames = [...new Set(masterProductsData.filter(item => !item.isDeleted).map(item => item.product).filter(Boolean))].sort();
+
+    allProductNames.forEach(productName => {
+        const option1 = document.createElement('option');
+        option1.value = productName;
+        if (productsDatalist) productsDatalist.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = productName;
+        if (newProductsDatalist) newProductsDatalist.appendChild(option2);
+
+        const option3 = document.createElement('option');
+        option3.value = productName;
+        if (toClearProductsDatalist) toClearProductsDatalist.appendChild(option3);
+
+        // ADD THIS BLOCK
+        const option4 = document.createElement('option');
+        option4.value = productName;
+        if (staffClaimProductsDatalist) staffClaimProductsDatalist.appendChild(option4);
+    });
+}
 
         function filterProductsForBrand(brand, productNameInputId, datalistId) {
-            const productNameInput = document.getElementById(productNameInputId);
-            const datalist = document.getElementById(datalistId);
-            if (!productNameInput || !datalist) return;
+    const productNameInput = document.getElementById(productNameInputId);
+    const datalist = document.getElementById(datalistId);
+    if (!productNameInput || !datalist) return;
 
-            const productNames = brand 
-                ? [...new Set(masterProductsData.filter(item => item.brand === brand).map(item => item.product).filter(Boolean))].sort()
-                : [...new Set(masterProductsData.map(item => item.product).filter(Boolean))].sort();
+    const currentValue = productNameInput.value;
+    datalist.innerHTML = '';
+    
+    if (brand) {
+        const filteredProducts = masterProductsData.filter(item => !item.isDeleted && item.brand === brand);
+        const uniqueProductNames = [...new Set(filteredProducts.map(item => item.product).filter(Boolean))].sort();
 
-            datalist.innerHTML = productNames.map(name => `<option value="${name}"></option>`).join('');
+        uniqueProductNames.forEach(productName => {
+            const option = document.createElement('option');
+            option.value = productName;
+            datalist.appendChild(option);
+        });
 
-            if (productNameInput.value && !productNames.includes(productNameInput.value)) {
-                productNameInput.value = '';
-            }
-
-            productNameInput.removeEventListener('input', handleProductInput);
-            productNameInput.removeEventListener('change', handleProductChange);
-            productNameInput.addEventListener('input', handleProductInput);
-            productNameInput.addEventListener('change', handleProductChange);
-
-            toggleClearButton(productNameInput, productNameInput.value.trim().length > 0);
+        if (currentValue && !uniqueProductNames.includes(currentValue)) {
+            productNameInput.value = '';
+            toggleClearButton(productNameInput, false);
         }
+    } else { 
+        productNameInput.value = '';
+        toggleClearButton(productNameInput, false);
+    }
 
-        function handleProductInput() { toggleClearButton(this, this.value.trim().length > 0); }
+    // Remove existing event listeners to prevent duplicates
+    const existingInputHandler = productNameInput.inputHandler;
+    const existingChangeHandler = productNameInput.changeHandler;
+    
+    if (existingInputHandler) productNameInput.removeEventListener('input', existingInputHandler);
+    if (existingChangeHandler) productNameInput.removeEventListener('change', existingChangeHandler);
 
-        function handleProductChange() {
-            const brand = this.closest('.modal-content').querySelector('select[id*="Brand"]')?.value;
-            if (brand && this.value && ![...this.list.options].some(opt => opt.value === this.value)) {
-                showNotification(`"${this.value}" is not available for ${brand}.`, 'warning');
+    // Add input event to show/hide clear button and validate
+    const inputHandler = function() {
+        const currentVal = this.value.trim();
+        toggleClearButton(this, currentVal.length > 0);
+        
+        if (brand && currentVal) {
+            const validOptions = Array.from(datalist.options).map(opt => opt.value);
+            if (!validOptions.includes(currentVal)) {
+                this.style.borderColor = '#e74c3c';
+                this.style.boxShadow = '0 0 5px rgba(231, 76, 60, 0.3)';
+            } else {
+                this.style.borderColor = '#e1e8ed';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+            }
+        }
+    };
+    productNameInput.inputHandler = inputHandler;
+    productNameInput.addEventListener('input', inputHandler);
+
+    // Add change event to clear invalid selections
+    const changeHandler = function() {
+        if (brand && this.value) {
+            const validOptions = Array.from(datalist.options).map(opt => opt.value);
+            if (!validOptions.includes(this.value)) {
+                showNotification(`"${this.value}" is not available for ${brand}. Please select from the dropdown list.`, 'warning');
                 this.value = '';
+                this.style.borderColor = '#e1e8ed';
+                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
                 toggleClearButton(this, false);
             }
-            if (this.id === 'toClearProductName') handleToClearProductChange();
         }
+        
+        if (productNameInputId === 'toClearProductName') {
+            handleToClearProductChange();
+        } else if (productNameInputId === 'staffClaimProductName') { // Added for Staff Claim
+            handleStaffClaimProductChange();
+        }
+    };
+    productNameInput.changeHandler = changeHandler;
+    productNameInput.addEventListener('change', changeHandler);
+
+    // Initialize clear button visibility
+    toggleClearButton(productNameInput, productNameInput.value.trim().length > 0);
+}
         
         function handleToClearBrandChange(brandValue) {
             filterProductsForBrand(brandValue, 'toClearProductName', 'toClearProductsDatalist');
+            // Also clear WK demand if brand changes, as product will likely change or be cleared
             document.getElementById('toClearWeeklyDemand').value = '';
-            document.getElementById('toClearProductName').value = ''; 
+            document.getElementById('toClearProductName').value = ''; // Clear product name input
         }
 
         function handleToClearProductChange() {
@@ -1475,137 +1647,160 @@
             const productName = document.getElementById('toClearProductName').value;
             const wkDemandInput = document.getElementById('toClearWeeklyDemand');
 
-            const masterProduct = masterProductsData.find(mp => mp.brand === brand && mp.product === productName);
-            wkDemandInput.value = masterProduct ? (masterProduct.wkDemand || 0) : '';
+            if (brand && productName) {
+                const masterProduct = masterProductsData.find(mp => 
+                    !mp.isDeleted && mp.brand === brand && mp.product === productName
+                );
+                if (masterProduct) {
+                    wkDemandInput.value = masterProduct.wkDemand !== undefined ? masterProduct.wkDemand : 0;
+                } else {
+                    wkDemandInput.value = 0; // Or some default/indicator that it's not found
+                    showNotification("Selected product not found in Master List, or WK Demand is missing. Please check Master List.", "warning");
+                }
+            } else {
+                wkDemandInput.value = ''; // Clear if no brand/product
+            }
         }
-        
-        function handleStaffClaimBrandChange(brandValue) {
-            filterProductsForBrand(brandValue, 'staffClaimProductName', 'staffClaimProductsDatalist');
-            document.getElementById('staffClaimProductName').value = '';
-        }
+
 
         // --- Tab Switching ---
-        function switchTab(clickedTab, tabId, doRender = true) {
-            document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
+        function switchTab(clickedTab, tabId) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
             clickedTab.classList.add('active');
+
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
 
-            const searchInput = document.querySelector(`#${tabId} .search-box`);
-            if (searchInput) searchInput.value = '';
-
-            const dataMap = {
-                'oos-lowstock': () => inventoryData.filter(item => (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))),
-                'new-products': () => [...newProductsData],
-                'to-clear': () => [...toClearData],
-                'staff-claim': () => [...staffClaimData],
-                'master-list': () => [...masterProductsData],
-                'recycle-bin': () => [...deletedItemsData]
-            };
-            const viewMap = {
-                'oos-lowstock': 'currentInventoryViewData',
-                'new-products': 'currentNewProductsViewData',
-                'to-clear': 'currentToClearViewData',
-                'staff-claim': 'currentStaffClaimViewData',
-                'master-list': 'currentMasterListViewData',
-                'recycle-bin': 'currentRecycleBinViewData'
-            };
-            
-            if(dataMap[tabId]) {
-                window[viewMap[tabId]] = dataMap[tabId]();
-                if(doRender) updateAllTablesAndViews();
+            // Reset search inputs and apply default filters for specific tabs
+            if (tabId === 'oos-lowstock') {
+                // Default to showing all OOS/Low Stock items, filter can be applied by showFilteredInventory
+                currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+                if(document.getElementById('oosSearchInput')) document.getElementById('oosSearchInput').value = '';
+                renderInventoryItems();
+            } else if (tabId === 'new-products') {
+                currentNewProductsViewData = newProductsData.filter(item => !item.isDeleted);
+                if(document.getElementById('newProductsSearchInput')) document.getElementById('newProductsSearchInput').value = '';
+                renderNewProductsItems();
+            } else if (tabId === 'to-clear') {
+                currentToClearViewData = toClearData.filter(item => !item.isDeleted);
+                if(document.getElementById('toClearSearchInput')) document.getElementById('toClearSearchInput').value = '';
+                renderToClearItems();
+            } else if (tabId === 'staff-claim') { // Added for Staff Claim
+                currentStaffClaimViewData = staffClaimData.filter(item => !item.isDeleted);
+                if(document.getElementById('staffClaimSearchInput')) document.getElementById('staffClaimSearchInput').value = '';
+                renderStaffClaimItems();
+            }
+            else if (tabId === 'master-list') {
+                currentMasterListViewData = masterProductsData.filter(item => !item.isDeleted);
+                if(document.getElementById('masterListSearchInput')) document.getElementById('masterListSearchInput').value = '';
+                renderMasterListItems();
+            } else if (tabId === 'recycle-bin') {
+                currentRecycleBinViewData = [...deletedItemsData];
+                if(document.getElementById('recycleBinSearchInput')) document.getElementById('recycleBinSearchInput').value = '';
+                renderRecycleBinItems();
             }
         }
 
         // --- Modals ---
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'block'; }
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
-                modal.style.display = 'none';
-                modal.querySelector('form')?.reset();
-                ['editProductId', 'editNewProductId', 'editMasterProductId', 'editToClearId', 'editStaffClaimId'].forEach(id => {
-                    const input = document.getElementById(id);
-                    if (input) input.value = '';
-                });
-                if (modalId === 'toClearModal') {
-                    document.getElementById('toClearFirstHighlightedDate').readOnly = false;
-                    document.getElementById('toClearFirstReportedBalance').readOnly = false;
+                 modal.style.display = 'none';
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset(); // This will clear the inputs
+                    // After form reset, ensure readOnly state is correctly set for next "Add" operation if it's the toClearModal
+                    if (modalId === 'toClearModal') {
+                        document.getElementById('toClearFirstHighlightedDate').readOnly = false;
+                        document.getElementById('toClearFirstReportedBalance').readOnly = false;
+                        document.getElementById('toClearWeeklyDemand').value = ''; // Clear auto-populated field
+                        document.getElementById('editToClearId').value = ''; // Ensure edit ID is cleared
+                    }
+                    // Handle other modals as before
+                    if (modalId === 'productModal') {
+                        filterProductsForBrand('', 'productName', 'productsDatalist');
+                        document.getElementById('editProductId').value = '';
+                    } else if (modalId === 'newProductModal') {
+                         filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
+                        document.getElementById('editNewProductId').value = '';
+                    } else if (modalId === 'masterProductModal') {
+                        document.getElementById('editMasterProductId').value = '';
+                    } else if (modalId === 'staffClaimModal') { // Added for Staff Claim
+                        filterProductsForBrand('', 'staffClaimProductName', 'staffClaimProductsDatalist');
+                        document.getElementById('editStaffClaimId').value = '';
+                    }
                 }
             }
         }
-        window.onclick = (event) => { if (event.target.classList.contains('modal')) closeModal(event.target.id); };
-
-        // --- Generic CRUD & Utility Functions ---
-        const getSkuForProduct = (brand, product) => masterProductsData.find(item => item.brand === brand && item.product === product)?.sku || null;
         
-        async function moveToRecycleBin(id, collectionName) {
-            showConfirmModal('Move this item to Recycle Bin?', async (confirmed) => {
-                if(confirmed) {
-                    try {
-                        await db.collection(collectionName).doc(id).update({ isDeleted: true });
-                        showNotification('Item moved to Recycle Bin!', 'success');
-                        await updateLocalData();
-                    } catch (e) { console.error(e); showNotification('Error moving item.', 'error'); }
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    closeModal(modal.id);
                 }
             });
         }
 
-        async function togglePinItem(id, collectionKey) {
-            const collectionMap = {
-                inventory: { data: inventoryData, ref: inventoryColRef },
-                to_clear: { data: toClearData, ref: toClearColRef },
-                staff_claim: { data: staffClaimData, ref: staffClaimColRef }
-            };
-            const collection = collectionMap[collectionKey];
-            const item = collection.data.find(p => p.id === id);
-            if (item) {
-                const newPinnedState = !item.isPinned;
-                try {
-                    await saveDataToFirestore(collection.ref, id, { isPinned: newPinnedState });
-                    showNotification(`Item ${newPinnedState ? 'pinned' : 'unpinned'}.`, 'success');
-                    await updateLocalData();
-                } catch (e) { showNotification('Error updating pin status.', 'error'); }
-            }
-        }
-        
-        function sortAndPin(dataArray, tableKey) {
-            const pinned = dataArray.filter(item => item.isPinned);
-            const unpinned = dataArray.filter(item => !item.isPinned);
-            const { column, direction } = sortState[tableKey];
-            return [...sortArray(pinned, column, direction), ...sortArray(unpinned, column, direction)];
-        }
-        
-        // --- Inventory (OOS/Low Stock) ---
+
+        // --- CRUD Operations & Rendering ---
+
+        // Inventory (OOS/Low Stock)
         function renderInventoryItems() {
-            const tableBody = document.getElementById('inventory-table');
-            if (!tableBody) return;
-            const sortedData = sortAndPin(currentInventoryViewData, 'inventory');
-            tableBody.innerHTML = sortedData.map(item => `
-                <tr>
-                    <td>
-                        <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
-                        <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinItem('${item.id}', 'inventory')">
-                            ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
-                        </button>
-                        <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
-                    </td>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.quantity ?? ''}</td>
-                    <td><span class="status-badge ${item.status === 'OOS' ? 'oos' : 'low'}">${item.status || ''}</span></td>
-                    <td>${item.shipmentDate || ''}</td>
-                    <td>${item.remarks || ''}</td>
-                    <td>${item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''}</td>
-                </tr>
-            `).join('');
-        }
+    const tableBody = document.getElementById('inventory-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+    const pinnedItems = currentInventoryViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentInventoryViewData.filter(item => !item.isPinned);
+
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.inventory.column, sortState.inventory.direction);
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.inventory.column, sortState.inventory.direction);
+
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
         
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editProduct('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinInventoryItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'inventory')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+        const statusCell = row.insertCell();
+        const badgeClass = item.status === 'OOS' ? 'oos' : (item.status && item.status.toLowerCase().includes('low stock') ? 'low' : 'normal');
+        statusCell.innerHTML = `<span class="status-badge ${badgeClass}">${item.status || ''}</span>`;
+        row.insertCell().textContent = item.shipmentDate || '';
+        row.insertCell().textContent = item.remarks || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
+
+
         function showAddProductModal() {
             document.getElementById('productModalTitle').textContent = 'Add Product (OOS/Low Stock)';
-            closeModal('productModal');
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productModal').querySelector('form').reset();
             populateBrandDropdowns('brand');
-            populateStatusDropdowns('status');
+            populateStatusDropdowns('status'); // Will use the modified logic for statuses
             filterProductsForBrand('', 'productName', 'productsDatalist'); 
             openModal('productModal');
         }
@@ -1615,17 +1810,30 @@
             const id = document.getElementById('editProductId').value;
             const brand = document.getElementById('brand').value;
             const productName = document.getElementById('productName').value;
-            const sku = getSkuForProduct(brand, productName);
+            let sku = getSkuForProduct(brand, productName); 
+
             if (!sku) {
-                showNotification("Product not found in Master List.", "error");
+                showNotification("Product not found in Master List. Please add to Master List first or ensure Brand/Product Name match.", "error");
                 return;
             }
-            if (!id && inventoryData.some(item => item.sku === sku)) {
-                showNotification(`Product already in OOS/Low Stock list.`, "error");
-                return;
+            // Check for duplicates in OOS/Low Stock list (only if adding new item) - NEW
+            if (!id) {
+                const duplicateExists = inventoryData.some(item => 
+                    !item.isDeleted && 
+                    item.sku === sku &&
+                    (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+                
+                if (duplicateExists) {
+                    showNotification(`This product (${brand} - ${productName}) is already in the OOS/Low Stock list. Please check the existing entry or edit it instead.`, "error");
+                    return;
+                }
             }
+
             const data = {
-                brand, product: productName, sku,
+                brand: brand,
+                product: productName,
+                sku: sku,
                 quantity: parseInt(document.getElementById('inventoryQuantity').value),
                 status: document.getElementById('status').value,
                 shipmentDate: document.getElementById('shipmentDate').value,
@@ -1634,66 +1842,117 @@
                 isDeleted: false,
                 isPinned: id ? (inventoryData.find(p => p.id === id)?.isPinned || false) : false
             };
+
             try {
                 await saveDataToFirestore(inventoryColRef, id, data);
-                showNotification('Product saved!', 'success');
+                showNotification('Product saved successfully!', 'success');
+                showBrowserNotification(
+                    'Inventory Update',
+                    `${brand} - ${productName} has been added to OOS/Low Stock.`
+                );
                 closeModal('productModal');
-                await updateLocalData();
-            } catch (e) {}
+                await updateLocalData(); 
+            } catch (e) {
+                // Error already handled in saveDataToFirestore
+            }
         }
 
         async function editProduct(id) {
             const item = inventoryData.find(p => p.id === id);
             if (item) {
-                document.getElementById('productModalTitle').textContent = 'Edit Product';
+                document.getElementById('productModalTitle').textContent = 'Edit Product (OOS/Low Stock)';
                 document.getElementById('editProductId').value = item.id;
-                populateBrandDropdowns('brand');
+                populateBrandDropdowns('brand'); 
                 document.getElementById('brand').value = item.brand;
-                filterProductsForBrand(item.brand, 'productName', 'productsDatalist');
+                filterProductsForBrand(item.brand, 'productName', 'productsDatalist'); 
                 document.getElementById('productName').value = item.product;
                 document.getElementById('inventoryQuantity').value = item.quantity;
-                populateStatusDropdowns('status');
+                populateStatusDropdowns('status'); 
                 document.getElementById('status').value = item.status;
-                document.getElementById('shipmentDate').value = item.shipmentDate || '';
+                document.getElementById('shipmentDate').value = item.shipmentDate || ''; // Changed from shipment
                 document.getElementById('remarks').value = item.remarks;
                 openModal('productModal');
             }
         }
-        
+
+        function showFilteredInventory(statusFilter, switchToOosTab = false) {
+             if (statusFilter) {
+                currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && item.status && item.status.toLowerCase().includes(statusFilter.toLowerCase())
+                );
+            } else { // Show all OOS and Low Stock if no specific filter
+                 currentInventoryViewData = inventoryData.filter(item =>
+                    !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+                );
+            }
+            renderInventoryItems();
+            if (switchToOosTab) {
+                const oosLowStockTabButton = document.querySelector('.tab[onclick*=\'oos-lowstock\']');
+                if (oosLowStockTabButton) {
+                    switchTab(oosLowStockTabButton, 'oos-lowstock');
+                }
+            }
+        }
+
+
         function searchInventory(searchTerm) {
-            const lower = searchTerm.toLowerCase().trim();
-            const baseData = inventoryData.filter(i => (i.status === 'OOS' || i.status?.toLowerCase().includes('low stock')));
-            currentInventoryViewData = lower ? baseData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lower))) : baseData;
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            
+            let baseFilteredData = inventoryData.filter(item =>
+                !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))
+            );
+
+            if (lowerCaseSearchTerm) {
+                currentInventoryViewData = baseFilteredData.filter(item =>
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.status && item.status.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentInventoryViewData = baseFilteredData;
+            }
             renderInventoryItems();
         }
 
-        // --- New Products ---
+
+        // New Products
         function renderNewProductsItems() {
-            const tableBody = document.getElementById('new-products-table');
-            if (!tableBody) return;
-            const sortedData = sortArray(currentNewProductsViewData, 'addedDate', 'desc');
-            tableBody.innerHTML = sortedData.map(item => `
-                <tr>
-                    <td>
-                        <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
-                        <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
-                        <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
-                    </td>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.addedDate || ''}</td>
-                    <td>${item.arrivalDate || ''}</td>
-                    <td>${item.quantity ?? ''}</td>
-                    <td>${item.notes || ''}</td>
-                    <td>${item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''}</td>
-                </tr>
-            `).join('');
-        }
+    const tableBody = document.getElementById('new-products-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const sortedData = sortArray(currentNewProductsViewData, sortState.newProducts.column, sortState.newProducts.direction);
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editNewProduct('${item.id}')">✏️ Edit</button>
+            <button class="btn-success" onclick="moveNewProductToMaster('${item.id}')">✅ Approve</button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'new_products')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.addedDate || '';
+        row.insertCell().textContent = item.arrivalDate || '';
+        row.insertCell().textContent = item.quantity !== undefined ? item.quantity : '';
+        row.insertCell().textContent = item.notes || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
+
 
         function showAddNewProductModal() {
             document.getElementById('newProductModalTitle').textContent = 'Add New Product Entry';
-            closeModal('newProductModal');
+            document.getElementById('editNewProductId').value = '';
+            document.getElementById('newProductModal').querySelector('form').reset();
             document.getElementById('arrivalDate').valueAsDate = new Date();
             populateBrandDropdowns('newBrand');
             filterProductsForBrand('', 'newProductName', 'newProductsDatalist');
@@ -1704,11 +1963,20 @@
             event.preventDefault();
             const id = document.getElementById('editNewProductId').value;
             const skuValue = document.getElementById('newProductSku').value.trim();
-            if (!skuValue) { showNotification('SKU is required.', 'error'); return; }
-            if (!id && (newProductsData.some(p => p.sku === skuValue) || masterProductsData.some(p => p.sku === skuValue))) {
-                showNotification('SKU already exists.', 'error');
+
+            if (!skuValue) {
+                showNotification('Product Code (SKU) is required for new products.', 'error');
                 return;
             }
+            if (!id) { 
+                const skuExistsInNew = newProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                const skuExistsInMaster = masterProductsData.some(p => p.sku === skuValue && !p.isDeleted);
+                if (skuExistsInNew || skuExistsInMaster) {
+                    showNotification('This SKU already exists. Please use a unique SKU.', 'error');
+                    return;
+                }
+            }
+
             const data = {
                 brand: document.getElementById('newBrand').value,
                 sku: skuValue,
@@ -1716,22 +1984,29 @@
                 arrivalDate: document.getElementById('arrivalDate').value,
                 quantity: parseInt(document.getElementById('newProductQuantity').value),
                 notes: document.getElementById('notes').value,
-                addedDate: id ? (newProductsData.find(i => i.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+                addedDate: id ? (newProductsData.find(item => item.id === id)?.addedDate || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
                 lastUpdated: new Date().toISOString(),
                 isDeleted: false
             };
+
             try {
                 await saveDataToFirestore(newProductsColRef, id, data);
-                showNotification('New product saved!', 'success');
+                showNotification('New product entry saved successfully!', 'success');
+                showBrowserNotification(
+                    'New Product Added',
+                    `${document.getElementById('newBrand').value} - ${document.getElementById('newProductName').value} (SKU: ${document.getElementById('newProductSku').value}) has been added.`
+                );
                 closeModal('newProductModal');
                 await updateLocalData();
-            } catch (e) {}
+            } catch (e) {
+                //error handled
+            }
         }
-        
+
         async function editNewProduct(id) {
             const item = newProductsData.find(p => p.id === id);
             if (item) {
-                document.getElementById('newProductModalTitle').textContent = 'Edit New Product';
+                document.getElementById('newProductModalTitle').textContent = 'Edit New Product Entry';
                 document.getElementById('editNewProductId').value = item.id;
                 populateBrandDropdowns('newBrand');
                 document.getElementById('newBrand').value = item.brand;
@@ -1744,13 +2019,7 @@
                 openModal('newProductModal');
             }
         }
-        
-        function searchNewProducts(searchTerm) {
-            const lower = searchTerm.toLowerCase().trim();
-            currentNewProductsViewData = lower ? newProductsData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lower))) : [...newProductsData];
-            renderNewProductsItems();
-        }
-        
+
         async function moveNewProductToMaster(id) {
             showConfirmModal('Are you sure you want to approve this new product and move it to Master List & Inventory?', async (confirmed) => {
                 if (confirmed) {
@@ -1796,7 +2065,7 @@
                 }
             });
         }
-
+        
         async function mergeNewProductsToMaster() {
             showConfirmModal('Are you sure you want to merge ALL new products to Master List & Inventory? SKUs already in Master List will be skipped.', async (confirmed) => {
                 if (confirmed) {
@@ -1863,50 +2132,638 @@
                 }
             });
         }
+
+        function searchNewProducts(searchTerm) {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = newProductsData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentNewProductsViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentNewProductsViewData = baseData;
+            }
+            renderNewProductsItems();
+        }
+
+        // ADD this new function (around line 1550, near togglePinToClearItem)
+async function togglePinInventoryItem(id) {
+    const item = inventoryData.find(p => p.id === id);
+    if (item) {
+        const newPinnedState = !item.isPinned; // Toggle the current pinned state
+        try {
+            await saveDataToFirestore(inventoryColRef, id, { 
+                isPinned: newPinnedState,
+                lastUpdated: new Date().toISOString()
+            });
+            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+            
+            item.isPinned = newPinnedState;
+            const viewItem = currentInventoryViewData.find(p => p.id === id);
+            if (viewItem) viewItem.isPinned = newPinnedState;
+            
+            renderInventoryItems(); // Re-render the table
+        } catch (e) {
+            showNotification('Error updating pin status.', 'error');
+            console.error("Error toggling pin status:", e);
+        }
+    }
+}
         
-        // --- To Clear ---
-        function renderToClearItems() {
-            const tableBody = document.getElementById('to-clear-table');
-            if (!tableBody) return;
-            const sortedData = sortAndPin(currentToClearViewData, 'toClear');
-            tableBody.innerHTML = sortedData.map(item => {
-                const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-                const weeklyDemand = Number(item.weeklyDemand) || 0;
-                const weeksSupply = weeklyDemand > 0 ? (totalQty / weeklyDemand).toFixed(2) : 'N/A';
-                return `
-                <tr>
-                    <td>
-                        <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
-                        <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinItem('${item.id}', 'to_clear')">${item.isPinned ? '➖ Unpin' : '📌 Pin'}</button>
-                        <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
-                    </td>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.expiryDate || ''}</td>
-                    <td>${item.firstHighlightedDate || ''}</td>
-                    <td>${item.firstReportedBalance ?? ''}</td>
-                    <td>${item.warehouseQty ?? ''}</td>
-                    <td>${item.storeQty ?? ''}</td>
-                    <td>${totalQty}</td>
-                    <td>${item.weeklyDemand ?? ''}</td>
-                    <td>${weeksSupply}</td>
-                    <td><span class="status-badge ${getSupplyStatusClass(item)}">${getSupplyStatusText(item)}</span></td>
-                    <td>${item.remarks || ''}</td>
-                    <td>${item.actionPlan || ''}</td>
-                    <td>${item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''}</td>
-                </tr>`
-            }).join('');
+        // To Clear
+        async function togglePinToClearItem(id) {
+            const item = toClearData.find(p => p.id === id);
+            if (item) {
+                const newPinnedState = !item.isPinned; // Toggle the current pinned state
+                try {
+                    await saveDataToFirestore(toClearColRef, id, { 
+                        isPinned: newPinnedState,
+                        lastUpdated: new Date().toISOString()
+                    });
+                    showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+                    
+                    item.isPinned = newPinnedState;
+                    const viewItem = currentToClearViewData.find(p => p.id === id);
+                    if (viewItem) viewItem.isPinned = newPinnedState;
+                    
+                    renderToClearItems(); // Re-render the table
+                } catch (e) {
+                    showNotification('Error updating pin status.', 'error');
+                    console.error("Error toggling pin status:", e);
+                }
+            }
         }
         
-        function showAddToClearModal() {
+        function renderToClearItems() {
+    const tableBody = document.getElementById('to-clear-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const pinnedItems = currentToClearViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentToClearViewData.filter(item => !item.isPinned);
+
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.toClear.column, sortState.toClear.direction);
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.toClear.column, sortState.toClear.direction);
+
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editToClear('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinToClearItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'to_clear')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.expiryDate || '';
+        row.insertCell().textContent = item.firstHighlightedDate || '';
+        row.insertCell().textContent = item.firstReportedBalance !== undefined ? item.firstReportedBalance : '';
+        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        row.insertCell().textContent = totalQty;
+        row.insertCell().textContent = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+        const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
+        row.insertCell().textContent = weeksSupply;
+        const supplyStatusClass = getSupplyStatusClass(item);
+        row.insertCell().innerHTML = `<span class="status-badge ${supplyStatusClass}">${getSupplyStatusText(item)}</span>`;
+        row.insertCell().textContent = item.remarks || '';
+        row.insertCell().textContent = item.actionPlan || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
+
+
+         function showAddToClearModal() {
             document.getElementById('toClearModalTitle').textContent = 'Add Product to Clear';
-            closeModal('toClearModal');
-            document.getElementById('toClearFirstHighlightedDate').valueAsDate = new Date();
+            document.getElementById('editToClearId').value = '';
+            const form = document.getElementById('toClearModal').querySelector('form');
+            if (form) form.reset();
+
+            const firstHighlightedDateInput = document.getElementById('toClearFirstHighlightedDate');
+            firstHighlightedDateInput.valueAsDate = new Date(); // Default to today
+            firstHighlightedDateInput.readOnly = false; // Make editable for new entries
+
+            const firstReportedBalanceInput = document.getElementById('toClearFirstReportedBalance');
+            firstReportedBalanceInput.readOnly = false; // Make editable for new entries
+            firstReportedBalanceInput.value = ''; // Clear any previous value
+
+
             populateBrandDropdowns('toClearBrand');
             filterProductsForBrand('', 'toClearProductName', 'toClearProductsDatalist');
+            document.getElementById('toClearWeeklyDemand').value = '';
+            document.getElementById('toClearWarehouseQty').value = 0;
+            document.getElementById('toClearStoreQty').value = 0;
             openModal('toClearModal');
         }
+
+        // Staff Claim functions - COMPLETE IMPLEMENTATION
+function calculateStaffPrice(expiryDateStr, originalPrice) {
+    if (!expiryDateStr || isNaN(originalPrice) || originalPrice < 0) {
+        return 0; // Or some other default/error indicator
+    }
+
+    const expiryDate = new Date(expiryDateStr);
+    const currentDate = new Date();
+
+    // Set both dates to the first day of their respective months for accurate month difference
+    expiryDate.setDate(1);
+    currentDate.setDate(1);
+
+    const diffMonths = (expiryDate.getFullYear() - currentDate.getFullYear()) * 12 + (expiryDate.getMonth() - currentDate.getMonth());
+
+    let staffPrice = 0;
+    if (diffMonths <= 1) { // Within 1 month from expiry month (0 or 1 month difference)
+        staffPrice = originalPrice * 0.3;
+    } else if (diffMonths === 2) {
+        staffPrice = originalPrice * 0.35;
+    } else if (diffMonths === 3) {
+        staffPrice = originalPrice * 0.4;
+    } else if (diffMonths === 4) {
+        staffPrice = originalPrice * 0.45;
+    } else if (diffMonths >= 5) { // 5 months onwards
+        staffPrice = originalPrice * 0.5;
+    }
+    // If expiryDate is in the past, or diffMonths is negative (e.g., already expired), it falls into the <=1 month category by this logic.
+    // If you want a different rule for expired items, add an explicit check.
+    
+    return parseFloat(staffPrice.toFixed(2));
+}
+
+function renderStaffClaimItems() {
+    const tableBody = document.getElementById('staff-claim-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const pinnedItems = currentStaffClaimViewData.filter(item => item.isPinned === true);
+    const unpinnedItems = currentStaffClaimViewData.filter(item => !item.isPinned);
+
+    const sortedPinnedItems = sortArray(pinnedItems, sortState.staffClaim?.column, sortState.staffClaim?.direction || 'asc');
+    const sortedUnpinnedItems = sortArray(unpinnedItems, sortState.staffClaim?.column, sortState.staffClaim?.direction || 'asc');
+
+    const sortedData = [...sortedPinnedItems, ...sortedUnpinnedItems];
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
+        
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editStaffClaim('${item.id}')">✏️ Edit</button>
+            <button class="${item.isPinned ? 'btn-warning' : 'btn-success'}" onclick="togglePinStaffClaimItem('${item.id}')">
+                ${item.isPinned ? '➖ Unpin' : '📌 Pin'}
+            </button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'staff_claim')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.expiryDate || '';
+        row.insertCell().textContent = item.claimRemarks || '';
+        row.insertCell().textContent = item.warehouseQty !== undefined ? item.warehouseQty : '';
+        row.insertCell().textContent = item.storeQty !== undefined ? item.storeQty : '';
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        row.insertCell().textContent = totalQty;
+        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''; 
+        // NEW: Staff Price column
+        const staffPrice = calculateStaffPrice(item.expiryDate, item.price);
+        row.insertCell().textContent = staffPrice !== undefined ? staffPrice.toFixed(2) : ''; 
+        
+        row.insertCell().textContent = item.actionPlan || '';
+        const lastUpdatedCell = row.insertCell();
+        lastUpdatedCell.textContent = item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : '';
+    });
+}
+
+function showAddStaffClaimModal() {
+    document.getElementById('staffClaimModalTitle').textContent = 'Add Product to Staff Claim';
+    document.getElementById('editStaffClaimId').value = '';
+    const form = document.getElementById('staffClaimModal').querySelector('form');
+    if (form) form.reset();
+
+    populateBrandDropdowns('staffClaimBrand');
+    filterProductsForBrand('', 'staffClaimProductName', 'staffClaimProductsDatalist');
+    populateRemarksDropdowns('staffClaimRemarks');
+    document.getElementById('staffClaimWarehouseQty').value = 0;
+    document.getElementById('staffClaimStoreQty').value = 0;
+    openModal('staffClaimModal');
+}
+
+function handleStaffClaimBrandChange(brandValue) {
+    filterProductsForBrand(brandValue, 'staffClaimProductName', 'staffClaimProductsDatalist');
+    document.getElementById('staffClaimProductName').value = '';
+}
+
+function handleStaffClaimProductChange() {
+    // No weekly demand for staff claim, so no need to update it here.
+}
+
+async function saveStaffClaim(event) {
+    event.preventDefault();
+    const id = document.getElementById('editStaffClaimId').value;
+    const brand = document.getElementById('staffClaimBrand').value;
+    const productName = document.getElementById('staffClaimProductName').value;
+    const skuValue = getSkuForProduct(brand, productName);
+
+    if (!skuValue) {
+        showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+        return;
+    }
+    
+    const expiryDate = document.getElementById('staffClaimExpiryDate').value;
+    const claimRemarks = document.getElementById('staffClaimRemarks').value;
+
+    // Retrieve price from master list
+    const masterProduct = masterProductsData.find(mp => !mp.isDeleted && mp.sku === skuValue);
+    const price = masterProduct ? (parseFloat(masterProduct.price) || 0) : 0; // Default to 0 if not found or invalid
+
+    // Calculate staff price
+    const staffPrice = calculateStaffPrice(expiryDate, price);
+
+    // Duplication check
+    if (!id) { // Only check for new entries
+        const duplicateExists = staffClaimData.some(item => 
+            !item.isDeleted && 
+            item.sku === skuValue &&
+            item.expiryDate === expiryDate &&
+            item.claimRemarks === claimRemarks
+        );
+        
+        if (duplicateExists) {
+            showNotification(`This product with the same expiry date and remarks has already been added to Staff Claim.`, "error");
+            return;
+        }
+    }
+
+    const data = {
+        brand: brand,
+        product: productName,
+        sku: skuValue, 
+        expiryDate: expiryDate,
+        claimRemarks: claimRemarks,
+        warehouseQty: parseInt(document.getElementById('staffClaimWarehouseQty').value || '0'),
+        storeQty: parseInt(document.getElementById('staffClaimStoreQty').value || '0'),
+        price: price, 
+        staffPrice: staffPrice, // ADDED: Staff Price
+        actionPlan: document.getElementById('staffClaimActionPlan').value,
+        lastUpdated: new Date().toISOString(),
+        isDeleted: false,
+        isPinned: id ? (staffClaimData.find(p => p.id === id)?.isPinned || false) : false
+    };
+
+    try {
+        await saveDataToFirestore(staffClaimColRef, id, data);
+        showNotification('Product to staff claim saved successfully!', 'success');
+        closeModal('staffClaimModal');
+        await updateLocalData();
+    } catch (e) {
+        //error handled in saveDataToFirestore
+    }
+}
+
+async function editStaffClaim(id) {
+    const item = staffClaimData.find(p => p.id === id);
+    if (item) {
+        document.getElementById('staffClaimModalTitle').textContent = 'Edit Staff Claim Product';
+        document.getElementById('editStaffClaimId').value = item.id;
+        
+        populateBrandDropdowns('staffClaimBrand');
+        document.getElementById('staffClaimBrand').value = item.brand;
+        
+        filterProductsForBrand(item.brand, 'staffClaimProductName', 'staffClaimProductsDatalist');
+        document.getElementById('staffClaimProductName').value = item.product;
+        
+        document.getElementById('staffClaimExpiryDate').value = item.expiryDate;
+        populateRemarksDropdowns('staffClaimRemarks');
+        document.getElementById('staffClaimRemarks').value = item.claimRemarks;
+        document.getElementById('staffClaimWarehouseQty').value = item.warehouseQty;
+        document.getElementById('staffClaimStoreQty').value = item.storeQty;
+        // Price and Staff Price are not inputs in the modal, they are derived from master list and calculation
+        document.getElementById('staffClaimActionPlan').value = item.actionPlan;
+        openModal('staffClaimModal');
+    }
+}
+
+async function togglePinStaffClaimItem(id) {
+    const item = staffClaimData.find(p => p.id === id);
+    if (item) {
+        const newPinnedState = !item.isPinned;
+        try {
+            await saveDataToFirestore(staffClaimColRef, id, { 
+                isPinned: newPinnedState,
+                lastUpdated: new Date().toISOString()
+            });
+            showNotification(`Product ${newPinnedState ? 'pinned' : 'unpinned'} successfully!`, 'success');
+            
+            item.isPinned = newPinnedState;
+            const viewItem = currentStaffClaimViewData.find(p => p.id === id);
+            if (viewItem) viewItem.isPinned = newPinnedState;
+            
+            renderStaffClaimItems();
+        } catch (e) {
+            showNotification('Error updating pin status.', 'error');
+            console.error("Error toggling pin status:", e);
+        }
+    }
+}
+
+function searchStaffClaim(searchTerm) {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+    const baseData = staffClaimData.filter(item => !item.isDeleted);
+    if (lowerCaseSearchTerm) {
+        currentStaffClaimViewData = baseData.filter(item =>
+            (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.claimRemarks && item.claimRemarks.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (item.actionPlan && item.actionPlan.toLowerCase().includes(lowerCaseSearchTerm))
+        );
+    } else {
+        currentStaffClaimViewData = baseData;
+    }
+    renderStaffClaimItems();
+}
+
+function populateRemarksDropdowns(selectId) {
+    const selectElement = document.getElementById(selectId);
+    if (!selectElement) return;
+
+    const currentValue = selectElement.value;
+    selectElement.innerHTML = '<option value="">Select Remarks</option>';
+
+    let allUniqueRemarks = [...new Set(remarksData.map(item => item.text).filter(Boolean))];
+    
+    staffClaimData.forEach(item => {
+        if (item.claimRemarks && !allUniqueRemarks.includes(item.claimRemarks) && !item.isDeleted) {
+            allUniqueRemarks.push(item.claimRemarks);
+        }
+    });
+
+    allUniqueRemarks.sort((a, b) => a.localeCompare(b));
+
+    allUniqueRemarks.forEach(remark => {
+        const option = document.createElement('option');
+        option.value = remark;
+        option.textContent = remark;
+        selectElement.appendChild(option);
+    });
+
+    const addNewOption = document.createElement('option');
+    addNewOption.value = 'add_new_remark';
+    addNewOption.textContent = '+ Add New Remark...';
+    selectElement.appendChild(addNewOption);
+
+    if (currentValue && allUniqueRemarks.includes(currentValue)) {
+        selectElement.value = currentValue;
+    } else if (currentValue === 'add_new_remark') {
+        selectElement.value = ''; 
+    }
+
+    selectElement.removeEventListener('change', handleRemarksChange);
+    selectElement.addEventListener('change', handleRemarksChange);
+}
+
+function handleRemarksChange() {
+    const selectElement = document.getElementById('staffClaimRemarks');
+    if (selectElement && selectElement.value === 'add_new_remark') {
+        showAddRemarkModal();
+    }
+}
+
+function showAddRemarkModal() {
+    document.getElementById('addRemarkModal').querySelector('form').reset();
+    openModal('addRemarkModal');
+}
+
+async function saveNewRemark(event) {
+    event.preventDefault();
+    const newRemarkTextInput = document.getElementById('newRemarkText');
+    const newRemarkText = newRemarkTextInput.value.trim();
+
+    if (!newRemarkText) {
+        showNotification('Remark text cannot be empty.', 'error');
+        return;
+    }
+    if (remarksData.some(remark => remark.text.toLowerCase() === newRemarkText.toLowerCase())) {
+        showNotification('This remark already exists.', 'error');
+        return;
+    }
+    try {
+        await saveDataToFirestore(remarksColRef, null, { text: newRemarkText, isDeleted: false });
+        showNotification('Remark added successfully!', 'success');
+        closeModal('addRemarkModal');
+        await updateLocalData();
+        
+        // IMPORTANT: Re-populate the remarks dropdown and set the new value
+        populateRemarksDropdowns('staffClaimRemarks');
+        document.getElementById('staffClaimRemarks').value = newRemarkText;
+        
+    } catch (e) {
+        showNotification('Error adding remark. Check console.', 'error');
+        console.error("Error adding new remark:", e);
+    }
+}
+
+function exportStaffClaimList() {
+    const headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Staff Price", "Action Plan", "Last Updated"];
+    const activeStaffClaimList = staffClaimData.filter(item => !item.isDeleted);
+    const rows = activeStaffClaimList.map(item => {
+        const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+        const staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate for export to ensure accuracy
+        return [
+            item.sku || '',
+            item.brand || '',
+            item.product || '',
+            item.expiryDate || '',
+            item.claimRemarks || '',
+            item.warehouseQty !== undefined ? item.warehouseQty : '',
+            item.storeQty !== undefined ? item.storeQty : '',
+            totalQty,
+            item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', 
+            staffPrice !== undefined ? staffPrice.toFixed(2) : '', // ADDED staff price
+            item.actionPlan || '',
+            item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+        ];
+    });
+
+    let csvContent = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
+    rows.forEach(row => {
+        csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+    });
+
+    downloadCSV(csvContent, 'staff_claim_list.csv');
+    showNotification('Staff Claim list exported!', 'success');
+}
+
+async function importStaffClaimCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const text = e.target.result;
+        const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+        if (lines.length < 2) {
+            showNotification('CSV file is empty, invalid, or has no data rows.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+        const requiredHeaders = ['product code', 'brand', 'product', 'expiry date', 'remarks', 'warehouse quantities', 'store quantities', 'action plan'];
+        const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
+        if (missingHeaders.length > 0) {
+            showNotification(`CSV missing required headers: ${missingHeaders.join(', ')}.`, 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const headerMap = {
+            'product code': 'sku', 'brand': 'brand', 'product': 'product',
+            'expiry date': 'expiryDate', 'remarks': 'claimRemarks',
+            'warehouse quantities': 'warehouseQty', 'store quantities': 'storeQty',
+            'action plan': 'actionPlan'
+        };
+
+        const importData = [];
+        const importedEntriesThisBatch = new Set(); // To track unique entries by SKU, Expiry, Remarks
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/"/g, '')); // Handle commas within quoted strings
+            if (values.length !== headers.length) {
+                console.warn(`Skipping CSV row ${i + 1} due to column mismatch.`);
+                continue;
+            }
+            let item = { isDeleted: false };
+            let validRow = true;
+            let currentSku = '';
+            let currentExpiryDate = '';
+            let currentClaimRemarks = '';
+
+            headers.forEach((header, index) => {
+                const fieldName = headerMap[header.toLowerCase()];
+                if (fieldName) {
+                    let value = values[index];
+                    if (fieldName === 'warehouseQty' || fieldName === 'storeQty') {
+                        item[fieldName] = parseInt(value) || 0;
+                    } else if (fieldName === 'sku') {
+                        currentSku = value.trim();
+                        if (!currentSku) validRow = false;
+                        item[fieldName] = currentSku;
+                    } else if (fieldName === 'expiryDate') {
+                        currentExpiryDate = value.trim();
+                        if (!currentExpiryDate) validRow = false; // Expiry date is required
+                        item[fieldName] = currentExpiryDate;
+                    } else if (fieldName === 'claimRemarks') {
+                        currentClaimRemarks = value.trim();
+                        item[fieldName] = currentClaimRemarks;
+                    }
+                    else item[fieldName] = value;
+                }
+            });
+
+            // Ensure essential fields are present
+            if (!item.brand || !item.product || !item.sku || !item.expiryDate) {
+                validRow = false;
+            }
+
+            if (validRow) {
+                // Check if SKU exists in Master List to retrieve price
+                const masterProduct = masterProductsData.find(mp => !mp.isDeleted && mp.sku === item.sku);
+                if (!masterProduct) {
+                    showNotification(`Skipping row ${i + 1}: Product with SKU '${item.sku}' not found in Master List.`, 'warning');
+                    continue;
+                }
+                item.price = masterProduct.price !== undefined ? parseFloat(masterProduct.price) : 0;
+                item.staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate staff price on import
+
+                // Create a unique key for duplication check: SKU + Expiry Date + Remarks
+                const uniqueKey = `${item.sku}-${item.expiryDate}-${item.claimRemarks}`;
+                if (importedEntriesThisBatch.has(uniqueKey)) {
+                    console.warn(`Skipping CSV row ${i + 1}: Duplicate entry '${uniqueKey}' in CSV.`);
+                    continue;
+                } else {
+                    importedEntriesThisBatch.add(uniqueKey);
+                    importData.push(item);
+                }
+            } else if (!validRow) {
+                console.warn(`Skipping invalid CSV row ${i + 1}. Missing required fields or invalid SKU.`);
+            }
+        }
+
+        if (importData.length === 0) {
+            showNotification('No valid data found to import from CSV.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        showConfirmModal(`Found ${importData.length} valid staff claim items. Importing will add new items or update existing ones based on Product Code, Expiry Date, and Remarks. Continue?`, async (confirmed) => {
+            if (confirmed) {
+                const batch = db.batch();
+                let newItemsCount = 0;
+                let updatedItemsCount = 0;
+
+                for (const item of importData) {
+                    try {
+                        // Find existing staff claim entry by SKU, Expiry Date, and Remarks
+                        const existingEntry = staffClaimData.find(sc =>
+                            !sc.isDeleted &&
+                            sc.sku === item.sku &&
+                            sc.expiryDate === item.expiryDate &&
+                            sc.claimRemarks === item.claimRemarks
+                        );
+
+                        if (existingEntry) {
+                            const docRef = staffClaimColRef.doc(existingEntry.id);
+                            batch.set(docRef, { ...item, lastUpdated: new Date().toISOString() }, { merge: true });
+                            updatedItemsCount++;
+                        } else {
+                            const docRef = staffClaimColRef.doc();
+                            batch.set(docRef, { ...item, lastUpdated: new Date().toISOString() });
+                            newItemsCount++;
+                        }
+                    } catch (err) {
+                        console.error("Error adding item to batch for staff claim import:", item, err);
+                    }
+                }
+
+                if (newItemsCount > 0 || updatedItemsCount > 0) {
+                    try {
+                        await batch.commit();
+                        showNotification(`Successfully imported staff claims: ${newItemsCount} new, ${updatedItemsCount} updated.`, 'success');
+                        await updateLocalData();
+                    } catch (err) {
+                        console.error("Batch commit failed for staff claim import:", err);
+                        showNotification('Error during Staff Claim CSV import batch commit.', 'error');
+                    }
+                } else {
+                    showNotification('No staff claim items were imported.', 'info');
+                }
+            }
+            event.target.value = '';
+        });
+    };
+    reader.onerror = () => {
+        showNotification('Error reading CSV file.', 'error');
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
 
         async function saveToClear(event) {
             event.preventDefault();
@@ -1914,36 +2771,55 @@
             const brand = document.getElementById('toClearBrand').value;
             const productName = document.getElementById('toClearProductName').value;
             const skuValue = getSkuForProduct(brand, productName);
-            if (!skuValue) { showNotification("Product not found in Master List.", "error"); return; }
+
+            if (!skuValue) {
+                showNotification("Product not found in Master List. Please select a valid product or add it to Master List first.", "error");
+                return;
+            }
             
-            const data = {
-                brand, product: productName, sku: skuValue,
-                expiryDate: document.getElementById('toClearExpiryDate').value,
-                firstHighlightedDate: document.getElementById('toClearFirstHighlightedDate').value,
-                firstReportedBalance: parseInt(document.getElementById('toClearFirstReportedBalance').value || '0'),
-                warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
-                storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
-                weeklyDemand: parseInt(document.getElementById('toClearWeeklyDemand').value || '0'),
-                remarks: document.getElementById('toClearRemarks').value,
-                actionPlan: document.getElementById('toClearActionPlan').value,
-                lastUpdated: new Date().toISOString(),
-                isDeleted: false,
-                isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
-            };
+            const weeklyDemandValue = parseInt(document.getElementById('toClearWeeklyDemand').value || '0');
+            const firstHighlightedDateValue = document.getElementById('toClearFirstHighlightedDate').value;
+            const firstReportedBalanceValue = parseInt(document.getElementById('toClearFirstReportedBalance').value || '0');
+
+            if (!firstHighlightedDateValue) {
+                showNotification("First Highlighted Date is required.", "error");
+                return;
+            }
+
+        const data = {
+            brand: brand,
+            product: productName,
+            sku: skuValue, 
+            expiryDate: document.getElementById('toClearExpiryDate').value,
+            firstHighlightedDate: firstHighlightedDateValue,
+            firstReportedBalance: firstReportedBalanceValue,
+            warehouseQty: parseInt(document.getElementById('toClearWarehouseQty').value || '0'),
+            storeQty: parseInt(document.getElementById('toClearStoreQty').value || '0'),
+            weeklyDemand: weeklyDemandValue,
+            remarks: document.getElementById('toClearRemarks').value,
+            actionPlan: document.getElementById('toClearActionPlan').value,
+            lastUpdated: new Date().toISOString(),
+            isDeleted: false,
+            isPinned: id ? (toClearData.find(p => p.id === id)?.isPinned || false) : false
+        };
             
             if (id) {
-                const existing = toClearData.find(p => p.id === id);
-                if (existing) {
-                    data.firstHighlightedDate = existing.firstHighlightedDate;
-                    data.firstReportedBalance = existing.firstReportedBalance;
+                const existingItem = toClearData.find(p => p.id === id);
+                if (existingItem) {
+                    data.firstHighlightedDate = existingItem.firstHighlightedDate;
+                    data.firstReportedBalance = existingItem.firstReportedBalance;
                 }
             }
+
+
             try {
                 await saveDataToFirestore(toClearColRef, id, data);
-                showNotification('Product to clear saved!', 'success');
+                showNotification('Product to clear saved successfully!', 'success');
                 closeModal('toClearModal');
                 await updateLocalData();
-            } catch (e) {}
+            } catch (e) {
+                //error handled in saveDataToFirestore
+            }
         }
         
         async function editToClear(id) {
@@ -1951,15 +2827,23 @@
             if (item) {
                 document.getElementById('toClearModalTitle').textContent = 'Edit Product to Clear';
                 document.getElementById('editToClearId').value = item.id;
+                
                 populateBrandDropdowns('toClearBrand');
                 document.getElementById('toClearBrand').value = item.brand;
+                
                 filterProductsForBrand(item.brand, 'toClearProductName', 'toClearProductsDatalist');
                 document.getElementById('toClearProductName').value = item.product;
-                document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand || '';
-                document.getElementById('toClearFirstHighlightedDate').value = item.firstHighlightedDate;
-                document.getElementById('toClearFirstReportedBalance').value = item.firstReportedBalance;
-                document.getElementById('toClearFirstHighlightedDate').readOnly = true;
-                document.getElementById('toClearFirstReportedBalance').readOnly = true;
+                
+                document.getElementById('toClearWeeklyDemand').value = item.weeklyDemand !== undefined ? item.weeklyDemand : '';
+
+                const firstHighlightedDateInput = document.getElementById('toClearFirstHighlightedDate');
+                firstHighlightedDateInput.value = item.firstHighlightedDate;
+                firstHighlightedDateInput.readOnly = true; // Make read-only for existing entries
+
+                const firstReportedBalanceInput = document.getElementById('toClearFirstReportedBalance');
+                firstReportedBalanceInput.value = item.firstReportedBalance;
+                firstReportedBalanceInput.readOnly = true; // Make read-only for existing entries
+
                 document.getElementById('toClearExpiryDate').value = item.expiryDate;
                 document.getElementById('toClearWarehouseQty').value = item.warehouseQty;
                 document.getElementById('toClearStoreQty').value = item.storeQty;
@@ -1968,349 +2852,329 @@
                 openModal('toClearModal');
             }
         }
-        
+
+
         function searchToClear(searchTerm) {
-            const lower = searchTerm.toLowerCase().trim();
-            currentToClearViewData = lower ? toClearData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lower))) : [...toClearData];
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = toClearData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentToClearViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.remarks && item.remarks.toLowerCase().includes(lowerCaseSearchTerm)) || // Search remarks
+                    (item.actionPlan && item.actionPlan.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentToClearViewData = baseData;
+            }
             renderToClearItems();
         }
 
-        // --- Staff Claim ---
-        function renderStaffClaimItems() {
-            const tableBody = document.getElementById('staff-claim-table');
-            if (!tableBody) return;
+        function getSkuForProduct(brand, product) {
+            const masterProduct = masterProductsData.find(item => !item.isDeleted && item.brand === brand && item.product === product);
+            return masterProduct ? masterProduct.sku : null; // Return null if not found
+        }
+
+        function getSupplyStatusClass(item) {
+            const expiryDateStr = item.expiryDate;
+            const warehouseQty = Number(item.warehouseQty) || 0;
+            const storeQty = Number(item.storeQty) || 0;
+            const weeklyDemand = Number(item.weeklyDemand) || 0;
+            const totalQuantity = warehouseQty + storeQty;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+
+            if (!expiryDateStr) return 'info'; 
+            const expiryDate = new Date(expiryDateStr);
+            expiryDate.setHours(0, 0, 0, 0); 
+            if (expiryDate <= today) return 'danger-status'; 
+            if (weeklyDemand <= 0) return 'danger-status'; 
+
+            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
+            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
+            projectedSellOutDate.setHours(0, 0, 0, 0); 
+
+            const expiryDateMinus9Months = new Date(expiryDate);
+            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
+            const expiryDateMinus6Months = new Date(expiryDate);
+            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
+
+            if (projectedSellOutDate <= expiryDateMinus9Months) return 'normal'; 
+            else if (projectedSellOutDate <= expiryDateMinus6Months) return 'alert-status'; 
+            else return 'danger-status'; 
+        }
+
+        function getSupplyStatusText(item) {
+            const expiryDateStr = item.expiryDate;
+            const warehouseQty = Number(item.warehouseQty) || 0;
+            const storeQty = Number(item.storeQty) || 0;
+            const weeklyDemand = Number(item.weeklyDemand) || 0;
+            const totalQuantity = warehouseQty + storeQty;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (!expiryDateStr) return 'N/A';
+            const expiryDate = new Date(expiryDateStr);
+            expiryDate.setHours(0, 0, 0, 0);
+            if (expiryDate <= today) return 'Expired';
+            if (weeklyDemand <= 0) return 'Danger';
+
+            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
+            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
+            projectedSellOutDate.setHours(0, 0, 0, 0);
             
-            const sortedData = sortAndPin(currentStaffClaimViewData, 'staffClaim');
+            const expiryDateMinus9Months = new Date(expiryDate);
+            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
+            const expiryDateMinus6Months = new Date(expiryDate);
+            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
 
-            tableBody.innerHTML = sortedData.map(item => `
-                <tr>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''}</td>
-                    <td>${item.expiryDate || ''}</td>
-                    <td>${item.claimRemarks || ''}</td>
-                    <td>${item.warehouseQty !== undefined ? item.warehouseQty : ''}</td>
-                    <td>${item.actionPlan || ''}</td>
-                    <td>
-                        <button class="btn-info" onclick="editStaffClaim('${item.id}')">✏️ Edit</button>
-                    </td>
-                </tr>
-            `).join('');
+            if (projectedSellOutDate <= expiryDateMinus9Months) return 'Normal';
+            else if (projectedSellOutDate <= expiryDateMinus6Months) return 'Alert';
+            else return 'Danger';
         }
 
-        function showAddStaffClaimModal() {
-            showNotification('To add items, please use the "Import CSV" function.', 'info');
-        }
 
-        async function saveStaffClaim(event) {
-            event.preventDefault();
-            const id = document.getElementById('editStaffClaimId').value;
-            if (!id) return;
-
-            const data = {
-                expiryDate: document.getElementById('staffClaimExpiryDate').value,
-                warehouseQty: parseInt(document.getElementById('staffClaimWarehouseQty').value || '0'),
-                actionPlan: document.getElementById('staffClaimActionPlan').value,
-                lastUpdated: new Date().toISOString(),
-            };
-
-            try {
-                await saveDataToFirestore(staffClaimColRef, id, data);
-                showNotification('Staff claim item updated successfully!', 'success');
-                closeModal('staffClaimModal');
-                await updateLocalData();
-            } catch (e) { /* handled */ }
-        }
-
-        async function editStaffClaim(id) {
-            const item = staffClaimData.find(p => p.id === id);
-            if (item) {
-                document.getElementById('staffClaimModalTitle').textContent = 'Edit Staff Claim Item';
-                document.getElementById('editStaffClaimId').value = item.id;
-                
-                document.getElementById('staffClaimProductCode').value = item.sku || '';
-                document.getElementById('staffClaimBrand').value = item.brand || '';
-                document.getElementById('staffClaimProductName').value = item.product || '';
-                
-                document.getElementById('staffClaimExpiryDate').value = item.expiryDate;
-                document.getElementById('staffClaimWarehouseQty').value = item.warehouseQty;
-                document.getElementById('staffClaimActionPlan').value = item.actionPlan || '';
-                openModal('staffClaimModal');
-            }
-        }
-        
-        function searchStaffClaim(searchTerm) {
-            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
-            currentStaffClaimViewData = lowerCaseSearchTerm ? staffClaimData.filter(item =>
-                 Object.values(item).some(val => String(val).toLowerCase().includes(lowerCaseSearchTerm))
-            ) : [...staffClaimData];
-            renderStaffClaimItems();
-        }
-
-        function exportStaffClaimList() {
-            const headers = ["Product Code", "Brand", "Product Name", "Price", "Exp. Date", "Import Remarks", "Quantities", "Action Remark"];
-            const rows = staffClaimData.map(item => [
-                item.sku || '',
-                item.brand || '',
-                item.product || '',
-                item.price !== undefined ? parseFloat(item.price).toFixed(2) : '',
-                item.expiryDate || '',
-                item.claimRemarks || '',
-                item.warehouseQty !== undefined ? item.warehouseQty : '',
-                item.actionPlan || ''
-            ]);
-            const csvContent = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-            downloadCSV(csvContent, 'staff_claim_list.csv');
-            showNotification('Staff Claim list exported!', 'success');
-        }
-        
-        function normalizeDateAndGetRemark(dateStr) {
-            if (!dateStr) return { date: '', remark: '' };
-            let remark = (dateStr.match(/\(([^)]+)\)/) || [])[1] || '';
-            let cleanDateStr = dateStr.replace(/\s*\([^)]+\)/, '').trim();
-
-            let date;
-            if (/^\d{4}-\d{2}-\d{2}$/.test(cleanDateStr)) {
-                date = new Date(cleanDateStr + 'T00:00:00');
-            } else if (/^(\d{1,2})\/(\d{2,4})$/.test(cleanDateStr)) {
-                let [, month, year] = cleanDateStr.match(/^(\d{1,2})\/(\d{2,4})$/);
-                year = year.length === 2 ? `20${year}` : year;
-                date = new Date(`${year}-${month}-01`);
-                date.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()); // last day of month
-            } else {
-                return { date: cleanDateStr, remark: remark }; // Return original if unparseable
-            }
-            return { date: date.toISOString().split('T')[0], remark: remark };
-        }
-
-        async function importStaffClaimCSV(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
-                if (lines.length < 2) {
-                    showNotification('CSV file is empty or invalid.', 'error');
-                    event.target.value = '';
-                    return;
-                }
-
-                const importData = [];
-                let currentBrand = '';
-                const knownBrands = ["SHAKLEE", "NORDIC NATURALS", "VITAGREEN", "NATURE'S PLUS", "MORISHITA JINTAN", "MOVEFREE", "GREENLIFE", "ENZYMEDICA", "JKJ"];
-
-                for (const line of lines) {
-                    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/"/g, ''));
-                    
-                    const potentialBrand = (values[1] || '').toUpperCase();
-                    const priceStringForBrandCheck = values[0] || '';
-                    const priceForBrandCheck = parseFloat(priceStringForBrandCheck.replace(/[^0-9.]/g, ''));
-
-                    if (knownBrands.includes(potentialBrand) && isNaN(priceForBrandCheck)) {
-                        currentBrand = values[1];
-                        continue;
-                    }
-                    
-                    const priceString = values[0] || '';
-                    const priceFromCsv = parseFloat(priceString.replace(/[^0-9.]/g, ''));
-                    if (isNaN(priceFromCsv) || values.length < 12) continue;
-                    
-                    const { date: expiryDate, remark: claimRemarks } = normalizeDateAndGetRemark(values[2] || '');
-                    
-                    let item = { 
-                        isDeleted: false, 
-                        actionPlan: '', 
-                        storeQty: 0,
-                        expiryDate: expiryDate,
-                        claimRemarks: claimRemarks,
-                        warehouseQty: parseInt(values[3], 10) || 0
-                    };
-                    
-                    const productCode = (values[11] || '').trim();
-                    const masterProduct = productCode ? masterProductsData.find(mp => mp.sku === productCode) : null;
-
-                    if (masterProduct) {
-                        item.sku = masterProduct.sku;
-                        item.brand = masterProduct.brand;
-                        item.product = masterProduct.product;
-                        item.price = masterProduct.price || 0;
-                    } else {
-                        item.sku = productCode || '';
-                        item.brand = currentBrand;
-                        item.product = (values[1] || '').trim();
-                        item.price = priceFromCsv;
-                        if (productCode) console.warn(`Product code ${productCode} not in master list. Using CSV data.`);
-                    }
-                    importData.push(item);
-                }
-
-                if (importData.length === 0) {
-                    showNotification('No valid product data found to import.', 'error');
-                    event.target.value = '';
-                    return;
-                }
-
-                const message = `This will CLEAR all ${staffClaimData.length} existing items and replace them with ${importData.length} new items. Continue?`;
-                showConfirmModal(message, async (confirmed) => {
-                    if (confirmed) {
-                        const batch = db.batch();
-                        staffClaimData.forEach(item => batch.delete(staffClaimColRef.doc(item.id)));
-                        importData.forEach(item => {
-                            item.lastUpdated = new Date().toISOString();
-                            batch.set(staffClaimColRef.doc(), item);
-                        });
-                        try {
-                            await batch.commit();
-                            showNotification(`Successfully imported ${importData.length} items.`, 'success');
-                            await updateLocalData();
-                        } catch (err) {
-                            showNotification('Error during import.', 'error');
-                            console.error("Batch commit failed:", err);
-                        }
-                    }
-                    event.target.value = '';
-                });
-            };
-            reader.readAsText(file);
-        }
-
-        // --- Master List ---
+        // Master List
         function renderMasterListItems() {
-            const tableBody = document.getElementById('master-table');
-            if (!tableBody) return;
-            const sortedData = sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction);
-            tableBody.innerHTML = sortedData.map(item => {
-                let expiry = '';
-                if (item.expiryDate) {
-                    const [y, m] = item.expiryDate.split('-');
-                    expiry = `${new Date(y, m - 1).toLocaleString('default', { month: 'short' })}-${y.slice(-2)}`;
-                }
-                return `
-                <tr>
-                    <td>
-                        <button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button>
-                        <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>
-                    </td>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                    <td>${item.wkDemand ?? ''}</td>
-                    <td>${expiry}</td>
-                    <td>${item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''}</td>
-                </tr>`
-            }).join('');
-        }
+    const tableBody = document.getElementById('master-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const sortedData = sortArray(currentMasterListViewData, sortState.master.column, sortState.master.direction);
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
         
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-info" onclick="editMasterProduct('${item.id}')">✏️ Edit</button>
+            <button class="btn-danger" onclick="moveToRecycleBin('${item.id}', 'master_products')">🗑️ Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+        row.insertCell().textContent = item.wkDemand !== undefined ? item.wkDemand : '';
+        
+        const expiryDateCell = row.insertCell();
+        if (item.expiryDate) {
+            const [year, month] = item.expiryDate.split('-');
+            const dateObj = new Date(year, month - 1);
+            const monthName = dateObj.toLocaleString('default', { month: 'short' });
+            const shortYear = year.slice(-2);
+            expiryDateCell.textContent = `${monthName}-${shortYear}`;
+        } else {
+            expiryDateCell.textContent = '';
+        }
+
+        row.insertCell().textContent = item.price !== undefined ? parseFloat(item.price).toFixed(2) : '';
+    });
+}
+
         function showAddMasterProductModal() {
-            document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
-            closeModal('masterProductModal');
-            populateBrandDropdowns('masterBrand');
-            populateExpiryDateSelectors(null);
-            openModal('masterProductModal');
-        }
+    document.getElementById('masterProductModalTitle').textContent = 'Add Master Product';
+    document.getElementById('editMasterProductId').value = '';
+    document.getElementById('masterProductModal').querySelector('form').reset();
+    populateBrandDropdowns('masterBrand');
+    document.getElementById('wkDemand').value = 0; // Default WK Demand
 
-        function populateExpiryDateSelectors(selectedDate) {
-            const monthSelect = document.getElementById('masterExpiryMonth');
-            const yearSelect = document.getElementById('masterExpiryYear');
-            monthSelect.innerHTML = '<option value="">Month</option>';
-            yearSelect.innerHTML = '<option value="">Year</option>';
-            for (let i = 1; i <= 12; i++) {
-                monthSelect.innerHTML += `<option value="${String(i).padStart(2, '0')}">${new Date(2000, i - 1, 1).toLocaleString('default', { month: 'long' })}</option>`;
-            }
-            const currentYear = new Date().getFullYear();
-            for (let i = currentYear; i <= currentYear + 15; i++) {
-                yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
-            }
-            if (selectedDate?.includes('-')) {
-                const [year, month] = selectedDate.split('-');
-                if (![...yearSelect.options].some(opt => opt.value === year)) {
-                    yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
-                }
-                monthSelect.value = month;
-                yearSelect.value = year;
-            }
+    // Populate the expiry dropdowns for a new product (they will be empty)
+    populateExpiryDateSelectors(null);
+
+    openModal('masterProductModal');
+}
+// New helper function to populate Month and Year dropdowns
+function populateExpiryDateSelectors(selectedDate) { // selectedDate is 'YYYY-MM' or null
+    const monthSelect = document.getElementById('masterExpiryMonth');
+    const yearSelect = document.getElementById('masterExpiryYear');
+
+    monthSelect.innerHTML = '<option value="">Month</option>';
+    yearSelect.innerHTML = '<option value="">Year</option>';
+
+    // Populate months
+    for (let i = 1; i <= 12; i++) {
+        const monthStr = String(i).padStart(2, '0');
+        const monthName = new Date(2000, i - 1, 1).toLocaleString('default', { month: 'long' });
+        monthSelect.innerHTML += `<option value="${monthStr}">${monthName}</option>`;
+    }
+
+    // Populate years (e.g., this year to 15 years from now)
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i <= currentYear + 15; i++) {
+        yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+
+    // Set selected values if they exist
+    if (selectedDate && selectedDate.includes('-')) {
+        const [year, month] = selectedDate.split('-');
+        monthSelect.value = month;
+
+        // If the year is old and not in the list, add it dynamically
+        if (!Array.from(yearSelect.options).some(opt => opt.value === year)) {
+             const option = document.createElement('option');
+             option.value = year;
+             option.textContent = year;
+             // Insert it at the correct position (e.g., after the placeholder)
+             yearSelect.insertBefore(option, yearSelect.options[1]);
         }
-        
+        yearSelect.value = year;
+    }
+}
         async function saveMasterProduct(event) {
-            event.preventDefault();
-            const id = document.getElementById('editMasterProductId').value;
-            const sku = document.getElementById('sku').value.trim();
-            const productName = document.getElementById('masterProductName').value.trim();
-            const brandName = document.getElementById('masterBrand').value;
-            if (!sku || !productName || !brandName) {
-                showNotification('SKU, Product Name, and Brand are required.', 'error');
-                return;
-            }
-            if (masterProductsData.some(p => p.sku === sku && p.id !== id)) {
-                showNotification('This SKU already exists.', 'error');
-                return;
-            }
-            
-            const month = document.getElementById('masterExpiryMonth').value;
-            const year = document.getElementById('masterExpiryYear').value;
-            const expiryDateValue = (year && month) ? `${year}-${month}` : '';
+    event.preventDefault();
+    const id = document.getElementById('editMasterProductId').value;
+    const sku = document.getElementById('sku').value.trim();
+    const productName = document.getElementById('masterProductName').value.trim();
+    const brandName = document.getElementById('masterBrand').value;
 
-            const data = {
-                brand: brandName,
-                product: productName,
-                wkDemand: parseInt(document.getElementById('wkDemand').value || '0'),
-                expiryDate: expiryDateValue,
-                sku,
-                price: parseFloat(document.getElementById('price').value || '0'),
-                isDeleted: false
-            };
-            try {
-                await saveDataToFirestore(masterProductsColRef, id, data);
-                showNotification('Master product saved!', 'success');
-                closeModal('masterProductModal');
-                await updateLocalData();
-            } catch (e) {}
-        }
-        
+    if (!sku || !productName || !brandName) {
+        showNotification('SKU, Product Name, and Brand are required.', 'error');
+        return;
+    }
+
+    if (masterProductsData.some(p => p.sku === sku && p.id !== id && !p.isDeleted)) {
+        showNotification('This SKU already exists for another product.', 'error');
+        return;
+    }
+    if (masterProductsData.some(p => p.brand === brandName && p.product === productName && p.id !== id && !p.isDeleted)) {
+         showNotification('This Brand and Product Name combination already exists.', 'error');
+        return;
+    }
+    
+    const month = document.getElementById('masterExpiryMonth').value;
+    const year = document.getElementById('masterExpiryYear').value;
+    const expiryDateValue = (year && month) ? `${year}-${month}` : '';
+
+    const data = {
+        brand: brandName,
+        product: productName,
+        wkDemand: parseInt(document.getElementById('wkDemand').value || '0'),
+        expiryDate: expiryDateValue, // Use combined value from dropdowns
+        sku: sku,
+        price: parseFloat(document.getElementById('price').value || '0'),
+        isDeleted: false
+    };
+
+    try {
+        await saveDataToFirestore(masterProductsColRef, id, data);
+        showNotification('Master product saved successfully!', 'success');
+        closeModal('masterProductModal');
+        await updateLocalData();
+    } catch (e) {
+        //error handled
+    }
+}
+
         async function editMasterProduct(id) {
-            const item = masterProductsData.find(p => p.id === id);
-            if (item) {
-                document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
-                document.getElementById('editMasterProductId').value = item.id;
-                populateBrandDropdowns('masterBrand');
-                document.getElementById('masterBrand').value = item.brand;
-                document.getElementById('masterProductName').value = item.product;
-                document.getElementById('wkDemand').value = item.wkDemand || '';
-                populateExpiryDateSelectors(item.expiryDate || '');
-                document.getElementById('sku').value = item.sku;
-                document.getElementById('price').value = item.price;
-                openModal('masterProductModal');
-            }
-        }
+    const item = masterProductsData.find(p => p.id === id);
+    if (item) {
+        document.getElementById('masterProductModalTitle').textContent = 'Edit Master Product';
+        document.getElementById('editMasterProductId').value = item.id;
+        populateBrandDropdowns('masterBrand');
+        document.getElementById('masterBrand').value = item.brand;
+        document.getElementById('masterProductName').value = item.product;
+        document.getElementById('wkDemand').value = item.wkDemand !== undefined ? item.wkDemand : '';
         
+        // This function now populates the dropdowns
+        populateExpiryDateSelectors(item.expiryDate || ''); 
+
+        document.getElementById('sku').value = item.sku;
+        document.getElementById('price').value = item.price;
+        openModal('masterProductModal');
+    }
+}
         function searchMasterList(searchTerm) {
-            const lower = searchTerm.toLowerCase().trim();
-            currentMasterListViewData = lower ? masterProductsData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lower))) : [...masterProductsData];
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+            const baseData = masterProductsData.filter(item => !item.isDeleted);
+            if (lowerCaseSearchTerm) {
+                currentMasterListViewData = baseData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentMasterListViewData = baseData;
+            }
             renderMasterListItems();
         }
 
-        // --- Recycle Bin ---
-        function renderRecycleBinItems() {
-            const tableBody = document.getElementById('recycle-bin-table');
-            if (!tableBody) return;
-            const sortedData = sortArray(currentRecycleBinViewData, 'sku', 'asc');
-            tableBody.innerHTML = sortedData.map(item => `
-                <tr>
-                    <td>
-                        <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button>
-                        <button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>
-                    </td>
-                    <td>${item.sku || ''}</td>
-                    <td>${item.originalCollection || ''}</td>
-                    <td>${item.brand || ''}</td>
-                    <td>${item.product || ''}</td>
-                </tr>
-            `).join('');
+        function exportMasterList() {
+            const headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
+            const activeMasterList = masterProductsData.filter(item => !item.isDeleted);
+            const rows = activeMasterList.map(item => {
+                let formattedExpiry = '';
+                if (item.expiryDate) { // Stored as 'YYYY-MM'
+                    const [year, month] = item.expiryDate.split('-');
+                    const dateObj = new Date(year, month - 1);
+                    const monthName = dateObj.toLocaleString('default', { month: 'short' });
+                    const shortYear = year.slice(-2);
+                    formattedExpiry = `${monthName}-${shortYear}`;
+                }
+                return [
+                    item.sku || '',
+                    item.brand || '',
+                    item.product || '',
+                    item.wkDemand !== undefined ? item.wkDemand : '',
+                    formattedExpiry,
+                    item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
+                ];
+            });
+
+            let csvContent = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            downloadCSV(csvContent, 'master_list.csv');
+            showNotification('Master list exported!', 'success');
         }
+
+        // Recycle Bin
+        function renderRecycleBinItems() {
+    const tableBody = document.getElementById('recycle-bin-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const sortedData = sortArray(currentRecycleBinViewData, sortState.recycleBin.column, sortState.recycleBin.direction);
+
+    sortedData.forEach(item => {
+        const row = tableBody.insertRow();
         
+        // Actions column FIRST
+        const actionsCell = row.insertCell();
+        actionsCell.innerHTML = `
+            <button class="btn-success" onclick="restoreItem('${item.id}', '${item.originalCollection}')">↩️ Restore</button>
+            <button class="btn-danger" onclick="deleteItemPermanently('${item.id}', '${item.originalCollection}')">❌ Permanent Delete</button>
+        `;
+        
+        // Then other columns
+        row.insertCell().textContent = item.sku || '';
+        row.insertCell().textContent = item.originalCollection || '';
+        row.insertCell().textContent = item.brand || '';
+        row.insertCell().textContent = item.product || '';
+    });
+}
+
+        async function moveToRecycleBin(id, collectionName) {
+            showConfirmModal('Are you sure you want to move this item to Recycle Bin?', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const collectionRef = db.collection(collectionName);
+                        await saveDataToFirestore(collectionRef, id, { isDeleted: true });
+                        showNotification('Item moved to Recycle Bin!', 'success');
+                        await updateLocalData();
+                    } catch (e) {
+                        console.error(`Error moving item to recycle bin from ${collectionName}:`, e);
+                        showNotification('Error moving item to Recycle Bin.', 'error');
+                    }
+                }
+            });
+        }
+
         async function restoreItem(id, originalCollection) {
             showConfirmModal('Are you sure you want to restore this item?', async (confirmed) => {
                 if (confirmed) {
@@ -2321,12 +3185,12 @@
                              return;
                         }
 
-                        if (originalCollection === 'master_products' || originalCollection === 'new_products' || originalCollection === 'staff_claim') { 
+                        if (originalCollection === 'master_products' || originalCollection === 'new_products' || originalCollection === 'staff_claim') { // Added staff_claim
                             const sku = itemToRestore.sku;
                             if (sku) {
                                 if ( (originalCollection === 'master_products' && masterProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
                                      (originalCollection === 'new_products' && newProductsData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ||
-                                     (originalCollection === 'staff_claim' && staffClaimData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) { 
+                                     (originalCollection === 'staff_claim' && staffClaimData.some(p => p.sku === sku && !p.isDeleted && p.id !== id)) ) { // Added staff_claim
                                      showNotification(`Cannot restore: SKU ${sku} already exists in an active item in ${originalCollection}. Please resolve conflict first.`, 'error');
                                      return;
                                 }
@@ -2360,7 +3224,7 @@
                 }
             });
         }
-        
+
         async function emptyRecycleBin() {
             showConfirmModal('WARNING: This will permanently delete ALL items in the Recycle Bin. Are you sure?', async (confirmed) => {
                 if (confirmed) {
@@ -2395,19 +3259,32 @@
                 }
             });
         }
-        
+
         function searchRecycleBin(searchTerm) {
-            const lower = searchTerm.toLowerCase().trim();
-            currentRecycleBinViewData = lower ? deletedItemsData.filter(i => Object.values(i).some(v => String(v).toLowerCase().includes(lower))) : [...deletedItemsData];
+            const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+             if (lowerCaseSearchTerm) {
+                currentRecycleBinViewData = deletedItemsData.filter(item =>
+                    (item.brand && item.brand.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.product && item.product.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.sku && item.sku.toLowerCase().includes(lowerCaseSearchTerm)) ||
+                    (item.originalCollection && item.originalCollection.toLowerCase().includes(lowerCaseSearchTerm))
+                );
+            } else {
+                currentRecycleBinViewData = [...deletedItemsData];
+            }
             renderRecycleBinItems();
         }
         
-        // --- Brands & Statuses ---
         function showAddBrandModal() {
             document.getElementById('addBrandModal').querySelector('form').reset();
             openModal('addBrandModal');
         }
-        
+
+        function showAddStatusModal() {
+            document.getElementById('addStatusModal').querySelector('form').reset();
+            openModal('addStatusModal');
+        }
+
         async function saveNewBrand(event) {
             event.preventDefault();
             const newBrandNameInput = document.getElementById('newBrandName');
@@ -2431,12 +3308,7 @@
                 console.error("Error adding new brand:", e);
             }
         }
-        
-        function showAddStatusModal() {
-            document.getElementById('addStatusModal').querySelector('form').reset();
-            openModal('addStatusModal');
-        }
-        
+
         async function saveNewStatus(event) {
             event.preventDefault();
             const newStatusNameInput = document.getElementById('newStatusName');
@@ -2460,15 +3332,15 @@
                 console.error("Error adding new status:", e);
             }
         }
-        
-        // --- Management & Utilities ---
+
+        // Management Tab Functions
         function getTableDataForExport(tableKey, dataArray) {
             let headers = [];
             let rows = [];
 
             if (tableKey === 'inventory') {
                 headers = ["Product Code", "Brand", "Product", "Quantity", "Status", "Shipment Date", "Remarks", "Last Updated"];
-                rows = dataArray.map(item => [
+                rows = dataArray.filter(item => !item.isDeleted && (item.status === 'OOS' || (item.status && item.status.toLowerCase().includes('low stock')))).map(item => [
                     item.sku || '', item.brand || '', item.product || '',
                     item.quantity !== undefined ? item.quantity : '',
                     item.status || '', item.shipmentDate || '', item.remarks || '',
@@ -2476,7 +3348,7 @@
                 ]);
             } else if (tableKey === 'new_products') {
                 headers = ["Product Code", "Brand", "Product", "Added Date", "Arrival Date", "Quantity", "Notes", "Last Updated"];
-                rows = dataArray.map(item => [
+                rows = dataArray.filter(item => !item.isDeleted).map(item => [
                     item.sku || '', item.brand || '', item.product || '',
                     item.addedDate || '', item.arrivalDate || '',
                     item.quantity !== undefined ? item.quantity : '', item.notes || '',
@@ -2484,7 +3356,7 @@
                 ]);
             } else if (tableKey === 'to_clear') {
                 headers = ["Product Code", "Brand", "Product", "Expiry Date", "First Highlighted", "Initial Bal", "WH Qty", "Store Qty", "Total Qty", "Wk Demand", "Wks Supply", "Supply Status", "Remarks", "Action Plan", "Last Updated"];
-                rows = dataArray.map(item => {
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
                     const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
                     const weeksSupply = (Number(item.weeklyDemand) || 0) > 0 ? (totalQty / Number(item.weeklyDemand)).toFixed(2) : 'N/A';
                     return [
@@ -2501,7 +3373,7 @@
                 });
             } else if (tableKey === 'master_products') {
                 headers = ["Product Code", "Brand", "Product Name", "WK Demand", "Expiry Date", "Price"];
-                rows = dataArray.map(item => {
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
                     let formattedExpiry = '';
                     if (item.expiryDate) { // Stored as 'YYYY-MM'
                         const [year, month] = item.expiryDate.split('-');
@@ -2519,25 +3391,45 @@
                         item.price !== undefined ? parseFloat(item.price).toFixed(2) : ''
                     ];
                 });
-            } else if (tableKey === 'staff_claim') {
-                headers = ["Product Code", "Brand", "Product Name", "Price", "Exp. Date", "Import Remarks", "Quantities", "Action Remark"];
-                rows = dataArray.map(item => [
-                    item.sku || '',
-                    item.brand || '',
-                    item.product || '',
-                    item.price !== undefined ? parseFloat(item.price).toFixed(2) : '',
-                    item.expiryDate || '',
-                    item.claimRemarks || '',
-                    item.warehouseQty !== undefined ? item.warehouseQty : '',
-                    item.actionPlan || ''
-                ]);
+            } else if (tableKey === 'staff_claim') { // Added for Staff Claim
+                headers = ["Product Code", "Brand", "Product", "Expiry Date", "Remarks", "Warehouse Quantities", "Store Quantities", "Total Quantities", "Price", "Staff Price", "Action Plan", "Last Updated"];
+                rows = dataArray.filter(item => !item.isDeleted).map(item => {
+                    const totalQty = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
+                    const staffPrice = calculateStaffPrice(item.expiryDate, item.price); // Recalculate for export to ensure accuracy
+                    return [
+                        item.sku || '',
+                        item.brand || '',
+                        item.product || '',
+                        item.expiryDate || '',
+                        item.claimRemarks || '',
+                        item.warehouseQty !== undefined ? item.warehouseQty : '',
+                        item.storeQty !== undefined ? item.storeQty : '',
+                        totalQty,
+                        item.price !== undefined ? parseFloat(item.price).toFixed(2) : '', 
+                        staffPrice !== undefined ? staffPrice.toFixed(2) : '', // ADDED staff price
+                        item.actionPlan || '',
+                        item.lastUpdated ? new Date(item.lastUpdated).toLocaleString() : ''
+                    ];
+                });
             }
             return { headers, rows };
         }
 
-        async function exportAllData() {
+       async function exportAllData() {
             if (typeof JSZip === 'undefined') {
-                showNotification('Export library not loaded. Please try again.', 'error');
+                showNotification('Data export library (JSZip) is not loaded. Please try again in a moment or check console.', 'error');
+                console.error('JSZip library not found for exportAllData.');
+                // Attempt to load JSZip if not found - useful if initial load failed
+                if (!document.querySelector('script[src*="jszip.min.js"]')) {
+                    const script = document.createElement('script');
+                    script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js";
+                    script.onload = async () => {
+                        console.log("JSZip loaded dynamically. Please try exporting again.");
+                        showNotification("JSZip loaded. Please click Export All Data again.", "info");
+                    };
+                    script.onerror = () => console.error("Failed to load JSZip dynamically.");
+                    document.head.appendChild(script);
+                }
                 return;
             }
 
@@ -2547,37 +3439,29 @@
                 { key: 'new_products', data: newProductsData, fileName: 'new_products.csv' },
                 { key: 'to_clear', data: toClearData, fileName: 'to_clear_products.csv' },
                 { key: 'master_products', data: masterProductsData, fileName: 'master_list.csv' },
-                { key: 'staff_claim', data: staffClaimData, fileName: 'staff_claim_list.csv' }
+                { key: 'staff_claim', data: staffClaimData, fileName: 'staff_claim_list.csv' } // Added for Staff Claim
             ];
 
             for (const collectionInfo of collectionsToExport) {
                 const { headers, rows } = getTableDataForExport(collectionInfo.key, collectionInfo.data);
                 if (rows.length === 0) continue;
-                let csvContent = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+                let csvContent = headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',') + '\n';
+                rows.forEach(row => {
+                    csvContent += row.map(f => `"${String(f !== undefined && f !== null ? f : '').replace(/"/g, '""')}"`).join(',') + '\n';
+                });
                 zip.file(collectionInfo.fileName, csvContent);
             }
 
             try {
                 const content = await zip.generateAsync({ type: "blob" });
                 downloadBlob(content, 'inventory_reports.zip');
-                showNotification('Data exported as ZIP!', 'success');
+                showNotification('Selected data exported as ZIP!', 'success');
             } catch (e) {
                 console.error("Error generating zip file:", e);
-                showNotification('Error exporting data.', 'error');
+                showNotification('Error exporting all data.', 'error');
             }
         }
         
-        function downloadCSV(csvContent, fileName) { 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); 
-            const link = document.createElement("a"); 
-            const url = URL.createObjectURL(blob); 
-            link.setAttribute("href", url); 
-            link.setAttribute("download", fileName); 
-            document.body.appendChild(link); 
-            link.click(); 
-            document.body.removeChild(link); 
-        }
-
         function downloadBlob(blob, fileName) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2588,7 +3472,8 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-        
+
+
         async function loadSampleData() {
             showNotification('Loading sample data... This may take a moment.', 'info');
             const sampleBrands = [
@@ -2620,11 +3505,11 @@
                 { brand: 'BrandB', product: 'Old Stock Monitor', sku: 'OSM6006', expiryDate: '2025-07-31', firstHighlightedDate: '2025-05-01', firstReportedBalance: 20, warehouseQty: 10, storeQty: 5, weeklyDemand: 1, remarks: 'Slight scratch on bezel', actionPlan: 'Promotional discount 20%', isDeleted: false },
                 { brand: 'BrandC', product: 'Demo Unit Tablet', sku: 'DUT7007', expiryDate: '2025-08-30', firstHighlightedDate: '2025-05-10', firstReportedBalance: 5, warehouseQty: 1, storeQty: 2, weeklyDemand: 0, remarks: 'Used for display', actionPlan: 'Bundle with accessories', isDeleted: false }
             ];
-            const sampleStaffClaim = [
+            const sampleStaffClaim = [ // Added sample data for Staff Claim
                 { brand: 'BrandX', product: 'Faulty Headset', sku: 'FH8008', expiryDate: '2025-10-15', claimRemarks: 'Damaged during transit', warehouseQty: 2, storeQty: 0, actionPlan: 'Claim from supplier', lastUpdated: new Date().toISOString(), isDeleted: false, price: 50.00 },
                 { brand: 'BrandY', product: 'Scratched Phone', sku: 'SP9009', expiryDate: '2026-01-20', claimRemarks: 'Customer return', warehouseQty: 0, storeQty: 1, actionPlan: 'Send for repair', lastUpdated: new Date().toISOString(), isDeleted: false, price: 200.00 }
             ];
-            const sampleRemarks = [
+            const sampleRemarks = [ // Added sample data for Remarks
                 { text: 'Damaged during transit', isDeleted: false },
                 { text: 'Customer return', isDeleted: false },
                 { text: 'Expired product', isDeleted: false }
@@ -2637,11 +3522,12 @@
                 { ref: inventoryColRef, data: sampleInventory },
                 { ref: newProductsColRef, data: sampleNewProducts },
                 { ref: toClearColRef, data: sampleToClear },
-                { ref: staffClaimColRef, data: sampleStaffClaim },
-                { ref: db.collection('remarks'), data: sampleRemarks }
+                { ref: staffClaimColRef, data: sampleStaffClaim }, // Added for Staff Claim
+                { ref: remarksColRef, data: sampleRemarks } // Added for Remarks
             ];
 
             try {
+                // Clear existing data
                 for (const { ref } of collectionsAndData) {
                     const snapshot = await ref.get();
                     if (snapshot.docs.length > 0) {
@@ -2650,6 +3536,7 @@
                         await deleteBatch.commit();
                     }
                 }
+                // Load new sample data
                 const loadBatch = db.batch();
                 for (const { ref, data } of collectionsAndData) {
                     data.forEach(item => {
@@ -2665,52 +3552,116 @@
                 showNotification('Error loading sample data. Check console.', 'error');
             }
         }
-        
-        function confirmLoadSampleData() { showConfirmModal('WARNING: This will delete ALL existing data. Are you sure?', async (c) => { if(c) await loadSampleData(); }); }
-        
-        // --- Sorting ---
+
+
+        function confirmLoadSampleData() {
+            showConfirmModal('WARNING: This will delete ALL existing data and load sample data. Are you sure?', async (confirmed) => {
+                if (confirmed) {
+                    await loadSampleData();
+                }
+            });
+        }
+
+        // Sorting
         function sortTable(tableKey, column) {
-            const state = sortState[tableKey];
-            state.direction = (state.column === column && state.direction === 'asc') ? 'desc' : 'asc';
-            state.column = column;
-            updateAllTablesAndViews();
+            const tableSortState = sortState[tableKey];
+            if (tableSortState.column === column) {
+                tableSortState.direction = tableSortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                tableSortState.column = column;
+                tableSortState.direction = 'asc';
+            }
             updateSortIndicators(tableKey);
+            if (tableKey === 'inventory') renderInventoryItems();
+            else if (tableKey === 'newProducts') renderNewProductsItems();
+            else if (tableKey === 'master') renderMasterListItems();
+            else if (tableKey === 'toClear') renderToClearItems();
+            else if (tableKey === 'staffClaim') renderStaffClaimItems(); // Added for Staff Claim
+            else if (tableKey === 'recycleBin') renderRecycleBinItems();
         }
 
         function sortArray(arr, column, direction) {
-            if (!column) return arr;
+            if (!column || !arr) return arr || []; 
+
             return [...arr].sort((a, b) => {
                 let valA = a[column];
                 let valB = b[column];
-                const asc = direction === 'asc';
-                if (valA === undefined || valA === null || valA === '') return 1;
-                if (valB === undefined || valB === null || valB === '') return -1;
-                if (typeof valA === 'string' && /^\d{4}-\d{2}/.test(valA)) {
-                    valA = new Date(valA);
-                    valB = new Date(valB);
+
+                if (sortState.toClear.column === 'totalQty' && column === 'totalQty') {
+                    valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                } else if (sortState.toClear.column === 'weeksSupply' && column === 'weeksSupply') {
+                    const totalA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valA = (Number(a.weeklyDemand) || 0) > 0 ? (totalA / Number(a.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
+                    const totalB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                    valB = (Number(b.weeklyDemand) || 0) > 0 ? (totalB / Number(b.weeklyDemand)) : (direction === 'asc' ? Infinity : -Infinity);
+                } else if (sortState.staffClaim.column === 'totalQty' && column === 'totalQty') { // Added for Staff Claim
+                    valA = (Number(a.warehouseQty) || 0) + (Number(a.storeQty) || 0);
+                    valB = (Number(b.warehouseQty) || 0) + (Number(b.storeQty) || 0);
+                } else if (sortState.staffClaim.column === 'price' && column === 'price') { 
+                    valA = parseFloat(a.price) || 0;
+                    valB = parseFloat(b.price) || 0;
+                } else if (sortState.staffClaim.column === 'staffPrice' && column === 'staffPrice') { // NEW: Staff Price sorting
+                    valA = parseFloat(a.staffPrice) || 0;
+                    valB = parseFloat(b.staffPrice) || 0;
                 }
-                if (valA < valB) return asc ? -1 : 1;
-                if (valA > valB) return asc ? 1 : -1;
-                return 0;
+
+                const aUndefined = (valA === undefined || valA === null || valA === '' || valA === 'N/A' || (typeof valA === 'number' && isNaN(valA)) );
+                const bUndefined = (valB === undefined || valB === null || valB === '' || valB === 'N/A' || (typeof valB === 'number' && isNaN(valB)) );
+
+                if (aUndefined && bUndefined) return 0;
+                if (aUndefined) return direction === 'asc' ? 1 : -1;
+                if (bUndefined) return direction === 'asc' ? -1 : 1;
+
+                if (typeof valA === 'string' && typeof valB === 'string') {
+                    //YYYY-MM-DD for to_clear or YYYY-MM for master
+                    if (/^\d{4}-\d{2}(-\d{2})?$/.test(valA) && /^\d{4}-\d{2}(-\d{2})?$/.test(valB)) { 
+                        return direction === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
+                    }
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB) && String(numA) === valA && String(numB) === valB) {
+                         return direction === 'asc' ? numA - numB : numB - numA;
+                    }
+                    return direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                }
+                
+                const strA = String(valA);
+                const strB = String(valB);
+                return direction === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
             });
         }
-        
+
         function updateSortIndicators(tableKey) {
-            const containerId = `${tableKey === 'master' ? 'master-table' : (tableKey === 'newProducts' ? 'new-products-table' : tableKey)}-table-container`;
-            const container = document.getElementById(containerId);
-            container?.querySelectorAll('thead th[data-column-key]').forEach(th => {
-                const arrow = th.querySelector('.sort-arrow');
-                if(arrow) arrow.textContent = th.dataset.columnKey === sortState[tableKey].column ? (sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼') : '';
+            const tableContainerId = `${tableKey === 'master' ? 'master-table' : tableKey}-table-container`;
+            const tableContainer = document.getElementById(tableContainerId);
+            let headers;
+
+            if (tableContainer && tableContainer.querySelector('thead')) {
+                headers = tableContainer.querySelectorAll('thead th[data-column-key]');
+            } else {
+                return;
+            }
+            
+            headers.forEach(header => {
+                const arrowSpan = header.querySelector('.sort-arrow');
+                if (arrowSpan) arrowSpan.textContent = ''; 
+                if (header.dataset.columnKey === sortState[tableKey].column) {
+                    if (arrowSpan) arrowSpan.textContent = sortState[tableKey].direction === 'asc' ? ' ▲' : ' ▼';
+                }
             });
         }
-        
-        // --- Dashboard & Alerts ---
+
+        // Dashboard Stats
         function updateDashboardStats() {
-            document.getElementById('oos-count').textContent = inventoryData.filter(i => i.status === 'OOS').length;
-            document.getElementById('low-count').textContent = inventoryData.filter(i => i.status?.toLowerCase().includes('low stock')).length;
-            document.getElementById('new-count').textContent = newProductsData.length;
-            document.getElementById('to-clear-count').textContent = toClearData.length;
-            document.getElementById('staff-claim-count').textContent = staffClaimData.length;
+            document.getElementById('oos-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status === 'OOS').length;
+            document.getElementById('low-count').textContent = inventoryData.filter(item => !item.isDeleted && item.status && item.status.toLowerCase().includes('low stock')).length;
+            document.getElementById('new-count').textContent = newProductsData.filter(item => !item.isDeleted).length;
+            document.getElementById('to-clear-count').textContent = toClearData.filter(item => !item.isDeleted).length;
+            document.getElementById('staff-claim-count').textContent = staffClaimData.filter(item => !item.isDeleted).length;
         }
 
         function updateAlerts() {
@@ -2729,9 +3680,11 @@
             const expiringSoon = toClearData.filter(item => {
                 if (!item.isDeleted && item.expiryDate) {
                     try {
-                        const expiry = new Date(item.expiryDate);
+                        const expiryParts = item.expiryDate.split('-');
+                        const expiry = new Date(expiryParts[0], expiryParts[1] - 1, expiryParts[2]);
+                        expiry.setHours(0,0,0,0);
                         return expiry >= today && expiry <= ninetyDaysFromToday;
-                    } catch (e) { return false; }
+                    } catch (e) { console.warn("Error parsing expiry date for alert:", item.expiryDate, e); return false; }
                 }
                 return false;
             }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate)).slice(0, 5);
@@ -2747,76 +3700,65 @@
                     '</ul>';
             }
             if (expiringSoon.length > 0) {
-                alertContent += '<h4>Expiring Soon (within 90 days):</h4><ul>' +
+                alertContent += '<h4>Expiring Soon Items (within 90 days):</h4><ul>' +
                     expiringSoon.map(item => `<li><span class="status-badge alert-status">Expiring</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - Expiry: ${item.expiryDate}</li>`).join('') +
                     '</ul>';
             }
             
-            const dangerToClearItems = toClearData.filter(item => !item.isDeleted && (getSupplyStatusText(item) === 'Danger' || getSupplyStatusText(item) === 'Expired')).slice(0, 5);
+            // New section for Top 5 Danger Items from To Clear list
+            const dangerToClearItems = toClearData.filter(item => {
+                if (item.isDeleted) return false;
+                const statusText = getSupplyStatusText(item);
+                return statusText === 'Danger' || statusText === 'Expired';
+            }).sort((a, b) => {
+                const statusTextA = getSupplyStatusText(a);
+                const statusTextB = getSupplyStatusText(b);
+
+                // Prioritize 'Expired' items over 'Danger' items
+                if (statusTextA === 'Expired' && statusTextB !== 'Expired') return -1;
+                if (statusTextA !== 'Expired' && statusTextB === 'Expired') return 1;
+
+                // For items with the same status ('Expired' or 'Danger'), sort by expiryDate (earliest first)
+                const dateA = a.expiryDate ? new Date(a.expiryDate) : null;
+                const dateB = b.expiryDate ? new Date(b.expiryDate) : null;
+
+                if (dateA && dateB) {
+                    return dateA - dateB;
+                } else if (dateA) { // Only A has a valid date, so it comes first
+                    return -1;
+                } else if (dateB) { // Only B has a valid date, so it comes first
+                    return 1;
+                }
+                return 0; 
+            }).slice(0, 5);
 
             if (dangerToClearItems.length > 0) {
                 alertContent += '<h4>Danger Zone (To Clear):</h4><ul>' +
-                    dangerToClearItems.map(item => `<li><span class="status-badge ${getSupplyStatusClass(item)}">${getSupplyStatusText(item)}</span> ${item.product || 'N/A'} (${item.brand || 'N/A'})</li>`).join('') +
+                    dangerToClearItems.map(item => {
+                        const statusText = getSupplyStatusText(item); // Will be 'Expired' or 'Danger'
+                        const badgeClass = getSupplyStatusClass(item); // Should correctly return 'danger-status'
+                        return `<li><span class="status-badge ${badgeClass}">${statusText}</span> ${item.product || 'N/A'} (${item.brand || 'N/A'}) - SKU: ${item.sku || 'N/A'}${item.expiryDate ? `, Exp: ${item.expiryDate}` : ''}</li>`;
+                    }).join('') +
                     '</ul>';
             }
             
             alertsDiv.innerHTML = alertContent || '<p>No immediate alerts.</p>';
         }
 
-        function getSupplyStatusClass(item) {
-            const expiryDateStr = item.expiryDate;
-            const totalQuantity = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-            const weeklyDemand = Number(item.weeklyDemand) || 0;
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-
-            if (!expiryDateStr) return 'info'; 
-            const expiryDate = new Date(expiryDateStr);
-            if (expiryDate <= today) return 'danger-status'; 
-            if (weeklyDemand <= 0) return 'danger-status'; 
-
-            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
-            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
-
-            const expiryDateMinus9Months = new Date(expiryDate);
-            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
-            const expiryDateMinus6Months = new Date(expiryDate);
-            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
-
-            if (projectedSellOutDate <= expiryDateMinus9Months) return 'normal'; 
-            else if (projectedSellOutDate <= expiryDateMinus6Months) return 'alert-status'; 
-            else return 'danger-status'; 
-        }
-
-        function getSupplyStatusText(item) {
-            const expiryDateStr = item.expiryDate;
-            const totalQuantity = (Number(item.warehouseQty) || 0) + (Number(item.storeQty) || 0);
-            const weeklyDemand = Number(item.weeklyDemand) || 0;
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-
-            if (!expiryDateStr) return 'N/A';
-            const expiryDate = new Date(expiryDateStr);
-            if (expiryDate <= today) return 'Expired';
-            if (weeklyDemand <= 0) return 'Danger';
-
-            const daysToSellOut = (totalQuantity / weeklyDemand) * 7;
-            const projectedSellOutDate = new Date(today.getTime() + daysToSellOut * 24 * 60 * 60 * 1000);
-            
-            const expiryDateMinus9Months = new Date(expiryDate);
-            expiryDateMinus9Months.setMonth(expiryDateMinus9Months.getMonth() - 9);
-            const expiryDateMinus6Months = new Date(expiryDate);
-            expiryDateMinus6Months.setMonth(expiryDateMinus6Months.getMonth() - 6);
-
-            if (projectedSellOutDate <= expiryDateMinus9Months) return 'Normal';
-            else if (projectedSellOutDate <= expiryDateMinus6Months) return 'Alert';
-            else return 'Danger';
-        }
-        
         function updateManagementStats() {
-            document.getElementById('total-products').textContent = masterProductsData.length;
-            document.getElementById('total-products-all').textContent = new Set(masterProductsData.map(p => p.sku)).size;
+            const activeMasterProductsCount = masterProductsData.filter(item => !item.isDeleted).length;
+            document.getElementById('total-products').textContent = activeMasterProductsCount;
+            
+            const allUniqueSkus = new Set(masterProductsData.filter(item => !item.isDeleted && item.sku).map(item => item.sku));
+            document.getElementById('total-products-all').textContent = allUniqueSkus.size; 
             document.getElementById('last-updated').textContent = new Date().toLocaleString();
         }
-        
+
+        function downloadCSV(csvContent, fileName) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            downloadBlob(blob, fileName);
+        }
+
         async function importCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2832,6 +3774,7 @@
                 }
 
                 const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase()); 
+                // Adjusted required headers: "wk demand" instead of "category"
                 const requiredHeaders = ['product code', 'brand', 'product name']; 
                 const missingHeaders = requiredHeaders.filter(rh => !headers.includes(rh));
                 if (missingHeaders.length > 0) {
@@ -2840,6 +3783,7 @@
                     return;
                 }
                 
+                // Adjusted headerMap for "wk demand" and "expiry date"
                 const headerMap = {
                     'product code': 'sku', 'brand': 'brand', 'product name': 'product',
                     'wk demand': 'wkDemand', 'expiry date': 'expiryDate', 'price': 'price'
@@ -2940,15 +3884,18 @@
             };
             reader.readAsText(file);
         }
-        
-        // --- Initialization ---
+
         window.onload = async function() {
             if (typeof JSZip === 'undefined') {
+                console.log("JSZip not found, attempting to load...");
                 const script = document.createElement('script');
                 script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js";
-                script.onload = initializeApp;
+                script.onload = async () => {
+                    console.log("JSZip loaded successfully.");
+                    await initializeApp();
+                };
                 script.onerror = () => {
-                    console.error("Failed to load JSZip.");
+                    console.error("Failed to load JSZip. Export all data may not work.");
                     initializeApp(); 
                 };
                 document.head.appendChild(script);
@@ -2959,14 +3906,24 @@
 
         async function initializeApp() {
             await updateLocalData();
-            const activeTab = document.querySelector('.tab.active') || document.querySelector('.tab');
-            if(activeTab) {
-                switchTab(activeTab, activeTab.getAttribute('onclick').match(/'([^']+)'/)[1]);
+            const dashboardTabButton = document.querySelector('.tab[onclick*="dashboard"]');
+            const dashboardContent = document.getElementById('dashboard');
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (dashboardTabButton && dashboardContent) {
+                dashboardTabButton.classList.add('active');
+                dashboardContent.classList.add('active');
+            } else { 
+                const firstTab = document.querySelector('.tab');
+                const firstContent = document.querySelector('.tab-content');
+                if(firstTab) firstTab.classList.add('active');
+                if(firstContent) firstContent.classList.add('active');
             }
-            Object.keys(sortState).forEach(updateSortIndicators);
+            Object.keys(sortState).forEach(tableKey => updateSortIndicators(tableKey));
         }
 
     </script>
-</body>
+    </body>
 </html>
-
